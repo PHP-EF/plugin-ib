@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->rbac->checkAccess("B1-SECURITY-ASSESSMENT") == false) {
+  if ($ibPlugin->auth->checkAccess("B1-SECURITY-ASSESSMENT") == false) {
     die();
   }
   return <<<EOF

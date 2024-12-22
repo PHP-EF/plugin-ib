@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->rbac->checkAccess("ADMIN-SECASS") == false) {
+  if ($ibPlugin->auth->checkAccess("ADMIN-SECASS") == false) {
     die();
   }
   return <<<EOF

@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->rbac->checkAccess("B1-LICENSE-USAGE") == false) {
+  if ($ibPlugin->auth->checkAccess("B1-LICENSE-USAGE") == false) {
     die();
   }
 return <<<EOF

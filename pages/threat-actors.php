@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->rbac->checkAccess("B1-THREAT-ACTORS") == false) {
+  if ($ibPlugin->auth->checkAccess("B1-THREAT-ACTORS") == false) {
     die();
   }
   return <<<EOF

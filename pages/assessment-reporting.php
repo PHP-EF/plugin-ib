@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->rbac->checkAccess("REPORT-ASSESSMENTS") == false) {
+  if ($ibPlugin->auth->checkAccess("REPORT-ASSESSMENTS") == false) {
     die();
   }
   return <<<EOF
