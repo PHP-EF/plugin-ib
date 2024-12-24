@@ -28,14 +28,13 @@ class ibPlugin extends ib {
 	}
 
 	public function _pluginGetSettings() {
-		$roles = $this->auth->getRBACRolesForMenu();
 		return array(
 			'Plugin Settings' => array(
-				settingsOption('select', 'ACL-SECURITYASSESSMENT', ['label' => 'Security Assessment ACL', 'options' => $roles]),
-				settingsOption('select', 'ACL-THREATACTORS', ['label' => 'Threat Actors ACL', 'options' => $roles]),
-				settingsOption('select', 'ACL-LICENSEUSAGE', ['label' => 'License Utilization ACL', 'options' => $roles]),
-				settingsOption('select', 'ACL-CONFIG', ['label' => 'Configuration Admin ACL', 'options' => $roles]),
-				settingsOption('select', 'ACL-REPORTING', ['label' => 'Reporting ACL', 'options' => $roles]),
+				$this->settingsOption('auth', 'ACL-SECURITYASSESSMENT', ['label' => 'Security Assessment ACL']),
+				$this->settingsOption('auth', 'ACL-THREATACTORS', ['label' => 'Threat Actors ACL']),
+				$this->settingsOption('auth', 'ACL-LICENSEUSAGE', ['label' => 'License Utilization ACL']),
+				$this->settingsOption('auth', 'ACL-CONFIG', ['label' => 'Configuration Admin ACL']),
+				$this->settingsOption('auth', 'ACL-REPORTING', ['label' => 'Reporting ACL']),
 			)
 		);
 	}
