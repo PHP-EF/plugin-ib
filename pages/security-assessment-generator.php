@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess("B1-SECURITY-ASSESSMENT") == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-SECURITYASSESSMENT']) == false) {
     die();
   }
   return <<<EOF

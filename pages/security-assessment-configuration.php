@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess("ADMIN-SECASS") == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-CONFIG']) == false) {
     die();
   }
   return <<<EOF

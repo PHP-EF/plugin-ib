@@ -8,11 +8,11 @@ $GLOBALS['plugins']['ib'] = [ // Plugin Name
 	'name' => 'ib', // Plugin Name
 	'author' => 'TehMuffinMoo', // Who wrote the plugin
 	'category' => 'Infoblox', // One to Two Word Description
-	'link' => 'https://github.com/TehMuffinMoo/ib-sa-report', // Link to plugin info
+	'link' => 'https://github.com/TehMuffinMoo/php-ef-plugin-ib', // Link to plugin info
 	'version' => '1.0.0', // SemVer of plugin
 	'image' => 'logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
-	'api' => '/api/plugins/ib/settings', // api route for settings page (All Lowercase)
+	'api' => '/api/plugin/ib/settings', // api route for settings page
 ];
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
@@ -25,10 +25,19 @@ class ibPlugin extends ib {
 
 	public function __construct() {
 	   parent::__construct();
-	} 
+	}
 
 	public function _pluginGetSettings() {
-        return include_once(__DIR__ . DIRECTORY_SEPARATOR . 'config.php');
+		$roles = $this->auth->getRBACRolesForMenu();
+		return array(
+			'Plugin Settings' => array(
+				settingsOption('select', 'ACL-SECURITYASSESSMENT', ['label' => 'Security Assessment ACL', 'options' => $roles]),
+				settingsOption('select', 'ACL-THREATACTORS', ['label' => 'Threat Actors ACL', 'options' => $roles]),
+				settingsOption('select', 'ACL-LICENSEUSAGE', ['label' => 'License Utilization ACL', 'options' => $roles]),
+				settingsOption('select', 'ACL-CONFIG', ['label' => 'Configuration Admin ACL', 'options' => $roles]),
+				settingsOption('select', 'ACL-REPORTING', ['label' => 'Reporting ACL', 'options' => $roles]),
+			)
+		);
 	}
 
 	public function getDir() {

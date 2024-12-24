@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess("B1-THREAT-ACTORS") == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-THREATACTORS']) == false) {
     die();
   }
   return <<<EOF

@@ -1,6 +1,6 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess("REPORT-ASSESSMENTS") == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-REPORTING']) == false) {
     die();
   }
   return <<<EOF
