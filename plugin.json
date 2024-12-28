@@ -7,7 +7,7 @@
       "description": "This PHP-EF plugin enables various tools for use by Infoblox SAs.",
       "icon": "https://raw.githubusercontent.com/TehMuffinMoo/php-ef-plugin-ib/main/logo.png",
       "contact": "https://github.com/TehMuffinMoo/php-ef-plugin-ib/issues",
-      "website": "https://github.com/TehMuffinMoo/php-ef-plugin-ib",
+      "link": "https://github.com/TehMuffinMoo/php-ef-plugin-ib",
       "version": "1.1.0",
       "minimum_php-ef_version": "0.6.9",
       "release_date": "2024-12-20",
