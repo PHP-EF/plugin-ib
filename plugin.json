@@ -8,10 +8,10 @@
       "icon": "https://raw.githubusercontent.com/TehMuffinMoo/php-ef-plugin-ib/main/logo.png",
       "contact": "https://github.com/TehMuffinMoo/php-ef-plugin-ib/issues",
       "link": "https://github.com/TehMuffinMoo/php-ef-plugin-ib",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "minimum_php-ef_version": "0.6.9",
       "release_date": "2024-12-20",
-      "last_updated": "2024-12-24",
+      "last_updated": "2024-12-30",
       "github_folder": ""
     }
 ]

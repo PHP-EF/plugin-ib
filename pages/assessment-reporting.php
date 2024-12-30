@@ -1,8 +1,8 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-REPORTING']) == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING') == false) {
     die();
-  }
+  };
   return <<<EOF
   <main id="main" class="main">
     <section class="section reporting-section">

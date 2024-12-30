@@ -1,8 +1,8 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-LICENSEUSAGE']) == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-LICENSEUSAGE'] ?? null) == false) {
     die();
-  }
+  };
 return <<<EOF
 <!doctype html>
 <html lang="en">

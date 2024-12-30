@@ -1,8 +1,8 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-CONFIG']) == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CONFIG'] ?: 'ACL-CONFIG') == false) {
     die();
-  }
+  };
   return <<<EOF
   <style>
   .card {

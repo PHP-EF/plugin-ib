@@ -1,8 +1,8 @@
 <?php
   $ibPlugin = new ibPlugin();
-  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','ib')['ACL-SECURITYASSESSMENT']) == false) {
+  if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null) == false) {
     die();
-  }
+  };
   return <<<EOF
   <section class="section">
     <div class="row">
