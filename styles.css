@@ -1,4 +1,18 @@
 /* Recent Assessments */
 .reporting-section .recent-assessments {
     font-size: 14px;
-  }
+}
+
+/* Progress Bar */
+.progress {
+  width: 80%;
+  margin: auto;
+}
+.progress-bar {
+  background: -webkit-linear-gradient(left, #fedd01 0%, #00bd4d 35%, #00bd4d 65%, #00f9ff 100%);
+}
+
+/* Progress Action */
+.progressAction {
+  margin-top: 10px;
+}
