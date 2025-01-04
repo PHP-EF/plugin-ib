@@ -25,7 +25,7 @@
             <div class="container">
               <div class="row justify-content-md-center toolsMenu">
                 <div class="col-md-4 apiKey">
-                    <input onkeyup="checkInput(this.value)" id="APIKey" type="password" placeholder="Enter API Key" required>
+                    <input class="form-control" onkeyup="checkInput(this.value)" id="APIKey" type="password" placeholder="Enter API Key" required>
                     <i class="fas fa-save saveBtn" id="saveBtn"></i>
                 </div>
                 <div class="col-md-2 realm">

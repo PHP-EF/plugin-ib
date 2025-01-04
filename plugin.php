@@ -540,6 +540,7 @@ class AssessmentReporting extends ibPlugin {
 			$execute[':customer'] = $filters['customer'];
 		}
 		if (isset($Select)) {
+			$Select .= " ORDER BY created DESC";
 		  try {
 			$stmt = $this->db->prepare($Select);
 			$stmt->execute($execute);

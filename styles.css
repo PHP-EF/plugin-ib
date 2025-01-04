@@ -16,3 +16,8 @@
 .progressAction {
   margin-top: 10px;
 }
+
+/* API Key - Form Control */
+.apiKey .form-control {
+  display: inline;
+}
