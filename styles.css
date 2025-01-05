@@ -21,3 +21,14 @@
 .apiKey .form-control {
   display: inline;
 }
+
+/* IB Text Colours */
+body .ib-green {
+  color: #00bd4d;
+}
+body.dark-theme .ib-black {
+  color: #fff;
+}
+body.light-theme .ib-black {
+  color: #11101d;
+}

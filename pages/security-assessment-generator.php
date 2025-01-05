@@ -1,7 +1,8 @@
 <?php
   $ibPlugin = new ibPlugin();
   if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null) == false) {
-    die();
+    $ibPlugin->api->setAPIResponse('Error','Unauthorized',401);
+    return false;
   };
   return <<<EOF
   <section class="section">
