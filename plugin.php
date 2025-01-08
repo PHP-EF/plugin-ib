@@ -20,7 +20,7 @@ use Label305\PptxExtractor\Basic\BasicInjector;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
-class ibPlugin extends ib {
+class ibPlugin extends phpef {
 	public $SecurityAssessment;
 
 	public function __construct() {
