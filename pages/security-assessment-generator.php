@@ -65,7 +65,7 @@
       </div>
     </div>
     <br>
-    <div class="row sag-loading-div">
+    <div class="row sag-loading-div" style="display: none;">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
