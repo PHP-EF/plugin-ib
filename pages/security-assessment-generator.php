@@ -102,7 +102,7 @@
   var today = new Date();
   var maxPastDate = new Date(today);
   maxPastDate.setDate(today.getDate() - 31);
-  
+
   flatpickr("#SAGassessmentStartAndEndDate", {
     mode: "range",
     minDate: maxPastDate,
