@@ -27,7 +27,7 @@
               <div class="row justify-content-md-center toolsMenu">
                 <div class="col-md-4 apiKey">
                     <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="SAGAPIKey" type="password" placeholder="Enter API Key" required>
-                    <i class="fas fa-save saveBtn"></i>
+                    <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
                 </div>
                 <div class="col-md-2 realm">
                     <select id="SAGRealm" class="form-select" aria-label="Realm Selection">

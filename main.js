@@ -10,6 +10,15 @@ flatpickr("#reportingStartAndEndDate", {
   dateFormat: "Y-m-d H:i"
 });
 
+function apiKeyBtn(elem) {
+  if ($(elem).hasClass('fa-save')) {
+    console.log($(elem).prev().val());
+    saveAPIKey($(elem).prev().val());
+  } else if ($(elem).hasClass('fa-trash')) {
+    removeAPIKey();
+  }
+}
+
 function saveAPIKey(key) {
     queryAPI("POST", "/api/auth/crypt", {key: key}).done(function( data, status ) {
         if (data.result == 'Success') {
@@ -49,19 +58,10 @@ function checkInput(text) {
     }
 }
 
-
-
 // ** Populate the API Key input field ** //
 // Function to be called when specific elements are created
 function runOnAPIKeyCreation() {
   checkAPIKey();
-  $('.saveBtn').click(function(){
-    if ($('.saveBtn').hasClass('fa-save')) {
-      saveAPIKey($('.APIKey').val());
-    } else if ($('.saveBtn').hasClass('fa-trash')) {
-      removeAPIKey();
-    }
-  });
   // Add your custom functions here
 }
 
@@ -73,6 +73,7 @@ function mutationCallback(mutationsList, observer) {
               if (node.nodeType === Node.ELEMENT_NODE) {
                   // Check if the created element matches your criteria
                   if (node.matches('.APIKey')) {
+                    console.log('hi',node);
                     runOnAPIKeyCreation();
                   }
                   // Check for nested elements
@@ -91,5 +92,5 @@ const observer = new MutationObserver(mutationCallback);
 
 // Start observing the target node for configured mutations
 const targetNode = document.body; // You can change this to a more specific target
-const config = { childList: true, subtree: true };
-observer.observe(targetNode, config);
+const mutationObserverConfig = { childList: true, subtree: true };
+observer.observe(targetNode, mutationObserverConfig);

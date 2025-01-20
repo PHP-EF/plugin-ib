@@ -27,7 +27,7 @@
               <div class="row justify-content-md-center toolsMenu">
                 <div class="col-md-4 apiKey">
                     <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="TARAPIKey" type="password" placeholder="Enter API Key" required>
-                    <i class="fas fa-save saveBtn"></i>
+                    <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
                 </div>
                 <div class="col-md-2 realm">
                     <select id="TARRealm" class="form-select" aria-label="Realm Selection">
@@ -39,7 +39,7 @@
                     <input type="text" id="TARassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
                 </div>
                 <div class="col-md-2 actions">
-                  <button class="btn btn-success" id="Generate">Generate</button>
+                  <button class="btn btn-success" id="Actors">Generate</button>
                 </div>
               </div>
               <div class="row mt-3">
@@ -227,8 +227,8 @@
       var postArr = {}
       postArr.Realm = $("#Realm").find(":selected").val();
       postArr.Page = params.data.pageNumber || 1;
-      if ($("#APIKey")[0].value) {
-        postArr.APIKey = $("#APIKey")[0].value
+      if ($("#TARAPIKey")[0].value) {
+        postArr.APIKey = $("#TARAPIKey")[0].value
       }
       queryAPI("POST", "/api/plugin/ib/threatactor/"+$("#threatActorID").val(), postArr).done(function( data, status ) {
         const mappedObject = {
