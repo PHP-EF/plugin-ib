@@ -24,45 +24,41 @@
         <div class="card">
           <div class="card-body">
             <div class="container">
-              <div class="row justify-content-center">
-                <div class="col-12 col-lg-12 col-xl-12 mx-auto">
-                  <div class="row justify-content-md-center toolsMenu">
-                    <div class="col-md-4 apiKey">
-                      <input class="form-control" onkeyup="checkInput(this.value)" id="APIKey" type="password" placeholder="Enter API Key" required>
-                      <i class="fas fa-save saveBtn" id="saveBtn"></i>
-                    </div>
-                    <div class="col-md-2 realm">
-                      <select id="Realm" class="form-select" aria-label="Realm Selection">
+              <div class="row justify-content-md-center toolsMenu">
+                <div class="col-md-4 apiKey">
+                    <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="TARAPIKey" type="password" placeholder="Enter API Key" required>
+                    <i class="fas fa-save saveBtn"></i>
+                </div>
+                <div class="col-md-2 realm">
+                    <select id="TARRealm" class="form-select" aria-label="Realm Selection">
                         <option value="US" selected>US Realm</option>
                         <option value="EU">EU Realm</option>
-                      </select>
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" id="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
-                    </div>
-                    <div class="col-md-2 actions">
-                      <button class="btn btn-success" id="Actors">Get Actors</button>
-                    </div>
-                  </div>
-                  <div class="row mt-3">
-                    <div class="col-md-6 options">
-                      <div class="form-group">
-                        <div class="form-check form-switch">
-                          <input class="form-check-input info-field" type="checkbox" id="unnamed" name="unnamed">
-                          <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <div class="form-check form-switch">
-                          <input class="form-check-input info-field" type="checkbox" id="substring" name="substring">
-                          <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <br>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="TARassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
+                </div>
+                <div class="col-md-2 actions">
+                  <button class="btn btn-success" id="Generate">Generate</button>
                 </div>
               </div>
+              <div class="row mt-3">
+                <div class="col-md-6 options">
+                  <div class="form-group">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input info-field" type="checkbox" id="TARunnamed" name="unnamed">
+                      <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input info-field" type="checkbox" id="TARsubstring" name="substring">
+                      <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <br>
             </div>
           </div>
         </div>
@@ -261,30 +257,30 @@
     }
 
     $("#Actors").on("click",function(e) {
-      if (!$("#APIKey").is(":disabled")) {
-          if(!$("#APIKey")[0].value) {
+      if (!$("#TARAPIKey").is(":disabled")) {
+          if(!$("#TARAPIKey")[0].value) {
               toast("Error","Missing Required Fields","The API Key is a required field.","danger","30000");
               return null;
           }
       }
-      if(!$("#assessmentStartAndEndDate")[0].value){
+      if(!$("#TARassessmentStartAndEndDate")[0].value){
           toast("Error","Missing Required Fields","The Start Date is a required field.","danger","30000");
           return null;
       }
 
       let timer = startTimer();
       showLoading(timer);
-      const assessmentStartAndEndDate = $("#assessmentStartAndEndDate")[0].value.split(" to ");
+      const assessmentStartAndEndDate = $("#TARassessmentStartAndEndDate")[0].value.split(" to ");
       const startDateTime = new Date(assessmentStartAndEndDate[0]);
       const endDateTime = new Date(assessmentStartAndEndDate[1]);
       var postArr = {}
       postArr.StartDateTime = startDateTime.toISOString()
       postArr.EndDateTime = endDateTime.toISOString()
-      postArr.Realm = $("#Realm").find(":selected").val()
-      postArr.unnamed = $("#unnamed")[0].checked;
-      postArr.substring = $("#substring")[0].checked;
-      if ($("#APIKey")[0].value) {
-        postArr.APIKey = $("#APIKey")[0].value
+      postArr.Realm = $("#TARRealm").find(":selected").val()
+      postArr.unnamed = $("#TARunnamed")[0].checked;
+      postArr.substring = $("#TARsubstring")[0].checked;
+      if ($("#TARAPIKey")[0].value) {
+        postArr.APIKey = $("#TARAPIKey")[0].value
       }
       queryAPI("POST", "/api/plugin/ib/threatactors", postArr).done(function( data, status ) {
         if (data["result"] == "Error") {

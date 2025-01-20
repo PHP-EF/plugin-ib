@@ -26,17 +26,17 @@
             <div class="container">
               <div class="row justify-content-md-center toolsMenu">
                 <div class="col-md-4 apiKey">
-                    <input class="form-control" onkeyup="checkInput(this.value)" id="APIKey" type="password" placeholder="Enter API Key" required>
-                    <i class="fas fa-save saveBtn" id="saveBtn"></i>
+                    <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="SAGAPIKey" type="password" placeholder="Enter API Key" required>
+                    <i class="fas fa-save saveBtn"></i>
                 </div>
                 <div class="col-md-2 realm">
-                    <select id="Realm" class="form-select" aria-label="Realm Selection">
+                    <select id="SAGRealm" class="form-select" aria-label="Realm Selection">
                         <option value="US" selected>US Realm</option>
                         <option value="EU">EU Realm</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
+                    <input type="text" id="SAGassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
                 </div>
                 <div class="col-md-2 actions">
                   <button class="btn btn-success" id="Generate">Generate</button>
@@ -46,13 +46,13 @@
                 <div class="col-md-6 options">
                   <div class="form-group">
                     <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="unnamed" name="unnamed">
+                      <input class="form-check-input info-field" type="checkbox" id="SAGunnamed" name="unnamed">
                       <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
                     </div>
                   </div>
                   <div class="form-group">
                     <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="substring" name="substring">
+                      <input class="form-check-input info-field" type="checkbox" id="SAGsubstring" name="substring">
                       <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
                     </div>
                   </div>
@@ -150,13 +150,13 @@
   })
   
   $("#Generate").click(function(){
-    if (!$("#APIKey").is(":disabled")) {
-      if(!$("#APIKey")[0].value) {
+    if (!$("#SAGAPIKey").is(":disabled")) {
+      if(!$("#SAGAPIKey")[0].value) {
       toast("Error","Missing Required Fields","The API Key is a required field.","danger","30000");
       return null;
       }
     }
-    if(!$("#assessmentStartAndEndDate")[0].value){
+    if(!$("#SAGassessmentStartAndEndDate")[0].value){
       toast("Error","Missing Required Fields","The Start & End Date is a required field.","danger","30000");
       return null;
     }
@@ -167,18 +167,18 @@
         let id = data.data;
         let timer = startTimer();
         showLoading(id,timer);
-        const assessmentStartAndEndDate = $("#assessmentStartAndEndDate")[0].value.split(" to ");
+        const assessmentStartAndEndDate = $("#SAGassessmentStartAndEndDate")[0].value.split(" to ");
         const startDateTime = new Date(assessmentStartAndEndDate[0]);
         const endDateTime = new Date(assessmentStartAndEndDate[1]);
         var postArr = {};
         postArr.StartDateTime = startDateTime.toISOString();
         postArr.EndDateTime = endDateTime.toISOString();
-        postArr.Realm = $("#Realm").find(":selected").val();
+        postArr.Realm = $("#SAGRealm").find(":selected").val();
         postArr.id = id;
-        postArr.unnamed = $("#unnamed")[0].checked;
-        postArr.substring = $("#substring")[0].checked;
-        if ($("#APIKey")[0].value) {
-          postArr.APIKey = $("#APIKey")[0].value;
+        postArr.unnamed = $("#SAGunnamed")[0].checked;
+        postArr.substring = $("#SAGsubstring")[0].checked;
+        if ($("#SAGAPIKey")[0].value) {
+          postArr.APIKey = $("#SAGAPIKey")[0].value;
         }
         queryAPI("POST","/api/plugin/ib/assessment/security/generate", postArr).done(function( data, status ) {
           if (data["result"] == "Success") {

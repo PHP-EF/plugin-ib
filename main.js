@@ -3,7 +3,7 @@ var today = new Date();
 var maxPastDate = new Date(today);
 maxPastDate.setDate(today.getDate() - 31);
 
-flatpickr("#assessmentStartAndEndDate", {
+flatpickr(".assessmentStartAndEndDate", {
   mode: "range",
   minDate: maxPastDate,
   maxDate: today,
@@ -51,12 +51,12 @@ function saveAPIKey(key) {
 
 function checkAPIKey() {
     if (getCookie('crypt')) {
-        $('#APIKey').prop('disabled',true).attr('placeholder','== Using Saved API Key ==').val('');
-        $("#saveBtn").removeClass('fa-save').addClass('fa-trash')
+        $('.APIKey').prop('disabled',true).attr('placeholder','== Using Saved API Key ==').val('');
+        $(".saveBtn").removeClass('fa-save').addClass('fa-trash')
         checkInput('saved');
     } else {
-        $('#APIKey').prop('disabled',false).attr('placeholder','Enter API Key');
-        $("#saveBtn").removeClass('fa-trash').addClass('fa-save')
+        $('.APIKey').prop('disabled',false).attr('placeholder','Enter API Key');
+        $(".saveBtn").removeClass('fa-trash').addClass('fa-save')
     }
 }
 
@@ -68,17 +68,17 @@ function removeAPIKey() {
 
 function checkInput(text) {
     if (text) {
-        $("#saveBtn").addClass("saveBtnShow");
+        $(".saveBtn").addClass("saveBtnShow");
     } else {
-        $("#saveBtn").removeClass("saveBtnShow");
+        $(".saveBtn").removeClass("saveBtnShow");
     }
 }
 
 checkAPIKey();
-$('#saveBtn').click(function(){
-  if ($('#saveBtn').hasClass('fa-save')) {
-    saveAPIKey($('#APIKey').val());
-  } else if ($('#saveBtn').hasClass('fa-trash')) {
+$('.saveBtn').click(function(){
+  if ($('.saveBtn').hasClass('fa-save')) {
+    saveAPIKey($('.APIKey').val());
+  } else if ($('.saveBtn').hasClass('fa-trash')) {
     removeAPIKey();
   }
 });
