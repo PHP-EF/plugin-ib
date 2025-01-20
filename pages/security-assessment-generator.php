@@ -65,11 +65,11 @@
       </div>
     </div>
     <br>
-    <div class="row loading-div">
+    <div class="row sag-loading-div">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <div class="loading-icon">
+            <div class="sag-loading-icon">
               <br>
               <div class="alert alert-info genInfo" role="alert">
                 <center>It can take up to 3 minutes to generate the report, please be patient.</center>
@@ -137,16 +137,16 @@
     document.body.removeChild(a)
   }
   
-  function showLoading(id,timer) {
-    document.querySelector(".loading-icon").style.display = "block";
-    document.querySelector(".loading-div").style.display = "block";
+  function showSAGLoading(id,timer) {
+    document.querySelector(".sag-loading-icon").style.display = "block";
+    document.querySelector(".sag-loading-div").style.display = "block";
     haltProgress = false;
     updateProgress(id,timer);
   }
   
-  function hideLoading(timer) {
-    document.querySelector(".loading-icon").style.display = "none";
-    document.querySelector(".loading-div").style.display = "none";
+  function hideSAGLoading(timer) {
+    document.querySelector(".sag-loading-icon").style.display = "none";
+    document.querySelector(".sag-loading-div").style.display = "none";
     haltProgress = true;
     stopTimer(timer);
   }
@@ -164,7 +164,7 @@
         } else if (progress >= 100 && data["Action"] == "Done.." ) {
           toast("Success","","Security Assessment Successfully Generated","success","30000");
           download("/api/plugin/ib/assessment/security/download?id="+id);
-          hideLoading(timer);
+          hideSAGLoading(timer);
           $("#Generate").prop("disabled", false);
         }
     }).fail(function( data, status ) {
@@ -194,8 +194,8 @@
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
         let id = data.data;
-        let timer = startTimer();
-        showLoading(id,timer);
+        let SAGtimer = startTimer();
+        showSAGLoading(id,SAGtimer);
         const assessmentStartAndEndDate = $("#SAGassessmentStartAndEndDate")[0].value.split(" to ");
         const startDateTime = new Date(assessmentStartAndEndDate[0]);
         const endDateTime = new Date(assessmentStartAndEndDate[1]);
@@ -214,12 +214,12 @@
             toast("Success","Do not refresh the page","Security Assessment Report Job Started Successfully","success","30000");
           } else {
             toast(data["result"],"",data["message"],"danger","30000");
-            hideLoading(timer);
+            hideSAGLoading(SAGtimer);
             $("#Generate").prop("disabled", false);
           }
         }).fail(function( data, status ) {
             toast("API Error","","Unknown API Error","danger","30000");
-            hideLoading(timer);
+            hideSAGLoading(SAGtimer);
             $("#Generate").prop("disabled", false);
         })
       } else {

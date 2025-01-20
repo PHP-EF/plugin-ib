@@ -32,3 +32,16 @@ body.dark-theme .ib-black {
 body.light-theme .ib-black {
   color: #11101d;
 }
+
+/* Loading Icons */
+.tar-loading-icon,
+.sag-loading-icon {
+  display: none;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.tar-loading-div,
+.sag-loading-div {
+  display: none;
+}

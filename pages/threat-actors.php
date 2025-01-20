@@ -65,11 +65,11 @@
       </div>
     </div>
     <br>
-    <div class="row loading-div">
+    <div class="row tar-loading-div">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <div class="loading-icon">
+            <div class="tar-loading-icon">
               <div class="alert alert-info genInfo" role="alert">
                 <center>It can take up to 2 minutes to generate the list of Threat Actors, please be patient.</center>
               </div>
@@ -162,17 +162,17 @@
       }
     });
 
-    function showLoading(timer) {
+    function showTARLoading(TARtimer) {
       $("#GetActors").prop("disabled", true)
-      document.querySelector(".loading-icon").style.display = "block";
-      document.querySelector(".loading-div").style.display = "block";
+      document.querySelector(".tar-loading-icon").style.display = "block";
+      document.querySelector(".tar-loading-div").style.display = "block";
     }
 
-    function hideLoading(timer) {
+    function hideTARLoading(TARtimer) {
       $("#GetActors").prop("disabled", false)
-      document.querySelector(".loading-icon").style.display = "none";
+      document.querySelector(".tar-loading-icon").style.display = "none";
       $("#progress-bar").css("width", "0%").attr("aria-valuenow", 0).text("0%");
-      stopTimer(timer);
+      stopTimer(TARtimer);
     }
 
     function iocCountFormatter(value, row, index) {
@@ -298,8 +298,8 @@
           return null;
       }
 
-      let timer = startTimer();
-      showLoading(timer);
+      let TARtimer = startTimer();
+      showTARLoading(TARtimer);
       const assessmentStartAndEndDate = $("#TARassessmentStartAndEndDate")[0].value.split(" to ");
       const startDateTime = new Date(assessmentStartAndEndDate[0]);
       const endDateTime = new Date(assessmentStartAndEndDate[1]);
@@ -315,7 +315,7 @@
       queryAPI("POST", "/api/plugin/ib/threatactors", postArr).done(function( data, status ) {
         if (data["result"] == "Error") {
           toast(data["result"],"",data["message"],"danger","30000");
-          hideLoading(timer);
+          hideTARLoading(TARtimer);
         } else {
           $("#threatActorTable").bootstrapTable("destroy");
           $("#threatActorTable").bootstrapTable({
@@ -355,13 +355,13 @@
               events: "actionEvents",
             }]
           });
-          hideLoading(timer);
+          hideTARLoading(TARtimer);
           return false;
         }
       }).fail(function( data, status ) {
         toast("API Error","","Unknown API Error","danger","30000");
       }).always(function() {
-        hideLoading(timer);
+        hideTARLoading(TARtimer);
       });
     });
   </script>
