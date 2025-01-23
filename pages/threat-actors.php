@@ -6,7 +6,7 @@
   };
   return <<<EOF
   <section class="section">
-    <div class="row">
+    <div class="row mx-2">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
@@ -19,7 +19,7 @@
       </div>
     </div>
     <br>
-    <div class="row">
+    <div class="row mx-2">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
@@ -65,7 +65,7 @@
       </div>
     </div>
     <br>
-    <div class="row tar-loading-div" style="display: none;">
+    <div class="row mx-2 tar-loading-div" style="display: none;">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
