@@ -12,7 +12,6 @@ flatpickr("#reportingStartAndEndDate", {
 
 function apiKeyBtn(elem) {
   if ($(elem).hasClass('fa-save')) {
-    console.log($(elem).prev().val());
     saveAPIKey($(elem).prev().val());
   } else if ($(elem).hasClass('fa-trash')) {
     removeAPIKey();
@@ -73,7 +72,6 @@ function mutationCallback(mutationsList, observer) {
               if (node.nodeType === Node.ELEMENT_NODE) {
                   // Check if the created element matches your criteria
                   if (node.matches('.APIKey')) {
-                    console.log('hi',node);
                     runOnAPIKeyCreation();
                   }
                   // Check for nested elements
