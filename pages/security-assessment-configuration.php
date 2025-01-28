@@ -35,7 +35,7 @@
               data-page-size="25"
               data-buttons="threatActorButtons"
               data-buttons-order="btnAddThreatActor,refresh"
-              class="table table-striped" id="threatActorTable">
+              class="table table-striped" id="threatActorConfigurationTable">
 
               <thead>
                 <tr>
@@ -451,7 +451,7 @@
           queryAPI("DELETE", "/api/plugin/ib/threatactors/config/"+row.id).done(function( data, status ) {
             if (data["result"] == "Success") {
               toast(data["result"],"",data["message"],"success");
-              $("#threatActorTable").bootstrapTable("refresh");
+              $("#threatActorConfigurationTable").bootstrapTable("refresh");
             } else if (data["result"] == "Error") {
               toast(data["result"],"",data["message"],"danger","30000");
             } else {
@@ -500,7 +500,7 @@
       queryAPI("POST", "/api/plugin/ib/threatactors/config", postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
           toast(data["result"],"",data["message"],"success");
-          $("#threatActorTable").bootstrapTable("refresh");
+          $("#threatActorConfigurationTable").bootstrapTable("refresh");
           if (svgFiles.length > 0 || pngFiles.length > 0) {
             const formData = new FormData();
             if (svgFiles[0]) {
@@ -564,7 +564,7 @@
       queryAPI("PATCH", "/api/plugin/ib/threatactors/config/"+id, postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
           toast(data["result"],"",data["message"],"success");
-          $("#threatActorTable").bootstrapTable("refresh");
+          $("#threatActorConfigurationTable").bootstrapTable("refresh");
           if (svgFiles.length > 0 || pngFiles.length > 0) {
             const formData = new FormData();
             if (svgFiles[0]) {
@@ -718,7 +718,7 @@
       })
     });
 
-    $("#threatActorTable").bootstrapTable();
+    $("#threatActorConfigurationTable").bootstrapTable();
     $("#templateTable").bootstrapTable();
   </script>
 EOF;
