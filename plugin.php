@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			// echo json_encode(array(
-			// 	'result' => 'Success',
-			// 	'message' => 'Started'
-			// ));
-			// fastcgi_finish_request();
+			echo json_encode(array(
+				'result' => 'Success',
+				'message' => 'Started'
+			));
+			fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -1050,7 +1050,9 @@ class SecurityAssessment extends ibPortal {
 				//'ContentFiltration' => '{"timeDimensions":[{"dimension":"PortunusAggWebContentDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"measures":["PortunusAggWebContentDiscovery.count"],"dimensions":["PortunusAggWebContentDiscovery.domain_category"],"filters":[{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"set"},{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"notEquals","values":[""]}],"order":{"PortunusAggWebContentDiscovery.count":"desc"},"limit":"10"}',
 				'InsightDistribution' => '{"measures":["InsightsAggregated.count"],"dimensions":["InsightsAggregated.threatType"],"filters":[{"member":"InsightsAggregated.insightStatus","operator":"equals","values":["Active"]}]}',
 				'DNSFirewallActivity' => '{"measures":["PortunusAggSecurity.severityCount"],"dimensions":["PortunusAggSecurity.severity"],"timeDimensions":[{"dimension":"PortunusAggSecurity.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggSecurity.type","operator":"equals","values":["2","3"]},{"member":"PortunusAggSecurity.severity","operator":"equals","values":["High","Medium","Low"]}],"limit":"3","ungrouped":false}',
+				'DNSFirewallActivityDaily' => '{"measures":["PortunusAggSecurity.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggSecurity.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"filters":[{"member":"PortunusAggSecurity.type","operator":"equals","values":["2","3"]}],"order":{"PortunusAggSecurity.timestamp":"asc"}}',
 				'DNSActivity' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["1"]}],"limit":"1","ungrouped":false}',
+				'DNSActivityDaily' => '{"measures":["PortunusAggSecurity.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggSecurity.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggSecurity.type","operator":"equals","values":["1"]}],"limit":"1","ungrouped":false}',
 				'SOCInsights' => '{"measures":["InsightsAggregated.count","InsightsAggregated.mostRecentAt","InsightsAggregated.startedAtMin"],"dimensions":["InsightsAggregated.priorityText"],"filters":[{"member":"InsightsAggregated.insightStatus","operator":"equals","values":["Active"]}],"timezone":"UTC"}',
 				'SecurityEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"contains","values":["2","3"]}],"limit":"1","ungrouped":false}',
 				'DataExfilEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["4"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["TI-DNST"]}],"ungrouped":false}',
@@ -1059,10 +1061,7 @@ class SecurityAssessment extends ibPortal {
 				'HighRiskWebsites' => '{"timeDimensions":[{"dimension":"PortunusAggWebContentDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"measures":["PortunusAggWebContentDiscovery.count","PortunusAggWebContentDiscovery.deviceCount"],"dimensions":["PortunusAggWebContentDiscovery.domain_category"],"order":{"PortunusAggWebContentDiscovery.count":"desc"},"filters":[{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"equals","values":["'.$HighRiskCategoryList.'"]}]}',
 				'DOHEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["DoHService"]}],"ungrouped":false}',
 				'NODEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["NewlyObservedDomains"]}],"ungrouped":false}',
-				// DGA & RDGA Events
 				'DGAEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"or":[{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["suspicious_rdga","suspicious_dga","DGA"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["DGA","MalwareC2DGA"]}]},{"member":"PortunusAggInsight.type","operator":"equals","values":["2","3"]}],"ungrouped":false}',
-				// RDGA Events Only
-				'RDGAEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["suspicious_rdga"]},{"member":"PortunusAggInsight.type","operator":"equals","values":["2","3"]}],"ungrouped":false}',
 				'UniqueApplications' => '{"measures":["PortunusAggAppDiscovery.requests"],"dimensions":["PortunusAggAppDiscovery.app_name","PortunusAggAppDiscovery.app_approval"],"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggAppDiscovery.app_name","operator":"set"},{"member":"PortunusAggAppDiscovery.app_name","operator":"notEquals","values":[""]}],"order":{}}',
 				'ThreatActivityEvents' => '{"measures":["PortunusAggInsight.threatCount"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.severity","operator":"equals","values":["High","Medium","Low"]},{"member":"PortunusAggInsight.threat_indicator","operator":"notEquals","values":[""]}],"limit":"1","ungrouped":false}',
 				'DNSFirewallEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"and":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"or":[{"member":"PortunusAggInsight.severity","operator":"equals","values":["High","Medium","Low"]},{"and":[{"member":"PortunusAggInsight.severity","operator":"equals","values":["Info"]},{"member":"PortunusAggInsight.policy_action","operator":"equals","values":["Block","Log"]}]}]},{"member":"PortunusAggInsight.confidence","operator":"equals","values":["High","Medium","Low"]}]}],"limit":"1","ungrouped":false}',
@@ -1131,6 +1130,38 @@ class SecurityAssessment extends ibPortal {
 				}
 				$ContentFiltrationW = IOFactory::createWriter($ContentFiltrationSS, 'Xlsx');
 				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet5.xlsx');
+			}
+
+			// Traffic Analysis - DNS Activity
+			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
+			$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
+			if (isset($DNSActivityDaily->result->data)) {
+				$DNSActivityDailySS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet6.xlsx');
+				$RowNo = 2;
+				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
+					$DNSActivityDailyS = $DNSActivityDailySS->getActiveSheet();
+					$DNSFirewallActivityDailyS->setCellValue('A'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
+					$DNSFirewallActivityDailyS->setCellValue('B'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.requests'});
+					$RowNo++;
+				}
+				$DNSActivityDailyW = IOFactory::createWriter($DNSActivityDailySS, 'Xlsx');
+				$DNSActivityDailyW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet6.xlsx');
+			}
+
+			// Traffic Analysis - DNS Firewall Activity
+			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
+			$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
+			if (isset($DNSFirewallActivityDaily->result->data)) {
+				$DNSFirewallActivityDailySS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet7.xlsx');
+				$RowNo = 2;
+				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
+					$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
+					$DNSFirewallActivityDailyS->setCellValue('A'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
+					$DNSFirewallActivityDailyS->setCellValue('B'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.requests'});
+					$RowNo++;
+				}
+				$DNSFirewallActivityDailyW = IOFactory::createWriter($DNSFirewallActivityDailySS, 'Xlsx');
+				$DNSFirewallActivityDailyW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet7.xlsx');
 			}
 	
 			// Insight Distribution by Threat Type - Sheet 3
@@ -1318,14 +1349,6 @@ class SecurityAssessment extends ibPortal {
 				$DGAEventsCount = $DGAEvents->result->data[0]->{'PortunusAggInsight.requests'};
 			} else {
 				$DGAEventsCount = 0;
-			}
-
-			// Registered Domain Generation Algorithms
-			$RDGAEvents = $CubeJSResults['RDGAEvents']['Body'];
-			if (isset($RDGAEvents->result->data[0])) {
-				$RDGAEventsCount = $RDGAEvents->result->data[0]->{'PortunusAggInsight.requests'};
-			} else {
-				$RDGAEventsCount = 0;
 			}
 	
 			// Unique Applications
@@ -1622,7 +1645,6 @@ class SecurityAssessment extends ibPortal {
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'.pptx',
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx'
 			);
-			print_r($mapping);
 	
 			$Progress = $this->writeProgress($UUID,$Progress,"Injecting Powerpoint Strings");
 			##// Slide 2 / 45 - Title Page & Contact Page
@@ -1661,7 +1683,7 @@ class SecurityAssessment extends ibPortal {
 			$mapping = replaceTag($mapping,'#TAG21',number_abbr($ThreatActorsCount)); // Threat Actors
 
 			##// Slide 7 - Additional Threat Intel Insights
-			$mapping = replaceTag($mapping,'#TAG27',number_abbr($RDGAEventsCount)); // Threat Actors
+			// ** CURRENTLY DONE MANUALLY BY ITI ** //
 	
 			##// Slide 9 - Traffic Usage Analysis
 			// Total DNS Activity

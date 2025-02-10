@@ -36,7 +36,7 @@ $app->get('/plugin/ib/assessment/security/progress', function ($request, $respon
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
-            $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'],37)); // Produces percentage for use on progress bar
+            $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'],39)); // Produces percentage for use on progress bar
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
