@@ -119,7 +119,7 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CONFIG'] ?: 'ACL-CONFIG')) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         $Status = $data['Status'] ?? null;
-        $FileName = $data['TemplateName'] ? $data['TemplateName'] . '.pptx' : null;
+        $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
         $TemplateName = $data['TemplateName'] ?? null;
         $Description = $data['Description'] ?? null;
         $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
