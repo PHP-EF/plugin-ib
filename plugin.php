@@ -1095,7 +1095,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 			if (isset($TopDetectedProperties->result->data)) {
-				$TopDetectedPropertiesSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
+				$TopDetectedPropertiesSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
 				$RowNo = 2;
 				foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
 					$TopDetectedPropertiesS = $TopDetectedPropertiesSS->getActiveSheet();
@@ -1104,7 +1104,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$TopDetectedPropertiesW = IOFactory::createWriter($TopDetectedPropertiesSS, 'Xlsx');
-				$TopDetectedPropertiesW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
+				$TopDetectedPropertiesW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
 			}
 	
 			// Content filtration
@@ -1113,7 +1113,7 @@ class SecurityAssessment extends ibPortal {
 			// Re-use High-Risk Websites data
 			$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($ContentFiltration->result->data)) {
-				$ContentFiltrationSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
+				$ContentFiltrationSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet5.xlsx');
 				$RowNo = 2;
 				// Slice Array to limit size to 10
 				$ContentFiltrationSliced = array_slice($ContentFiltration->result->data,0,10);
@@ -1127,14 +1127,14 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$ContentFiltrationW = IOFactory::createWriter($ContentFiltrationSS, 'Xlsx');
-				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
+				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet5.xlsx');
 			}
 	
 			// Insight Distribution by Threat Type - Sheet 3
 			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
 			$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 			if (isset($InsightDistribution->result->data)) {
-				$InsightDistributionSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
+				$InsightDistributionSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet8.xlsx');
 				$RowNo = 2;
 				foreach ($InsightDistribution->result->data as $InsightThreatType) {
 					$InsightDistributionS = $InsightDistributionSS->getActiveSheet();
@@ -1143,7 +1143,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$InsightDistributionW = IOFactory::createWriter($InsightDistributionSS, 'Xlsx');
-				$InsightDistributionW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
+				$InsightDistributionW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet8.xlsx');
 			}
 	
 			// Threat Types (Lookalikes) - Sheet 4
@@ -1151,7 +1151,7 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 			if (isset($LookalikeThreatCounts->results)) {
-				$LookalikeThreatCountsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
+				$LookalikeThreatCountsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet9.xlsx');
 				$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 				$RowNo = 2;
 				if (isset($LookalikeThreatCounts->results->suspicious_count)) {
@@ -1175,7 +1175,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$LookalikeThreatCountsW = IOFactory::createWriter($LookalikeThreatCountsSS, 'Xlsx');
-				$LookalikeThreatCountsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
+				$LookalikeThreatCountsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet9.xlsx');
 			}
 	
 			// ** Reusable Metrics ** //
