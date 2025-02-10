@@ -100,7 +100,7 @@ $app->post('/plugin/ib/assessment/security/config', function ($request, $respons
         $data = $ibPlugin->api->getAPIRequestData($request);
         if (isset($data['TemplateName'])) {
             $Status = $data['Status'] ?? null;
-            $FileName = $data['TemplateName'] ? $data['TemplateName'] . '.pptx' : null;
+            $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
             $Description = $data['Description'] ?? null;
             $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
             $TemplateName = $data['TemplateName'];
