@@ -1090,28 +1090,12 @@ class SecurityAssessment extends ibPortal {
 	
 			//
 			// Do Chart, Spreadsheet & Image Stuff Here ....
-			// Top threat feeds
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Feeds");
-			//print_r($CubeJSResults);
-			$TopThreatFeeds = $CubeJSResults['TopThreatFeeds']['Body'];
-			if (isset($TopThreatFeeds->result->data)) {
-				$TopThreatFeedsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
-				$RowNo = 2;
-				foreach ($TopThreatFeeds->result->data as $TopThreatFeed) {
-					$TopThreatFeedsS = $TopThreatFeedsSS->getActiveSheet();
-					$TopThreatFeedsS->setCellValue('A'.$RowNo, $TopThreatFeed->{'PortunusAggSecurity.feed_name'});
-					$TopThreatFeedsS->setCellValue('B'.$RowNo, $TopThreatFeed->{'PortunusAggSecurity.feednameCount'});
-					$RowNo++;
-				}
-				$TopThreatFeedsW = IOFactory::createWriter($TopThreatFeedsSS, 'Xlsx');
-				$TopThreatFeedsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
-			}
 	
 			// Top detected properties
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 			if (isset($TopDetectedProperties->result->data)) {
-				$TopDetectedPropertiesSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
+				$TopDetectedPropertiesSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
 				$RowNo = 2;
 				foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
 					$TopDetectedPropertiesS = $TopDetectedPropertiesSS->getActiveSheet();
@@ -1120,7 +1104,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$TopDetectedPropertiesW = IOFactory::createWriter($TopDetectedPropertiesSS, 'Xlsx');
-				$TopDetectedPropertiesW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
+				$TopDetectedPropertiesW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx');
 			}
 	
 			// Content filtration
@@ -1129,7 +1113,7 @@ class SecurityAssessment extends ibPortal {
 			// Re-use High-Risk Websites data
 			$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($ContentFiltration->result->data)) {
-				$ContentFiltrationSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
+				$ContentFiltrationSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
 				$RowNo = 2;
 				// Slice Array to limit size to 10
 				$ContentFiltrationSliced = array_slice($ContentFiltration->result->data,0,10);
@@ -1143,14 +1127,14 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$ContentFiltrationW = IOFactory::createWriter($ContentFiltrationSS, 'Xlsx');
-				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
+				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx');
 			}
 	
 			// Insight Distribution by Threat Type - Sheet 3
 			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
 			$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 			if (isset($InsightDistribution->result->data)) {
-				$InsightDistributionSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
+				$InsightDistributionSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
 				$RowNo = 2;
 				foreach ($InsightDistribution->result->data as $InsightThreatType) {
 					$InsightDistributionS = $InsightDistributionSS->getActiveSheet();
@@ -1159,7 +1143,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$InsightDistributionW = IOFactory::createWriter($InsightDistributionSS, 'Xlsx');
-				$InsightDistributionW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
+				$InsightDistributionW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet2.xlsx');
 			}
 	
 			// Threat Types (Lookalikes) - Sheet 4
@@ -1167,7 +1151,7 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 			if (isset($LookalikeThreatCounts->results)) {
-				$LookalikeThreatCountsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
+				$LookalikeThreatCountsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
 				$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 				$RowNo = 2;
 				if (isset($LookalikeThreatCounts->results->suspicious_count)) {
@@ -1191,7 +1175,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$LookalikeThreatCountsW = IOFactory::createWriter($LookalikeThreatCountsSS, 'Xlsx');
-				$LookalikeThreatCountsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
+				$LookalikeThreatCountsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet3.xlsx');
 			}
 	
 			// ** Reusable Metrics ** //
@@ -1666,54 +1650,55 @@ class SecurityAssessment extends ibPortal {
 	
 			##// Slide 9 - Traffic Usage Analysis
 			// Total DNS Activity
-			$mapping = replaceTag($mapping,'#TAG22',number_abbr($DNSActivityCount));
+			$mapping = replaceTag($mapping,'#TAG33',number_abbr($DNSActivityCount));
 			// DNS Firewall Activity
-			$mapping = replaceTag($mapping,'#TAG23',number_abbr($HML)); // Total
-			$mapping = replaceTag($mapping,'#TAG24',number_abbr($HighEventsCount)); // High Int
-			$mapping = replaceTag($mapping,'#TAG25',number_format($HighPerc,2).'%'); // High Percent
-			$mapping = replaceTag($mapping,'#TAG26',number_abbr($MediumEventsCount)); // Medium Int
-			$mapping = replaceTag($mapping,'#TAG27',number_format($MediumPerc,2).'%'); // Medium Percent
-			$mapping = replaceTag($mapping,'#TAG28',number_abbr($LowEventsCount)); // Low Int
-			$mapping = replaceTag($mapping,'#TAG29',number_format($LowPerc,2).'%'); // Low Percent
+			$mapping = replaceTag($mapping,'#TAG34',number_abbr($HML)); // Total
+			$mapping = replaceTag($mapping,'#TAG35',number_abbr($HighEventsCount)); // High Int
+			$mapping = replaceTag($mapping,'#TAG36',number_format($HighPerc,2).'%'); // High Percent
+			$mapping = replaceTag($mapping,'#TAG37',number_abbr($MediumEventsCount)); // Medium Int
+			$mapping = replaceTag($mapping,'#TAG38',number_format($MediumPerc,2).'%'); // Medium Percent
+			$mapping = replaceTag($mapping,'#TAG39',number_abbr($LowEventsCount)); // Low Int
+			$mapping = replaceTag($mapping,'#TAG40',number_format($LowPerc,2).'%'); // Low Percent
 			// Threat Activity
-			$mapping = replaceTag($mapping,'#TAG30',number_abbr($ThreatActivityEventsCount));
+			$mapping = replaceTag($mapping,'#TAG41',number_abbr($ThreatActivityEventsCount));
 			// Data Exfiltration Incidents
-			$mapping = replaceTag($mapping,'#TAG31',number_abbr($DataExfilEventsCount));
+			$mapping = replaceTag($mapping,'#TAG42',number_abbr($DataExfilEventsCount));
 	
 			##// Slide 15 - Key Insights
 			// Insight Severity
-			$mapping = replaceTag($mapping,'#TAG32',number_abbr($TotalInsights)); // Total Open Insights
-			$mapping = replaceTag($mapping,'#TAG33',number_abbr($MediumInsights)); // Medium Priority Insights
-			$mapping = replaceTag($mapping,'#TAG34',number_abbr($HighInsights)); // High Priority Insights
-			$mapping = replaceTag($mapping,'#TAG35',number_abbr($CriticalInsights)); // Critical Priority Insights
+			$mapping = replaceTag($mapping,'#TAG43',number_abbr($TotalInsights)); // Total Open Insights
+			$mapping = replaceTag($mapping,'#TAG44',number_abbr($MediumInsights)); // Medium Priority Insights
+			$mapping = replaceTag($mapping,'#TAG45',number_abbr($HighInsights)); // High Priority Insights
+			$mapping = replaceTag($mapping,'#TAG46',number_abbr($CriticalInsights)); // Critical Priority Insights
+			$mapping = replaceTag($mapping,'#TAG47',number_abbr($LowInsights)); // Low Priority Insights
 			// Event To Insight Aggregation
-			$mapping = replaceTag($mapping,'#TAG36',number_abbr($SecurityEventsCount)); // Events
-			$mapping = replaceTag($mapping,'#TAG37',number_abbr($TotalInsights)); // Key Insights
+			$mapping = replaceTag($mapping,'#TAG48',number_abbr($SecurityEventsCount)); // Events
+			$mapping = replaceTag($mapping,'#TAG49',number_abbr($TotalInsights)); // Key Insights
 	
 			##// Slide 24 - Lookalike Domains
-			$mapping = replaceTag($mapping,'#TAG38',number_abbr($LookalikeTotalCount)); // Total Lookalikes
-			if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
-			$mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
-			$mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
-			$mapping = replaceTag($mapping,'#TAG41',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
-			if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
-			$mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
-			$mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
-			$mapping = replaceTag($mapping,'#TAG44',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
-			if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
-			$mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
-			$mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
+			$mapping = replaceTag($mapping,'#TAG50',number_abbr($LookalikeTotalCount)); // Total Lookalikes
+			// if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
+			// $mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
+			// $mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
+			$mapping = replaceTag($mapping,'#TAG51',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
+			// if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
+			// $mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
+			// $mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
+			$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
+			// if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
+			// $mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
+			// $mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
 	
 			##// Slide 28 - Security Activities
-			$mapping = replaceTag($mapping,'#TAG47',number_abbr($SecurityEventsCount)); // Security Events
-			$mapping = replaceTag($mapping,'#TAG48',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
-			$mapping = replaceTag($mapping,'#TAG49',number_abbr($WebContentEventsCount)); // Web Content
-			$mapping = replaceTag($mapping,'#TAG50',number_abbr($DeviceCount)); // Devices
-			$mapping = replaceTag($mapping,'#TAG51',number_abbr($UserCount)); // Users
-			$mapping = replaceTag($mapping,'#TAG52',number_abbr($TotalInsights)); // Insights
-			$mapping = replaceTag($mapping,'#TAG53',number_abbr($ThreatInsightCount)); // Threat Insight
-			$mapping = replaceTag($mapping,'#TAG54',number_abbr($ThreatViewCount)); // Threat View
-			$mapping = replaceTag($mapping,'#TAG55',number_abbr($SourcesCount)); // Sources
+			$mapping = replaceTag($mapping,'#TAG53',number_abbr($SecurityEventsCount)); // Security Events
+			$mapping = replaceTag($mapping,'#TAG54',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
+			$mapping = replaceTag($mapping,'#TAG55',number_abbr($WebContentEventsCount)); // Web Content
+			$mapping = replaceTag($mapping,'#TAG56',number_abbr($DeviceCount)); // Devices
+			$mapping = replaceTag($mapping,'#TAG57',number_abbr($UserCount)); // Users
+			$mapping = replaceTag($mapping,'#TAG58',number_abbr($TotalInsights)); // Insights
+			$mapping = replaceTag($mapping,'#TAG59',number_abbr($ThreatInsightCount)); // Threat Insight
+			$mapping = replaceTag($mapping,'#TAG60',number_abbr($ThreatViewCount)); // Threat View
+			$mapping = replaceTag($mapping,'#TAG61',number_abbr($SourcesCount)); // Sources
 	
 			##// Slide 32 -> Onwards - Threat Actors
 			// This is where the Threat Actor Tag replacement occurs
