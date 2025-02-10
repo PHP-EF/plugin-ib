@@ -1611,6 +1611,7 @@ class SecurityAssessment extends ibPortal {
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'.pptx',
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx'
 			);
+			error_log($mapping);
 	
 			$Progress = $this->writeProgress($UUID,$Progress,"Injecting Powerpoint Strings");
 			##// Slide 2 / 45 - Title Page & Contact Page
@@ -1828,7 +1829,7 @@ class SecurityAssessment extends ibPortal {
 	
 			// Cleanup
 			$Progress = $this->writeProgress($UUID,$Progress,"Final Cleanup");
-			// unlink($this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx');
+			unlink($this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx');
 	
 			// Report Status as Done
 			$Progress = $this->writeProgress($UUID,$Progress,"Done");
