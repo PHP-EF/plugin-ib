@@ -1140,8 +1140,8 @@ class SecurityAssessment extends ibPortal {
 				$RowNo = 2;
 				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
 					$DNSActivityDailyS = $DNSActivityDailySS->getActiveSheet();
-					$DNSFirewallActivityDailyS->setCellValue('A'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
-					$DNSFirewallActivityDailyS->setCellValue('B'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.requests'});
+					$DNSActivityDailyS->setCellValue('A'.$RowNo, $DNSActivityDay->{'PortunusAggSecurity.timestamp.day'});
+					$DNSActivityDailyS->setCellValue('B'.$RowNo, $DNSActivityDay->{'PortunusAggSecurity.requests'});
 					$RowNo++;
 				}
 				$DNSActivityDailyW = IOFactory::createWriter($DNSActivityDailySS, 'Xlsx');
