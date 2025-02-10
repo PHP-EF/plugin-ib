@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			echo json_encode(array(
-				'result' => 'Success',
-				'message' => 'Started'
-			));
-			fastcgi_finish_request();
+			// echo json_encode(array(
+			// 	'result' => 'Success',
+			// 	'message' => 'Started'
+			// ));
+			// fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -1611,7 +1611,7 @@ class SecurityAssessment extends ibPortal {
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'.pptx',
 				$this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx'
 			);
-			error_log($mapping);
+			print_r($mapping);
 	
 			$Progress = $this->writeProgress($UUID,$Progress,"Injecting Powerpoint Strings");
 			##// Slide 2 / 45 - Title Page & Contact Page
