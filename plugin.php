@@ -41,9 +41,9 @@ class ibPlugin extends phpef {
 
 	public function getDir() {
 		return array(
-			'Files' => dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . '/files',
-			'Assets' => dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . '/assets',
-			'PluginData' => __DIR__ . DIRECTORY_SEPARATOR . '/data'
+			'Files' => dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'files',
+			'Assets' => dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'assets',
+			'PluginData' => __DIR__ . DIRECTORY_SEPARATOR . 'data'
 		);
 	}
 }
@@ -1093,7 +1093,7 @@ class SecurityAssessment extends ibPortal {
 			//
 			// Do Chart, Spreadsheet & Image Stuff Here ....
 
-			$embeddedDirectory = $this->getDir()['Files'].'reports/report-'.$UUID.'/ppt/embeddings/';
+			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
 			$embeddedFiles = scandir($embeddedDirectory);
 			
 			// Define the embedded sheets with their corresponding file numbers
