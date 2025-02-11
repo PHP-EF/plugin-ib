@@ -1105,6 +1105,8 @@ class SecurityAssessment extends ibPortal {
 				'ContentFiltration' => 8,
 				'TopDetectedProperties' => 9,
 			];
+
+			return $embeddedFiles;
 			
 			// Function to get the full path of the file based on the sheet name
 			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
