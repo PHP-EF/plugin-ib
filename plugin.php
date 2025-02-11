@@ -1167,6 +1167,15 @@ class SecurityAssessment extends ibPortal {
 				$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$DNSActivityDailySS = IOFactory::load($EmbeddedDNSActivityDaily);
 				$RowNo = 2;
+
+				$DNSActivityDailyValues = array_map(function($item) {
+					return $item->{'PortunusAggInsight.requests'};
+				}, $DNSActivityDay);
+				// Calculate the average
+				$DNSActivityDailySum = array_sum($DNSActivityDailyValues);
+				$DNSActivityDailyCount = count($DNSActivityDailyValues);
+				$DNSActivityDailyAverage = $DNSActivityDailyCount ? $DNSActivityDailySum / $DNSActivityDailyCount : 0;
+
 				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
 					$DayTimestamp = new DateTime($DNSActivityDay->{'PortunusAggInsight.timestamp.day'});
 					$DNSActivityDailyS = $DNSActivityDailySS->getActiveSheet();
@@ -1185,6 +1194,15 @@ class SecurityAssessment extends ibPortal {
 				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 				$RowNo = 2;
+
+				$DNSFirewallActivityDailyValues = array_map(function($item) {
+					return $item->{'PortunusAggInsight.requests'};
+				}, $DNSActivityDay);
+				// Calculate the average
+				$DNSFirewallActivitySum = array_sum($DNSFirewallActivityValues);
+				$DNSFirewallActivityCount = count($DNSFirewallActivityValues);
+				$DNSFirewallActivityAverage = $DNSFirewallActivityCount ? $DNSFirewallActivitySum / $DNSFirewallActivityCount : 0;
+
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
 					$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
 					$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
@@ -1735,41 +1753,46 @@ class SecurityAssessment extends ibPortal {
 			// Data Exfiltration Incidents
 			$mapping = replaceTag($mapping,'#TAG42',number_abbr($DataExfilEventsCount));
 	
+			##// Slide 11 - Traffic Analysis - DNS Activity
+			$mapping = replaceTag($mapping,'#TAG43',number_abbr($DNSActivityAverage));
+			##// Slide 12 - Traffic Analysis - DNS Firewall Activity
+			$mapping = replaceTag($mapping,'#TAG44',number_abbr($DNSFirewallActivityAverage));
+
 			##// Slide 15 - Key Insights
 			// Insight Severity
-			$mapping = replaceTag($mapping,'#TAG43',number_abbr($TotalInsights)); // Total Open Insights
-			$mapping = replaceTag($mapping,'#TAG44',number_abbr($MediumInsights)); // Medium Priority Insights
-			$mapping = replaceTag($mapping,'#TAG45',number_abbr($HighInsights)); // High Priority Insights
-			$mapping = replaceTag($mapping,'#TAG46',number_abbr($CriticalInsights)); // Critical Priority Insights
-			$mapping = replaceTag($mapping,'#TAG47',number_abbr($LowInsights)); // Low Priority Insights
+			$mapping = replaceTag($mapping,'#TAG45',number_abbr($TotalInsights)); // Total Open Insights
+			$mapping = replaceTag($mapping,'#TAG46',number_abbr($MediumInsights)); // Medium Priority Insights
+			$mapping = replaceTag($mapping,'#TAG47',number_abbr($HighInsights)); // High Priority Insights
+			$mapping = replaceTag($mapping,'#TAG48',number_abbr($CriticalInsights)); // Critical Priority Insights
+			$mapping = replaceTag($mapping,'#TAG49',number_abbr($LowInsights)); // Low Priority Insights
 			// Event To Insight Aggregation
-			$mapping = replaceTag($mapping,'#TAG48',number_abbr($SecurityEventsCount)); // Events
-			$mapping = replaceTag($mapping,'#TAG49',number_abbr($TotalInsights)); // Key Insights
+			$mapping = replaceTag($mapping,'#TAG50',number_abbr($SecurityEventsCount)); // Events
+			$mapping = replaceTag($mapping,'#TAG51',number_abbr($TotalInsights)); // Key Insights
 	
 			##// Slide 24 - Lookalike Domains
-			$mapping = replaceTag($mapping,'#TAG50',number_abbr($LookalikeTotalCount)); // Total Lookalikes
+			$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeTotalCount)); // Total Lookalikes
 			// if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 			// $mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
 			// $mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
-			$mapping = replaceTag($mapping,'#TAG51',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
+			$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
 			// if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 			// $mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
 			// $mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
-			$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
+			$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
 			// if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 			// $mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
 			// $mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
 	
 			##// Slide 28 - Security Activities
-			$mapping = replaceTag($mapping,'#TAG53',number_abbr($SecurityEventsCount)); // Security Events
-			$mapping = replaceTag($mapping,'#TAG54',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
-			$mapping = replaceTag($mapping,'#TAG55',number_abbr($WebContentEventsCount)); // Web Content
-			$mapping = replaceTag($mapping,'#TAG56',number_abbr($DeviceCount)); // Devices
-			$mapping = replaceTag($mapping,'#TAG57',number_abbr($UserCount)); // Users
-			$mapping = replaceTag($mapping,'#TAG58',number_abbr($TotalInsights)); // Insights
-			$mapping = replaceTag($mapping,'#TAG59',number_abbr($ThreatInsightCount)); // Threat Insight
-			$mapping = replaceTag($mapping,'#TAG60',number_abbr($ThreatViewCount)); // Threat View
-			$mapping = replaceTag($mapping,'#TAG61',number_abbr($SourcesCount)); // Sources
+			$mapping = replaceTag($mapping,'#TAG55',number_abbr($SecurityEventsCount)); // Security Events
+			$mapping = replaceTag($mapping,'#TAG56',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
+			$mapping = replaceTag($mapping,'#TAG57',number_abbr($WebContentEventsCount)); // Web Content
+			$mapping = replaceTag($mapping,'#TAG58',number_abbr($DeviceCount)); // Devices
+			$mapping = replaceTag($mapping,'#TAG59',number_abbr($UserCount)); // Users
+			$mapping = replaceTag($mapping,'#TAG60',number_abbr($TotalInsights)); // Insights
+			$mapping = replaceTag($mapping,'#TAG61',number_abbr($ThreatInsightCount)); // Threat Insight
+			$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatViewCount)); // Threat View
+			$mapping = replaceTag($mapping,'#TAG63',number_abbr($SourcesCount)); // Sources
 	
 			##// Slide 32 -> Onwards - Threat Actors
 			// This is where the Threat Actor Tag replacement occurs
