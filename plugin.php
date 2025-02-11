@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			// echo json_encode(array(
-			// 	'result' => 'Success',
-			// 	'message' => 'Started'
-			// ));
-			// fastcgi_finish_request();
+			echo json_encode(array(
+				'result' => 'Success',
+				'message' => 'Started'
+			));
+			fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -1199,9 +1199,9 @@ class SecurityAssessment extends ibPortal {
 					return $item->{'PortunusAggSecurity.requests'};
 				}, $DNSFirewallActivityDaily->result->data);
 				// Calculate the average
-				$DNSFirewallActivitySum = array_sum($DNSFirewallActivityDailyValues);
-				$DNSFirewallActivityCount = count($DNSFirewallActivityDailyValues);
-				$DNSFirewallActivityAverage = $DNSFirewallActivityCount ? $DNSFirewallActivitySum / $DNSFirewallActivityCount : 0;
+				$DNSFirewallActivityDailySum = array_sum($DNSFirewallActivityDailyValues);
+				$DNSFirewallActivityDailyCount = count($DNSFirewallActivityDailyValues);
+				$DNSFirewallActivityDailyAverage = $DNSFirewallActivityDailyCount ? $DNSFirewallActivityDailySum / $DNSFirewallActivityDailyCount : 0;
 
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
 					$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
@@ -1754,9 +1754,9 @@ class SecurityAssessment extends ibPortal {
 			$mapping = replaceTag($mapping,'#TAG42',number_abbr($DataExfilEventsCount));
 	
 			##// Slide 11 - Traffic Analysis - DNS Activity
-			$mapping = replaceTag($mapping,'#TAG43',number_abbr($DNSActivityAverage));
+			$mapping = replaceTag($mapping,'#TAG43',number_abbr($DNSActivityDailyAverage));
 			##// Slide 12 - Traffic Analysis - DNS Firewall Activity
-			$mapping = replaceTag($mapping,'#TAG44',number_abbr($DNSFirewallActivityAverage));
+			$mapping = replaceTag($mapping,'#TAG44',number_abbr($DNSFirewallActivityDailyAverage));
 
 			##// Slide 15 - Key Insights
 			// Insight Severity
