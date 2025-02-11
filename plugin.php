@@ -1170,7 +1170,7 @@ class SecurityAssessment extends ibPortal {
 
 				$DNSActivityDailyValues = array_map(function($item) {
 					return $item->{'PortunusAggInsight.requests'};
-				}, $DNSActivityDay);
+				}, $DNSActivityDaily->result->data);
 				// Calculate the average
 				$DNSActivityDailySum = array_sum($DNSActivityDailyValues);
 				$DNSActivityDailyCount = count($DNSActivityDailyValues);
@@ -1197,7 +1197,7 @@ class SecurityAssessment extends ibPortal {
 
 				$DNSFirewallActivityDailyValues = array_map(function($item) {
 					return $item->{'PortunusAggInsight.requests'};
-				}, $DNSActivityDay);
+				}, $DNSFirewallActivityDaily->result->data);
 				// Calculate the average
 				$DNSFirewallActivitySum = array_sum($DNSFirewallActivityValues);
 				$DNSFirewallActivityCount = count($DNSFirewallActivityValues);
