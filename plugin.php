@@ -1203,6 +1203,14 @@ class SecurityAssessment extends ibPortal {
 				$DNSFirewallActivityCount = count($DNSFirewallActivityDailyValues);
 				$DNSFirewallActivityAverage = $DNSFirewallActivityCount ? $DNSFirewallActivitySum / $DNSFirewallActivityCount : 0;
 
+				echo json_encode(array(
+					'Values' => $DNSFirewallActivityDailyValues,
+					'Sum' => $DNSFirewallActivitySum,
+					'Count' => $DNSFirewallActivityCount,
+					'Average' => $DNSFirewallActivityAverage,
+				));
+				return;
+
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
 					$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
 					$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
