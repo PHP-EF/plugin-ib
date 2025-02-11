@@ -1093,7 +1093,7 @@ class SecurityAssessment extends ibPortal {
 			//
 			// Do Chart, Spreadsheet & Image Stuff Here ....
 
-			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
+			$embeddedDirectory = $this->getDir()['Files'].'reports/report-'.$UUID.'/ppt/embeddings/';
 			$embeddedFiles = scandir($embeddedDirectory);
 			
 			// Define the embedded sheets with their corresponding file numbers
@@ -1110,7 +1110,6 @@ class SecurityAssessment extends ibPortal {
 			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
-					echo 'file index: '.$fileIndex;
 					error_log($EmbeddedSheets[$sheetName]);
 					if (count($embeddedFiles) > $fileIndex) {
 						error_log($embeddedDirectory . $embeddedFiles[$fileIndex]);
@@ -1123,7 +1122,6 @@ class SecurityAssessment extends ibPortal {
 				}
 			}
 	
-			print_r(getEmbeddedSheetFilePath('TopDetectedProperties', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets));
 			// Top detected properties
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
