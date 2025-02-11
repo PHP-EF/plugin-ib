@@ -1096,8 +1096,7 @@ class SecurityAssessment extends ibPortal {
 			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
 			$embeddedFiles = scandir($embeddedDirectory);
 
-			// print_r($embeddedFiles);
-			// return;
+			error_log($embeddedFiles);
 			
 			// Define the embedded sheets with their corresponding file numbers
 			$EmbeddedSheets = [
