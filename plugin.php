@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			echo json_encode(array(
-				'result' => 'Success',
-				'message' => 'Started'
-			));
-			fastcgi_finish_request();
+			// echo json_encode(array(
+			// 	'result' => 'Success',
+			// 	'message' => 'Started'
+			// ));
+			// fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
