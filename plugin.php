@@ -1124,7 +1124,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 			if (isset($TopDetectedProperties->result->data)) {
-				$EmbeddedTopDetectedProperties = getEmbeddedSheetFileName('TopDetectedProperties', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $directory, $embeddedFiles, $EmbeddedSheets);
 				$TopDetectedPropertiesSS = IOFactory::load($EmbeddedTopDetectedProperties);
 				$RowNo = 2;
 				foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
@@ -1143,7 +1143,7 @@ class SecurityAssessment extends ibPortal {
 			// Re-use High-Risk Websites data
 			$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($ContentFiltration->result->data)) {
-				$EmbeddedContentFiltration = getEmbeddedSheetFileName('ContentFiltration', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedContentFiltration = getEmbeddedSheetFilePath('ContentFiltration', $directory, $embeddedFiles, $EmbeddedSheets);
 				$ContentFiltrationSS = IOFactory::load($EmbeddedContentFiltration);
 				$RowNo = 2;
 				// Slice Array to limit size to 10
@@ -1165,7 +1165,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
 			$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
 			if (isset($DNSActivityDaily->result->data)) {
-				$EmbeddedDNSActivityDaily = getEmbeddedSheetFileName('DNSActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $directory, $embeddedFiles, $EmbeddedSheets);
 				$DNSActivityDailySS = IOFactory::load($EmbeddedDNSActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
@@ -1182,7 +1182,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
 			$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
 			if (isset($DNSFirewallActivityDaily->result->data)) {
-				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFileName('DNSFirewallActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $directory, $embeddedFiles, $EmbeddedSheets);
 				$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
@@ -1199,7 +1199,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
 			$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 			if (isset($InsightDistribution->result->data)) {
-				$EmbeddedInsightDistribution = getEmbeddedSheetFileName('InsightDistribution', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $directory, $embeddedFiles, $EmbeddedSheets);
 				$InsightDistributionSS = IOFactory::load($EmbeddedInsightDistribution);
 				$RowNo = 2;
 				foreach ($InsightDistribution->result->data as $InsightThreatType) {
@@ -1217,7 +1217,7 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 			if (isset($LookalikeThreatCounts->results)) {
-				$EmbeddedLookalikes = getEmbeddedSheetFileName('Lookalikes', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $directory, $embeddedFiles, $EmbeddedSheets);
 				$LookalikeThreatCountsSS = IOFactory::load($EmbeddedLookalikes);
 				$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 				$RowNo = 2;
