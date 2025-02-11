@@ -1094,7 +1094,7 @@ class SecurityAssessment extends ibPortal {
 			// Do Chart, Spreadsheet & Image Stuff Here ....
 
 			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
-			$embeddedFiles = scandir($embeddedDirectory, SCANDIR_SORT_DESCENDING);
+			$embeddedFiles = scandir($embeddedDirectory);
 
 			print_r($embeddedFiles);
 			return;
