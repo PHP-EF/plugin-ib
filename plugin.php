@@ -1110,9 +1110,11 @@ class SecurityAssessment extends ibPortal {
 			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
+					echo 'file index: '.$fileIndex;
 					error_log($EmbeddedSheets[$sheetName]);
 					if (count($embeddedFiles) > $fileIndex) {
 						error_log($embeddedDirectory . $embeddedFiles[$fileIndex]);
+						return $embeddedDirectory . $embeddedFiles[$fileIndex];
 					} else {
 						error_log("There are fewer than " . ($fileIndex + 1) . " files in the directory.");
 					}
