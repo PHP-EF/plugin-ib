@@ -1111,14 +1111,9 @@ class SecurityAssessment extends ibPortal {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
 					error_log($EmbeddedSheets[$sheetName]);
-					if (count($embeddedFiles) > $fileIndex) {
-						error_log($embeddedDirectory . $embeddedFiles[$fileIndex]);
+					if (isset($embeddedFiles[$fileIndex])) {
 						return $embeddedDirectory . $embeddedFiles[$fileIndex];
-					} else {
-						error_log("There are fewer than " . ($fileIndex + 1) . " files in the directory.");
 					}
-				} else {
-					error_log("Sheet name not found in the embedded sheets array.");
 				}
 			}
 	
@@ -1670,7 +1665,7 @@ class SecurityAssessment extends ibPortal {
 	
 			// Cleanup Extracted Zip
 			$Progress = $this->writeProgress($UUID,$Progress,"Cleaning up");
-			rmdirRecursive($this->getDir()['Files'].'/reports/report-'.$UUID);
+			// rmdirRecursive($this->getDir()['Files'].'/reports/report-'.$UUID);
 	
 			// Extract Powerpoint Template Strings
 			// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
@@ -1900,7 +1895,7 @@ class SecurityAssessment extends ibPortal {
 	
 			// Cleanup
 			$Progress = $this->writeProgress($UUID,$Progress,"Final Cleanup");
-			// unlink($this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx');
+			unlink($this->getDir()['Files'].'/reports/report-'.$UUID.'-extracted.pptx');
 	
 			// Report Status as Done
 			$Progress = $this->writeProgress($UUID,$Progress,"Done");
