@@ -1092,12 +1092,40 @@ class SecurityAssessment extends ibPortal {
 	
 			//
 			// Do Chart, Spreadsheet & Image Stuff Here ....
+
+			$directory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
+			$embeddedFiles = scandir($directory);
+			
+			// Define the embedded sheets with their corresponding file numbers
+			$EmbeddedSheets = [
+				'TopDetectedProperties' => 3,
+				'ContentFiltration' => 4,
+				'DNSActivity' => 5,
+				'DNSFirewallActivity' => 6,
+				'InsightDistribution' => 7,
+				'Lookalikes' => 8
+			];
+			
+			// Function to get the full path of the file based on the sheet name
+			function getEmbeddedSheetFilePath($sheetName, $directory, $embeddedFiles, $EmbeddedSheets) {
+				if (isset($EmbeddedSheets[$sheetName])) {
+					$fileIndex = $EmbeddedSheets[$sheetName];
+					if (count($embeddedFiles) > $fileIndex) {
+						return $directory . $embeddedFiles[$fileIndex];
+					} else {
+						return "There are fewer than " . ($fileIndex + 1) . " files in the directory.";
+					}
+				} else {
+					return "Sheet name not found in the embedded sheets array.";
+				}
+			}
 	
 			// Top detected properties
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 			if (isset($TopDetectedProperties->result->data)) {
-				$TopDetectedPropertiesSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
+				$EmbeddedTopDetectedProperties = getEmbeddedSheetFileName('TopDetectedProperties', $directory, $embeddedFiles, $EmbeddedSheets);
+				$TopDetectedPropertiesSS = IOFactory::load($EmbeddedTopDetectedProperties);
 				$RowNo = 2;
 				foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
 					$TopDetectedPropertiesS = $TopDetectedPropertiesSS->getActiveSheet();
@@ -1106,7 +1134,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$TopDetectedPropertiesW = IOFactory::createWriter($TopDetectedPropertiesSS, 'Xlsx');
-				$TopDetectedPropertiesW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet4.xlsx');
+				$TopDetectedPropertiesW->save($EmbeddedTopDetectedProperties);
 			}
 	
 			// Content filtration
@@ -1115,7 +1143,8 @@ class SecurityAssessment extends ibPortal {
 			// Re-use High-Risk Websites data
 			$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($ContentFiltration->result->data)) {
-				$ContentFiltrationSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet5.xlsx');
+				$EmbeddedContentFiltration = getEmbeddedSheetFileName('ContentFiltration', $directory, $embeddedFiles, $EmbeddedSheets);
+				$ContentFiltrationSS = IOFactory::load($EmbeddedContentFiltration);
 				$RowNo = 2;
 				// Slice Array to limit size to 10
 				$ContentFiltrationSliced = array_slice($ContentFiltration->result->data,0,10);
@@ -1129,14 +1158,15 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$ContentFiltrationW = IOFactory::createWriter($ContentFiltrationSS, 'Xlsx');
-				$ContentFiltrationW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet5.xlsx');
+				$ContentFiltrationW->save($EmbeddedContentFiltration);
 			}
 
 			// Traffic Analysis - DNS Activity
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
 			$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
 			if (isset($DNSActivityDaily->result->data)) {
-				$DNSActivityDailySS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet6.xlsx');
+				$EmbeddedDNSActivityDaily = getEmbeddedSheetFileName('DNSActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$DNSActivityDailySS = IOFactory::load($EmbeddedDNSActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
 					$DNSActivityDailyS = $DNSActivityDailySS->getActiveSheet();
@@ -1145,14 +1175,15 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$DNSActivityDailyW = IOFactory::createWriter($DNSActivityDailySS, 'Xlsx');
-				$DNSActivityDailyW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet6.xlsx');
+				$DNSActivityDailyW->save($EmbeddedDNSActivityDaily);
 			}
 
 			// Traffic Analysis - DNS Firewall Activity
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
 			$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
 			if (isset($DNSFirewallActivityDaily->result->data)) {
-				$DNSFirewallActivityDailySS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet7.xlsx');
+				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFileName('DNSFirewallActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
 					$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
@@ -1161,14 +1192,15 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$DNSFirewallActivityDailyW = IOFactory::createWriter($DNSFirewallActivityDailySS, 'Xlsx');
-				$DNSFirewallActivityDailyW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet7.xlsx');
+				$DNSFirewallActivityDailyW->save($EmbeddedDNSFirewallActivityDaily);
 			}
 	
 			// Insight Distribution by Threat Type - Sheet 3
 			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
 			$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 			if (isset($InsightDistribution->result->data)) {
-				$InsightDistributionSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet8.xlsx');
+				$EmbeddedInsightDistribution = getEmbeddedSheetFileName('InsightDistribution', $directory, $embeddedFiles, $EmbeddedSheets);
+				$InsightDistributionSS = IOFactory::load($EmbeddedInsightDistribution);
 				$RowNo = 2;
 				foreach ($InsightDistribution->result->data as $InsightThreatType) {
 					$InsightDistributionS = $InsightDistributionSS->getActiveSheet();
@@ -1177,7 +1209,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$InsightDistributionW = IOFactory::createWriter($InsightDistributionSS, 'Xlsx');
-				$InsightDistributionW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet8.xlsx');
+				$InsightDistributionW->save($EmbeddedInsightDistribution);
 			}
 	
 			// Threat Types (Lookalikes) - Sheet 4
@@ -1185,7 +1217,8 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 			if (isset($LookalikeThreatCounts->results)) {
-				$LookalikeThreatCountsSS = IOFactory::load($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet9.xlsx');
+				$EmbeddedLookalikes = getEmbeddedSheetFileName('Lookalikes', $directory, $embeddedFiles, $EmbeddedSheets);
+				$LookalikeThreatCountsSS = IOFactory::load($EmbeddedLookalikes);
 				$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 				$RowNo = 2;
 				if (isset($LookalikeThreatCounts->results->suspicious_count)) {
@@ -1209,7 +1242,7 @@ class SecurityAssessment extends ibPortal {
 					$RowNo++;
 				}
 				$LookalikeThreatCountsW = IOFactory::createWriter($LookalikeThreatCountsSS, 'Xlsx');
-				$LookalikeThreatCountsW->save($this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/Microsoft_Excel_Worksheet9.xlsx');
+				$LookalikeThreatCountsW->save($EmbeddedLookalikes);
 			}
 	
 			// ** Reusable Metrics ** //
