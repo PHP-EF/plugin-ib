@@ -1102,8 +1102,8 @@ class SecurityAssessment extends ibPortal {
 				'DNSFirewallActivity' => 5,
 				'InsightDistribution' => 6,
 				'Lookalikes' => 7,
-				'TopDetectedProperties' => 8,
-				'ContentFiltration' => 9
+				'ContentFiltration' => 8,
+				'TopDetectedProperties' => 9,
 			];
 			
 			// Function to get the full path of the file based on the sheet name
