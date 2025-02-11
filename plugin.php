@@ -1094,7 +1094,7 @@ class SecurityAssessment extends ibPortal {
 			// Do Chart, Spreadsheet & Image Stuff Here ....
 
 			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
-			$embeddedFiles = array_diff(scandir($embeddedDirectory), array('.', '..'));
+			$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
 
 			$this->logging->writeLog("Assessment","Embedded Files List","debug",$embeddedFiles);
 			
