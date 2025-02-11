@@ -1093,8 +1093,8 @@ class SecurityAssessment extends ibPortal {
 			//
 			// Do Chart, Spreadsheet & Image Stuff Here ....
 
-			$directory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
-			$embeddedFiles = scandir($directory);
+			$embeddedDirectory = $this->getDir()['Files'].'/reports/report-'.$UUID.'/ppt/embeddings/';
+			$embeddedFiles = scandir($embeddedDirectory);
 			
 			// Define the embedded sheets with their corresponding file numbers
 			$EmbeddedSheets = [
@@ -1107,16 +1107,17 @@ class SecurityAssessment extends ibPortal {
 			];
 			
 			// Function to get the full path of the file based on the sheet name
-			function getEmbeddedSheetFilePath($sheetName, $directory, $embeddedFiles, $EmbeddedSheets) {
+			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
+					error_log($EmbeddedSheets[$sheetName]);
 					if (count($embeddedFiles) > $fileIndex) {
-						return $directory . $embeddedFiles[$fileIndex];
+						error_log($embeddedDirectory . $embeddedFiles[$fileIndex]);
 					} else {
-						return "There are fewer than " . ($fileIndex + 1) . " files in the directory.";
+						error_log("There are fewer than " . ($fileIndex + 1) . " files in the directory.");
 					}
 				} else {
-					return "Sheet name not found in the embedded sheets array.";
+					error_log("Sheet name not found in the embedded sheets array.");
 				}
 			}
 	
@@ -1124,7 +1125,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
 			$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 			if (isset($TopDetectedProperties->result->data)) {
-				$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$TopDetectedPropertiesSS = IOFactory::load($EmbeddedTopDetectedProperties);
 				$RowNo = 2;
 				foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
@@ -1143,7 +1144,7 @@ class SecurityAssessment extends ibPortal {
 			// Re-use High-Risk Websites data
 			$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($ContentFiltration->result->data)) {
-				$EmbeddedContentFiltration = getEmbeddedSheetFilePath('ContentFiltration', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedContentFiltration = getEmbeddedSheetFilePath('ContentFiltration', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$ContentFiltrationSS = IOFactory::load($EmbeddedContentFiltration);
 				$RowNo = 2;
 				// Slice Array to limit size to 10
@@ -1165,7 +1166,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
 			$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
 			if (isset($DNSActivityDaily->result->data)) {
-				$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$DNSActivityDailySS = IOFactory::load($EmbeddedDNSActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
@@ -1182,7 +1183,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
 			$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
 			if (isset($DNSFirewallActivityDaily->result->data)) {
-				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
@@ -1199,7 +1200,7 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
 			$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 			if (isset($InsightDistribution->result->data)) {
-				$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$InsightDistributionSS = IOFactory::load($EmbeddedInsightDistribution);
 				$RowNo = 2;
 				foreach ($InsightDistribution->result->data as $InsightThreatType) {
@@ -1217,7 +1218,7 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 			if (isset($LookalikeThreatCounts->results)) {
-				$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $directory, $embeddedFiles, $EmbeddedSheets);
+				$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 				$LookalikeThreatCountsSS = IOFactory::load($EmbeddedLookalikes);
 				$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 				$RowNo = 2;
