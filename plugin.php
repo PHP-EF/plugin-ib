@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			// echo json_encode(array(
-			// 	'result' => 'Success',
-			// 	'message' => 'Started'
-			// ));
-			// fastcgi_finish_request();
+			echo json_encode(array(
+				'result' => 'Success',
+				'message' => 'Started'
+			));
+			fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -1105,9 +1105,6 @@ class SecurityAssessment extends ibPortal {
 				'ContentFiltration' => 8,
 				'TopDetectedProperties' => 9,
 			];
-
-			print_r($embeddedFiles);
-			return;
 			
 			// Function to get the full path of the file based on the sheet name
 			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
