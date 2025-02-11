@@ -1184,7 +1184,7 @@ class SecurityAssessment extends ibPortal {
 				$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 				$RowNo = 2;
 				foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
-					$DayTimestamp = new DateTime($DNSActivityDay->{'PortunusAggSecurity.timestamp.day'});
+					$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
 					$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
 					$DNSFirewallActivityDailyS->setCellValue('A'.$RowNo, $DayTimestamp->format('d/m/Y'));
 					$DNSFirewallActivityDailyS->setCellValue('B'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.requests'});
