@@ -1098,12 +1098,12 @@ class SecurityAssessment extends ibPortal {
 			
 			// Define the embedded sheets with their corresponding file numbers
 			$EmbeddedSheets = [
-				'InsightDistribution' => 0,
-				'DNSFirewallActivity' => 2,
-				'DNSActivity' => 1,
-				'Lookalikes' => 7,
-				'ContentFiltration' => 8,
-				'TopDetectedProperties' => 9,
+				'TopDetectedProperties' => 4,
+				'ContentFiltration' => 5,
+				'DNSActivity' => 6,
+				'DNSFirewallActivity' => 7,
+				'InsightDistribution' => 8,
+				'Lookalikes' => 9
 			];
 			
 			// Function to get the full path of the file based on the sheet name
