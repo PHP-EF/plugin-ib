@@ -973,11 +973,11 @@ class SecurityAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			// echo json_encode(array(
-			// 	'result' => 'Success',
-			// 	'message' => 'Started'
-			// ));
-			// fastcgi_finish_request();
+			echo json_encode(array(
+				'result' => 'Success',
+				'message' => 'Started'
+			));
+			fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -1466,9 +1466,6 @@ class SecurityAssessment extends ibPortal {
 			// Device Count
 			$Progress = $this->writeProgress($UUID,$Progress,"Building Device Count");
 			$Devices = $CubeJSResults['Devices']['Body'];
-
-			print_r($Devices);
-			return;
 
 			if (isset($Devices->result->data[0])) {
 				$DeviceCount = $Devices->result->data[0]->{'PortunusAggInsight.deviceCount'};
