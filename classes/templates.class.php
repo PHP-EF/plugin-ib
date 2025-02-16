@@ -20,6 +20,7 @@ class TemplateConfig extends ibPlugin {
           Description TEXT,
           ThreatActorSlide INTEGER,
           Orientation TEXT,
+          isDefault BOOLEAN,
           Created DATE,
           Updated DATE
         )");
@@ -56,7 +57,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation) {
+    public function newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault) {
         try {
             // Check if filename already exists
             $checkStmt = $this->sql->prepare("SELECT COUNT(*) FROM security_assessment_templates WHERE FileName = :FileName OR TemplateName = :TemplateName");
@@ -68,10 +69,10 @@ class TemplateConfig extends ibPlugin {
         } catch (PDOException $e) {
 			$this->api->setAPIResponse('Error',$e);
         }
-        $stmt = $this->sql->prepare("INSERT INTO security_assessment_templates (Status, FileName, TemplateName, Description, ThreatActorSlide, Orientation, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :ThreatActorSlide, :Orientation, :Created)");
+        $stmt = $this->sql->prepare("INSERT INTO security_assessment_templates (Status, FileName, TemplateName, Description, ThreatActorSlide, Orientation, isDefault, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :ThreatActorSlide, :Orientation, :isDefault, :Created)");
         try {
             $CurrentDate = new DateTime();
-            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':ThreatActorSlide' => urldecode($ThreatActorSlide), ':Orientation' => urldecode($Orientation), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
+            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':ThreatActorSlide' => urldecode($ThreatActorSlide), ':Orientation' => urldecode($Orientation), ':isDefault' => urldecode($isDefault), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
             $id = $this->sql->lastInsertId();
             // Mark other templates as inactive
             // if ($Status == 'Active') {
@@ -90,7 +91,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function setSecurityAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation) {
+    public function setSecurityAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault) {
         $templateConfig = $this->getSecurityAssessmentTemplateConfigById($id);
         if ($templateConfig) {
             if ($FileName !== null || $TemplateName !== null) {
@@ -142,6 +143,10 @@ class TemplateConfig extends ibPlugin {
             if ($Orientation !== null) {
                 $prepare[] = 'Orientation = :Orientation';
                 $execute[':Orientation'] = urldecode($Orientation);
+            }
+            if ($isDefault !== null) {
+                $prepare[] = 'isDefault = :isDefault';
+                $execute[':isDefault'] = urldecode($isDefault);
             }
             $stmt = $this->sql->prepare('UPDATE security_assessment_templates SET '.implode(", ",$prepare).' WHERE id = :id');
             $stmt->execute($execute);

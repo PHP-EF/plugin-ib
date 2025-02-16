@@ -141,8 +141,9 @@ $app->post('/plugin/ib/assessment/security/config', function ($request, $respons
             $Description = $data['Description'] ?? null;
             $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
             $Orientation = $data['Orientation'] ?? null;
+            $isDefault = $data['isDefault'] ?? null;
             $TemplateName = $data['TemplateName'];
-            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation);
+            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault);
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -161,8 +162,9 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
         $TemplateName = $data['TemplateName'] ?? null;
         $Orientation = $data['Orientation'] ?? null;
         $Description = $data['Description'] ?? null;
+        $isDefault = $data['isDefault'] ?? null;
         $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
-        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation);
+        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault);
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response

@@ -9,10 +9,20 @@
   $ActiveTemplates = $ibPlugin->getSecurityAssessmentActiveTemplate();
   if (is_array($ActiveTemplates) && count($ActiveTemplates) > 1) {
     foreach ($ActiveTemplates as $activeTemplate) {
-      $TemplateSelection .= '<option value="'.$activeTemplate['id'].'">'.$activeTemplate['TemplateName'].'</option>';
+      if ($activeTemplate['isDefault'] == 'true') {
+        $Selected = 'selected';
+      } else {
+        $Selected = '';
+      }
+      $TemplateSelection .= '<option value="'.$activeTemplate['id'].'" '.$Selected.'>'.$activeTemplate['TemplateName'].'</option>';
     }
   } else {
-    $TemplateSelection .= '<option value="'.$ActiveTemplates[0]['id'].'">'.$ActiveTemplates[0]['TemplateName'].'</option>';
+    if ($ActiveTemplates[0]['isDefault'] == 'true') {
+      $Selected = 'selected';
+    } else {
+      $Selected = '';
+    }
+    $TemplateSelection .= '<option value="'.$ActiveTemplates[0]['id'].'" '.$Selected.'>'.$ActiveTemplates[0]['TemplateName'].'</option>';
   }
 
   return <<<EOF
