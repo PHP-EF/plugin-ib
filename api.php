@@ -17,9 +17,9 @@ $app->post('/plugin/ib/assessment/security/generate', function ($request, $respo
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
-            if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['unnamed']) AND isset($data['substring'])) {
+            if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates']) AND isset($data['unnamed']) AND isset($data['substring'])) {
                 if (isValidUuid($data['id'])) {
-                    $ibPlugin->generateSecurityReport($data['StartDateTime'],$data['EndDateTime'],$data['Realm'],$data['id'],$data['unnamed'],$data['substring']);
+                    $ibPlugin->generateSecurityReport($data['StartDateTime'],$data['EndDateTime'],$data['Realm'],$data['id'],$data['templates'],$data['unnamed'],$data['substring']);
                 }
             }
         }
@@ -36,7 +36,7 @@ $app->get('/plugin/ib/assessment/security/progress', function ($request, $respon
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
-            $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'],39)); // Produces percentage for use on progress bar
+            $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'])); // Produces percentage for use on progress bar
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -47,37 +47,74 @@ $app->get('/plugin/ib/assessment/security/progress', function ($request, $respon
 
 // Download Security Assessment Report
 $app->get('/plugin/ib/assessment/security/download', function ($request, $response, $args) {
-	$ibPlugin = new SecurityAssessment();
+    $ibPlugin = new SecurityAssessment();
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
             $ibPlugin->logging->writeLog("Assessment","Downloaded security assessment report","info");
-            $File = $ibPlugin->getDir()['Files'].'/reports/report-'.$data['id'].'.pptx';
-            // Ensure the file exists and is readable
-            if (file_exists($File) && is_readable($File)) {
-                // Read the file content
-                $fileContent = file_get_contents($File);
-                // Write the file content to the response body
-                $response->getBody()->write($fileContent);
-                // Return the response with appropriate headers
-                return $response
-                    ->withHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
-                    ->withHeader('Content-Disposition', 'attachment; filename="report-' . $data['id'] . '.pptx"')
-                    ->withHeader('Content-Transfer-Encoding', 'binary')
-                    ->withHeader('Accept-Ranges', 'bytes')
-                    ->withStatus($GLOBALS['responseCode']);
+            $progressFile = $ibPlugin->getDir()['Files'].'/reports/report-'.$data['id'].'.progress';
+            // Ensure the progress file exists and is readable
+            if (file_exists($progressFile) && is_readable($progressFile)) {
+                // Read the progress file content
+                $progressData = json_decode(file_get_contents($progressFile), true);
+                if (isset($progressData['Templates']) && is_array($progressData['Templates'])) {
+                    $templates = $progressData['Templates'];
+                    if (count($templates) === 1) {
+                        // Single template file
+                        $file = $ibPlugin->getDir()['Files'].'/reports/report-'.$data['id'].'-'.$templates[0];
+                        if (file_exists($file) && is_readable($file)) {
+                            $fileContent = file_get_contents($file);
+                            $response->getBody()->write($fileContent);
+                            return $response
+                                ->withHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+                                ->withHeader('Content-Disposition', 'attachment; filename="reports-'.$data['id'].'-'.$templates[0].'"')
+                                ->withHeader('Content-Transfer-Encoding', 'binary')
+                                ->withHeader('Accept-Ranges', 'bytes')
+                                ->withStatus($GLOBALS['responseCode']);
+                        } else {
+                            $ibPlugin->api->setAPIResponse('Error','Template file not found or not readable');
+                        }
+                    } elseif (count($templates) > 1) {
+                        // Multiple template files, compress them into a zip file
+                        $zip = new ZipArchive();
+                        $zipFile = $ibPlugin->getDir()['Files'].'/reports/templates-'.$data['id'].'.zip';
+                        
+                        if ($zip->open($zipFile, ZipArchive::CREATE) === TRUE) {
+                            foreach ($templates as $template) {
+                                $file = $ibPlugin->getDir()['Files'].'/reports/report-'.$data['id'].'-'.$template;
+                                if (file_exists($file) && is_readable($file)) {
+                                    $zip->addFile($file, basename($file));
+                                }
+                            }
+                            $zip->close();
+                            $zipContent = file_get_contents($zipFile);
+                            $response->getBody()->write($zipContent);
+                            return $response
+                                ->withHeader('Content-Type', 'application/zip')
+                                ->withHeader('Content-Disposition', 'attachment; filename="reports-'.$data['id'].'.zip"')
+                                ->withHeader('Content-Transfer-Encoding', 'binary')
+                                ->withHeader('Accept-Ranges', 'bytes')
+                                ->withStatus($GLOBALS['responseCode']);
+                        } else {
+                            $ibPlugin->api->setAPIResponse('Error','Failed to create zip file');
+                        }
+                    } else {
+                        $ibPlugin->api->setAPIResponse('Error','No templates found');
+                    }
+                } else {
+                    $ibPlugin->api->setAPIResponse('Error','Invalid progress data');
+                }
             } else {
-                // Handle the error if the file does not exist or is not readable
-                $ibPlugin->api->setAPIResponse('Error','Invalid ID or Link Expired');
+                $ibPlugin->api->setAPIResponse('Error','Progress file not found or not readable');
             }
         } else {
             $ibPlugin->api->setAPIResponse('Error','Invalid ID');
         }
     }
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
+    $response->getBody()->write(jsonE($GLOBALS['api']));
+    return $response
+        ->withHeader('Content-Type', 'application/json;charset=UTF-8')
+        ->withStatus($GLOBALS['responseCode']);
 });
 
 // Get Security Assessment Templates
@@ -85,7 +122,7 @@ $app->get('/plugin/ib/assessment/security/config', function ($request, $response
 	$ibPlugin = new TemplateConfig();
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CONFIG'] ?: 'ACL-CONFIG')) {
         $data = $ibPlugin->api->getAPIRequestData($request);
-        $ibPlugin->api->setAPIResponseData($ibPlugin->getTemplateConfigs());
+        $ibPlugin->api->setAPIResponseData($ibPlugin->getSecurityAssessmentTemplateConfigs());
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response
@@ -103,8 +140,9 @@ $app->post('/plugin/ib/assessment/security/config', function ($request, $respons
             $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
             $Description = $data['Description'] ?? null;
             $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
+            $Orientation = $data['Orientation'] ?? null;
             $TemplateName = $data['TemplateName'];
-            $ibPlugin->newTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide);
+            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation);
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -121,9 +159,10 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
         $Status = $data['Status'] ?? null;
         $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
         $TemplateName = $data['TemplateName'] ?? null;
+        $Orientation = $data['Orientation'] ?? null;
         $Description = $data['Description'] ?? null;
         $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
-        $ibPlugin->setTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide);
+        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation);
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response
@@ -135,7 +174,7 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
 $app->delete('/plugin/ib/assessment/security/config/{id}', function ($request, $response, $args) {
 	$ibPlugin = new TemplateConfig();
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CONFIG'] ?: 'ACL-CONFIG')) {
-        $ibPlugin->removeTemplateConfig($args['id']);
+        $ibPlugin->removeSecurityAssessmentTemplateConfig($args['id']);
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response

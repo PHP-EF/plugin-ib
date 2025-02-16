@@ -235,6 +235,14 @@
             <input type="text" class="form-control info-field" id="templateThreatActorSlide" aria-describedby="templateThreatActorSlideHelp" name="templateThreatActorSlide">
             <small id="templateThreatActorSlideHelp" class="form-text text-muted">This is the Threat Actor template slide number.</small>
           </div>
+          <div class="form-group">
+            <label for="templateOrientation" class="col-form-label">Template Orientation</label>
+            <select id="templateOrientation" class="form-select" name="templateOrientation">
+              <option value="Portrait" selected>Portrait</option>
+              <option value="Landscape">Landscape</option>
+            </select>
+            <small id="templateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
+          </div>
           <div class="form-group row">
             <label for="templatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
@@ -293,6 +301,14 @@
             <label for="newTemplateDescription">Template Description</label>
             <input type="text" class="form-control info-field" id="newTemplateDescription" aria-describedby="newTemplateDescriptionHelp" name="newTemplateDescription">
             <small id="newTemplateDescriptionHelp" class="form-text text-muted">The description of the Security Assessment Template.</small>
+          </div>
+          <div class="form-group">
+            <label for="newTemplateOrientation" class="col-form-label">Template Orientation</label>
+            <select id="newTemplateOrientation" class="form-select" name="newTemplateOrientation">
+              <option value="Portrait" selected>Portrait</option>
+              <option value="Landscape">Landscape</option>
+            </select>
+            <small id="newTemplateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
           </div>
           <div class="form-group">
             <label for="newTemplateThreatActorSlide">Threat Actor Slide</label>
@@ -398,6 +414,7 @@
       $("#templateDescription").val(row["Description"]);
       $("#templateFileName").val(row["FileName"]);
       $("#templateThreatActorSlide").val(row["ThreatActorSlide"]);
+      $("#templateOrientation").val(row["Orientation"]);
       $("#templateUploadDate").val(row["Created"]);
     }
 
@@ -618,6 +635,7 @@
       postArr.Status = encodeURIComponent($("#newTemplateStatus").val());
       postArr.TemplateName = encodeURIComponent($("#newTemplateName").val());
       postArr.Description = encodeURIComponent($("#newTemplateDescription").val());
+      postArr.Orientation = encodeURIComponent($("#newTemplateOrientation").val());
       postArr.ThreatActorSlide = encodeURIComponent($("#newTemplateThreatActorSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#newTemplateName").val().toLowerCase().replace(/ /g, "-");
@@ -672,6 +690,7 @@
       postArr.Status = encodeURIComponent($("#templateStatus").val());
       postArr.TemplateName = encodeURIComponent($("#templateName").val());
       postArr.Description = encodeURIComponent($("#templateDescription").val());
+      postArr.Orientation = encodeURIComponent($("#templateOrientation").val());
       postArr.ThreatActorSlide = encodeURIComponent($("#templateThreatActorSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#templateName").val().toLowerCase().replace(/ /g, "-");

@@ -1,9 +1,20 @@
 <?php
-  $ibPlugin = new ibPlugin();
+  $ibPlugin = new TemplateConfig();
   if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null) == false) {
     $ibPlugin->api->setAPIResponse('Error','Unauthorized',401);
     return false;
   };
+
+  $TemplateSelection = "";
+  $ActiveTemplates = $ibPlugin->getSecurityAssessmentActiveTemplate();
+  if (is_array($ActiveTemplates) && count($ActiveTemplates) > 1) {
+    foreach ($ActiveTemplates as $activeTemplate) {
+      $TemplateSelection .= '<option value="'.$activeTemplate['id'].'">'.$activeTemplate['TemplateName'].'</option>';
+    }
+  } else {
+    $TemplateSelection .= '<option value="'.$ActiveTemplates[0]['id'].'">'.$ActiveTemplates[0]['TemplateName'].'</option>';
+  }
+
   return <<<EOF
   <section class="section">
     <div class="row mx-2">
@@ -20,46 +31,69 @@
     </div>
     <br>
     <div class="row mx-2">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="container">
-              <div class="row justify-content-md-center toolsMenu">
-                <div class="col-md-4 apiKey">
-                    <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="SAGAPIKey" type="password" placeholder="Enter API Key" required>
-                    <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
-                </div>
-                <div class="col-md-2 realm">
-                    <select id="SAGRealm" class="form-select" aria-label="Realm Selection">
-                        <option value="US" selected>US Realm</option>
-                        <option value="EU">EU Realm</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="SAGassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
-                </div>
-                <div class="col-md-2 actions">
-                  <button class="btn btn-success" id="Generate">Generate</button>
-                </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="container">
+            <div class="row justify-content-md-center toolsMenu">
+              <div class="col-md-4 apiKey">
+                  <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="SAGAPIKey" type="password" placeholder="Enter API Key" required>
+                  <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
               </div>
-              <div class="row mt-3">
-                <div class="col-md-6 options">
-                  <div class="form-group">
-                    <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="SAGunnamed" name="unnamed">
-                      <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="SAGsubstring" name="substring">
-                      <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
-                    </div>
-                  </div>
-                </div>
+              <div class="col-md-2 realm">
+                  <select id="SAGRealm" class="form-select" aria-label="Realm Selection">
+                      <option value="US" selected>US Realm</option>
+                      <option value="EU">EU Realm</option>
+                  </select>
               </div>
-              <br>
+              <div class="col-md-3">
+                  <input type="text" id="SAGassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
+              </div>
+              <div class="col-auto actions">
+                <button class="btn btn-success" id="Generate">Generate</button>
+              </div>
             </div>
+            <div class="row justify-content-md-center toolsMenu pt-2">
+              <div class="col-lg-9">
+                <div class="accordion" id="assessmentOptionsAccordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="assessmentOptionsHeading">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#assessmentOptions" aria-expanded="true" aria-controls="assessmentOptions">
+                      Assessment Options
+                      </button>
+                    </h2>
+                    <div id="assessmentOptions" class="accordion-collapse collapse" aria-labelledby="assessmentOptionsHeading" data-bs-parent="#assessmentOptionsAccordion">
+                      <div class="accordion-body">
+                        <div class="card-body" id="assessmentOptionsCard">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <label class="form-check-label" for="templateSelection">Template(s)</label>
+                              <select  id="SAGtemplateSelection" class="select2" name="templateSelection" multiple="multiple">
+                                $TemplateSelection
+                              </select>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group">
+                                <div class="form-check form-switch">
+                                  <input class="form-check-input info-field" type="checkbox" id="SAGunnamed" name="unnamed">
+                                  <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <div class="form-check form-switch">
+                                  <input class="form-check-input info-field" type="checkbox" id="SAGsubstring" name="substring">
+                                  <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <br>
           </div>
         </div>
       </div>
@@ -205,6 +239,7 @@
         postArr.Realm = $("#SAGRealm").find(":selected").val();
         postArr.id = id;
         postArr.unnamed = $("#SAGunnamed")[0].checked;
+        postArr.templates = $("#SAGtemplateSelection").val();
         postArr.substring = $("#SAGsubstring")[0].checked;
         if ($("#SAGAPIKey")[0].value) {
           postArr.APIKey = $("#SAGAPIKey")[0].value;
@@ -227,5 +262,8 @@
       }
     });
   });
+  
+  // Initialise Select2 Inputs
+  $('.select2').select2({tags: false, closeOnSelect: true, allowClear: true, width: "100%"});
   </script>
 EOF;
