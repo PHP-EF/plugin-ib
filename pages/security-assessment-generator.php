@@ -213,6 +213,7 @@
           }, 1000);
         } else if (progress >= 100 && data["Action"] == "Done.." ) {
           toast("Success","","Security Assessment Successfully Generated","success","30000");
+          toast("Success","Please wait..","Downloading Report(s)..","info","30000");
           download("/api/plugin/ib/assessment/security/download?id="+id);
           hideSAGLoading(timer);
           $("#Generate").prop("disabled", false);

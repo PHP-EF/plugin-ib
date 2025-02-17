@@ -877,9 +877,9 @@ class SecurityAssessment extends ibPortal {
 				##// Slide 15 - Key Insights
 				// Insight Severity
 				$mapping = replaceTag($mapping,'#TAG45',number_abbr($TotalInsights)); // Total Open Insights
-				$mapping = replaceTag($mapping,'#TAG46',number_abbr($MediumInsights)); // Medium Priority Insights
+				$mapping = replaceTag($mapping,'#TAG46',number_abbr($CriticalInsights)); // Critical Priority Insights
 				$mapping = replaceTag($mapping,'#TAG47',number_abbr($HighInsights)); // High Priority Insights
-				$mapping = replaceTag($mapping,'#TAG48',number_abbr($CriticalInsights)); // Critical Priority Insights
+				$mapping = replaceTag($mapping,'#TAG48',number_abbr($MediumInsights)); // Medium Priority Insights
 				$mapping = replaceTag($mapping,'#TAG49',number_abbr($LowInsights)); // Low Priority Insights
 				$mapping = replaceTag($mapping,'#TAG50',number_abbr($InfoInsights)); // Low Priority Insights
 				// Event To Insight Aggregation
