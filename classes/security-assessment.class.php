@@ -881,34 +881,35 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG47',number_abbr($HighInsights)); // High Priority Insights
 				$mapping = replaceTag($mapping,'#TAG48',number_abbr($CriticalInsights)); // Critical Priority Insights
 				$mapping = replaceTag($mapping,'#TAG49',number_abbr($LowInsights)); // Low Priority Insights
+				$mapping = replaceTag($mapping,'#TAG50',number_abbr($InfoInsights)); // Low Priority Insights
 				// Event To Insight Aggregation
-				$mapping = replaceTag($mapping,'#TAG50',number_abbr($SecurityEventsCount)); // Events
-				$mapping = replaceTag($mapping,'#TAG51',number_abbr($TotalInsights)); // Key Insights
+				$mapping = replaceTag($mapping,'#TAG51',number_abbr($SecurityEventsCount)); // Events
+				$mapping = replaceTag($mapping,'#TAG52',number_abbr($TotalInsights)); // Key Insights
 		
 				##// Slide 24 - Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeTotalCount)); // Total Lookalikes
+				$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeTotalCount)); // Total Lookalikes
 				// if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
 				// if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG55',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
 				// if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
 		
 				##// Slide 28 - Security Activities
-				$mapping = replaceTag($mapping,'#TAG55',number_abbr($SecurityEventsCount)); // Security Events
-				$mapping = replaceTag($mapping,'#TAG56',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
-				$mapping = replaceTag($mapping,'#TAG57',number_abbr($WebContentEventsCount)); // Web Content
-				$mapping = replaceTag($mapping,'#TAG58',number_abbr($DeviceCount)); // Devices
-				$mapping = replaceTag($mapping,'#TAG59',number_abbr($UserCount)); // Users
-				$mapping = replaceTag($mapping,'#TAG60',number_abbr($TotalInsights)); // Insights
-				$mapping = replaceTag($mapping,'#TAG61',number_abbr($ThreatInsightCount)); // Threat Insight
-				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatViewCount)); // Threat View
-				$mapping = replaceTag($mapping,'#TAG63',number_abbr($SourcesCount)); // Sources
+				$mapping = replaceTag($mapping,'#TAG56',number_abbr($SecurityEventsCount)); // Security Events
+				$mapping = replaceTag($mapping,'#TAG57',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
+				$mapping = replaceTag($mapping,'#TAG58',number_abbr($WebContentEventsCount)); // Web Content
+				$mapping = replaceTag($mapping,'#TAG59',number_abbr($DeviceCount)); // Devices
+				$mapping = replaceTag($mapping,'#TAG60',number_abbr($UserCount)); // Users
+				$mapping = replaceTag($mapping,'#TAG61',number_abbr($TotalInsights)); // Insights
+				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatInsightCount)); // Threat Insight
+				$mapping = replaceTag($mapping,'#TAG63',number_abbr($ThreatViewCount)); // Threat View
+				$mapping = replaceTag($mapping,'#TAG64',number_abbr($SourcesCount)); // Sources
 		
 				##// Slide 32 -> Onwards - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
