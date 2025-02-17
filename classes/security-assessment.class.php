@@ -19,7 +19,7 @@ class SecurityAssessment extends ibPortal {
 		$this->TemplateConfig = new TemplateConfig();
 	}
 
-	public function generateSecurityReport($StartDateTime,$EndDateTime,$Realm,$UUID,$Templates,$unnamed,$substring) {
+	public function generateSecurityReport($StartDateTime,$EndDateTime,$Realm,$UUID,$Templates,$unnamed,$substring,$removeITI) {
 		// Pass APIKey & Realm to ThreatActors Class
 		$this->ThreatActors = new ThreatActors();
 		$this->ThreatActors->SetCSPConfiguration($this->APIKey,$Realm);
@@ -182,7 +182,6 @@ class SecurityAssessment extends ibPortal {
 			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
-					error_log($EmbeddedSheets[$sheetName]);
 					if (isset($embeddedFiles[$fileIndex])) {
 						return $embeddedDirectory . $embeddedFiles[$fileIndex];
 					}
@@ -591,7 +590,7 @@ class SecurityAssessment extends ibPortal {
 					$LookalikeThreatCountsW = IOFactory::createWriter($LookalikeThreatCountsSS, 'Xlsx');
 					$LookalikeThreatCountsW->save($EmbeddedLookalikes);
 				}
-			
+
 				//
 				// Do Threat Actor Stuff Here ....
 				//
@@ -611,11 +610,6 @@ class SecurityAssessment extends ibPortal {
 					$xml_rels = new DOMDocument('1.0', 'utf-8');
 					$xml_rels->formatOutput = true;
 					$xml_rels->preserveWhiteSpace = false;
-					if (file_exists($SelectedTemplate['ExtractedDir'].'/ppt/_rels/presentation.xml.rels')) {
-						echo $SelectedTemplate['ExtractedDir'].'/ppt/_rels/presentation.xml.rels'.' - Exists';
-					} else {
-						echo $SelectedTemplate['ExtractedDir'].'/ppt/_rels/presentation.xml.rels'.' - Not Exists';
-					}
 					$xml_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/_rels/presentation.xml.rels');
 					$xml_rels_f = $xml_rels->createDocumentFragment();
 					$xml_rels_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
@@ -626,6 +620,31 @@ class SecurityAssessment extends ibPortal {
 					$xml_pres->load($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
 					$xml_pres_f = $xml_pres->createDocumentFragment();
 					$xml_pres_fstart = 14700;
+
+					// Remove Infoblox Threat Intelligence Page (ITI) if set
+					if ($removeITI == 'true') {
+						$ITISlide = 7;
+						unlink($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$ITISlide.'.xml');
+						unlink($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$ITISlide.'.xml.rels');
+						$xml_rels_xpath = new DOMXPath($xml_rels);
+						$xml_rels_xpath->registerNamespace('ns', 'http://schemas.openxmlformats.org/package/2006/relationships');
+						$xml_rels_query = '//ns:Relationship[@Target="slides/slide' . $ITISlide . '.xml"]';
+						$xml_rels_nodes = $xml_rels_xpath->query($xml_rels_query);
+						$rId = null;
+						foreach ($xml_rels_nodes as $xml_rels_node) {
+							$rId = $xml_rels_node->getAttribute('Id');
+							$xml_rels_node->parentNode->removeChild($xml_rels_node);
+						}
+						$xml_pres_xpath = new DOMXPath($xml_pres);
+						$xml_pres_xpath->registerNamespace('p', 'http://schemas.openxmlformats.org/presentationml/2006/main');
+						$xml_pres_xpath->registerNamespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+						$xml_pres_query = '//p:sldId[@r:id="' . $rId . '"]';
+						$xml_pres_nodes = $xml_pres_xpath->query($xml_pres_query);
+						foreach ($xml_pres_nodes as $xml_pres_node) {
+							$xml_pres_node->parentNode->removeChild($xml_pres_node);
+						}
+					}
+
 					// Get Slide Count
 					$SlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
 					// Set first slide number
@@ -1001,7 +1020,7 @@ class SecurityAssessment extends ibPortal {
 
 				// Rebuild Powerpoint File(s)
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
-				$Progress = $this->writeProgress($UUID,$Progress,"Rebuilding Powerpoint Template");
+				$Progress = $this->writeProgress($UUID,$Progress,"Rebuilding Powerpoint Template(s)");
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,

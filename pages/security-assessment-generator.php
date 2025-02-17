@@ -84,13 +84,19 @@
                             <div class="col-md-6">
                               <div class="form-group">
                                 <div class="form-check form-switch">
-                                  <input class="form-check-input info-field" type="checkbox" id="SAGunnamed" name="unnamed">
+                                  <input class="form-check-input" type="checkbox" id="SAGremoveITI" name="removeITI">
+                                  <label class="form-check-label" for="removeITI">Remove ITI Slide</label>
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <div class="form-check form-switch">
+                                  <input class="form-check-input" type="checkbox" id="SAGunnamed" name="unnamed">
                                   <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
                                 </div>
                               </div>
                               <div class="form-group">
                                 <div class="form-check form-switch">
-                                  <input class="form-check-input info-field" type="checkbox" id="SAGsubstring" name="substring">
+                                  <input class="form-check-input" type="checkbox" id="SAGsubstring" name="substring">
                                   <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
                                 </div>
                               </div>
@@ -251,6 +257,7 @@
         postArr.unnamed = $("#SAGunnamed")[0].checked;
         postArr.templates = $("#SAGtemplateSelection").val();
         postArr.substring = $("#SAGsubstring")[0].checked;
+        postArr.removeITI = $("#SAGremoveITI")[0].checked;
         if ($("#SAGAPIKey")[0].value) {
           postArr.APIKey = $("#SAGAPIKey")[0].value;
         }
