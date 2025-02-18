@@ -828,6 +828,8 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG19',number_abbr($UniqueApplicationsCount)); // Unique Applications
 				$mapping = replaceTag($mapping,'#TAG20',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
 				$mapping = replaceTag($mapping,'#TAG21',number_abbr($ThreatActorsCount)); // Threat Actors
+
+				$mapping = replaceTag($mapping,'#TAG22',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
 	
 				##// Slide 7 - Additional Threat Intel Insights
 				// ** CURRENTLY DONE MANUALLY BY ITI ** //
