@@ -17,9 +17,9 @@ $app->post('/plugin/ib/assessment/security/generate', function ($request, $respo
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
-            if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates']) AND isset($data['unnamed']) AND isset($data['substring']) AND isset($data['removeITI'])) {
+            if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates']) AND isset($data['unnamed']) AND isset($data['substring'])) {
                 if (isValidUuid($data['id'])) {
-                    $ibPlugin->generateSecurityReport($data['StartDateTime'],$data['EndDateTime'],$data['Realm'],$data['id'],$data['templates'],$data['unnamed'],$data['substring'],$data['removeITI']);
+                    $ibPlugin->generateSecurityReport($data['StartDateTime'],$data['EndDateTime'],$data['Realm'],$data['id'],$data['templates'],$data['unnamed'],$data['substring']);
                 }
             }
         }
