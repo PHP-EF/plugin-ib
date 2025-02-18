@@ -775,7 +775,6 @@ class SecurityAssessment extends ibPortal {
 				// Save Core XML Files
 				$xml_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/_rels/presentation.xml.rels');
 				$xml_pres->save($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
-				$xml_ct->save($SelectedTemplate['ExtractedDir'].'/[Content_Types].xml');
 
 				// Rebuild Powerpoint Template Zip(s)
 				$Progress = $this->writeProgress($UUID,$Progress,"Stitching Powerpoint Template(s)");
