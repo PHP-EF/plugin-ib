@@ -329,7 +329,7 @@ class ThreatActors extends ibPortal {
 			  // Ignore Unnamed & Substring Actors
 			  $UnnamedActor = str_starts_with($AR->actor_name,'unnamed_actor');
 			  $SubstringActor = str_starts_with($AR->actor_name,'substring');
-			  $UnknownActor = str_starts_with($AR->actor_name,'Unknown');
+			  $UnknownActor = str_starts_with($AR->actor_name,'unknown');
 			  if (($UnnamedActor && $unnamed == 'true') || ($SubstringActor && $substring == 'true') || ($UnknownActor && $unknown == 'true') || (!$UnnamedActor && !$SubstringActor && !$UnknownActor)) {
 				$NewArr = array(
 					'actor_id' => $AR->actor_id,
