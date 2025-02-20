@@ -82,16 +82,39 @@
                               </select>
                             </div>
                             <div class="col-md-6">
-                              <div class="form-group">
-                                <div class="form-check form-switch">
-                                  <input class="form-check-input" type="checkbox" id="SAGunnamed" name="unnamed">
-                                  <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
+                              <div class="row">
+                                <label>Threat Actor Options</label>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="SAGallTAInMetrics" name="allTAInMetrics" checked>
+                                      <label class="form-check-label" for="allTAInMetrics">Include All Threat Actors in Count</label>
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                              <div class="form-group">
-                                <div class="form-check form-switch">
-                                  <input class="form-check-input" type="checkbox" id="SAGsubstring" name="substring">
-                                  <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="SAGunnamed" name="unnamed">
+                                      <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="SAGsubstring" name="substring">
+                                      <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="SAGunknown" name="unknown">
+                                      <label class="form-check-label" for="unknown">Enable Unknown Actors</label>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -249,9 +272,12 @@
         postArr.EndDateTime = endDateTime.toISOString();
         postArr.Realm = $("#SAGRealm").find(":selected").val();
         postArr.id = id;
-        postArr.unnamed = $("#SAGunnamed")[0].checked;
         postArr.templates = $("#SAGtemplateSelection").val();
+        postArr.unnamed = $("#SAGunnamed")[0].checked;
         postArr.substring = $("#SAGsubstring")[0].checked;
+        postArr.unknown = $("#SAGunknown")[0].checked;
+        postArr.allTAInMetrics = $("#SAGallTAInMetrics")[0].checked;
+
         if ($("#SAGAPIKey")[0].value) {
           postArr.APIKey = $("#SAGAPIKey")[0].value;
         }
