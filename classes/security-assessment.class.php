@@ -351,7 +351,7 @@ class SecurityAssessment extends ibPortal {
 				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsById($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
 				}
 				if ($config['allTAInMetrics'] == 'true') {
-					$ThreatActorsCountMetric = count($ThreatActors);
+					$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'PortunusAggIPSummary.actor_id')));
 				} else {
 					$ThreatActorsCountMetric = count($ThreatActorInfo);
 				}

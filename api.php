@@ -21,7 +21,7 @@ $app->post('/plugin/ib/assessment/security/generate', function ($request, $respo
                 if (isValidUuid($data['id'])) {
 
                     $config = [
-                        'APIKey' => $data['APIKey'],
+                        'APIKey' => $data['APIKey'] ?? null,
                         'Realm' => $data['Realm'],
                         'StartDateTime' => $data['StartDateTime'],
                         'EndDateTime' => $data['EndDateTime'],
@@ -29,7 +29,7 @@ $app->post('/plugin/ib/assessment/security/generate', function ($request, $respo
                         'Templates' => $data['templates'],
                         'unnamed' => $data['unnamed'] ?? false,
                         'substring' => $data['substring'] ?? false,
-                        'unknown' => $data['substring'] ?? false,
+                        'unknown' => $data['unknown'] ?? false,
                         'allTAInMetrics' => $data['allTAInMetrics'] ?? false
                     ];
 
