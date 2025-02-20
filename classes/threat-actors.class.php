@@ -201,7 +201,7 @@ class ThreatActors extends ibPortal {
 		}
 	}
 	  
-	function GetB1ThreatActorsById($Actors,$unnamed,$substring) {
+	function GetB1ThreatActorsById($Actors,$unnamed,$substring,$unknown) {
 		$ActorArr = json_decode(json_encode($Actors),true);
 		$UniqueIds = array_unique(array_column($ActorArr, 'ThreatActors.ikbactorid'));
 		$Results = array();
@@ -225,7 +225,8 @@ class ThreatActors extends ibPortal {
 				// Ignore Unnamed & Substring Actors
 				$UnnamedActor = str_starts_with($Actor->actor_name,'unnamed_actor');
 				$SubstringActor = str_starts_with($Actor->actor_name,'substring');
-				if (($UnnamedActor && $unnamed == 'true') || ($SubstringActor && $substring == 'true') || (!$UnnamedActor && !$SubstringActor)) {
+				$UnknownActor = str_starts_with($Actor->actor_name,'Unknown');
+				if (($UnnamedActor && $unnamed == 'true') || ($SubstringActor && $substring == 'true') || ($UnknownActor && $unknown == 'true') || (!$UnnamedActor && !$SubstringActor && !$UnknownActor)) {
 					$NewArr = array(
 						'actor_id' => $Actor->actor_id,
 						'actor_name' => $Actor->actor_name,
@@ -262,7 +263,7 @@ class ThreatActors extends ibPortal {
 		return $Results;
 	}
 
-	function GetB1ThreatActorsByIdEU($Actors) {
+	function GetB1ThreatActorsByIdEU($Actors,$unnamed,$substring,$unknown) {
 		$UniqueIds = array_unique(array_column($Actors, 'PortunusAggIPSummary.actor_id'));
 		$Results = array();
 		$ActorInfo = array();
@@ -325,25 +326,31 @@ class ThreatActors extends ibPortal {
 		foreach ($Responses as $Response) {
 		  if (isset($Response['Body']->actor_responses)) {
 			foreach ($Response['Body']->actor_responses as $AR) {
-			  $NewArr = array(
-				'actor_id' => $AR->actor_id,
-				'actor_name' => $AR->actor_name,
-				'actor_description' => $AR->actor_description,
-				'related_count' => $AR->related_count,
-				'related_indicators_with_dates' => $AR->related_indicators_with_dates,
-				'related_indicators' => null,
-			  );
-			  if (isset($AR->external_references)) {
-				$NewArr['external_references'] = $AR->external_references;
-			  } else {
-				$NewArr['external_references'] = [];
+			  // Ignore Unnamed & Substring Actors
+			  $UnnamedActor = str_starts_with($AR->actor_name,'unnamed_actor');
+			  $SubstringActor = str_starts_with($AR->actor_name,'substring');
+			  $UnknownActor = str_starts_with($AR->actor_name,'Unknown');
+			  if (($UnnamedActor && $unnamed == 'true') || ($SubstringActor && $substring == 'true') || ($UnknownActor && $unknown == 'true') || (!$UnnamedActor && !$SubstringActor && !$UnknownActor)) {
+				$NewArr = array(
+					'actor_id' => $AR->actor_id,
+					'actor_name' => $AR->actor_name,
+					'actor_description' => $AR->actor_description,
+					'related_count' => $AR->related_count,
+					'related_indicators_with_dates' => $AR->related_indicators_with_dates,
+					'related_indicators' => null,
+				);
+				if (isset($AR->external_references)) {
+					$NewArr['external_references'] = $AR->external_references;
+				} else {
+					$NewArr['external_references'] = [];
+				}
+				if (isset($AR->infoblox_references)) {
+					$NewArr['infoblox_references'] = $AR->infoblox_references;
+				} else {
+					$NewArr['infoblox_references'] = [];
+				}
+				array_push($Results,$NewArr);
 			  }
-			  if (isset($AR->infoblox_references)) {
-				$NewArr['infoblox_references'] = $AR->infoblox_references;
-			  } else {
-				$NewArr['infoblox_references'] = [];
-			  }
-			  array_push($Results,$NewArr);
 			}
 		  }
 		}

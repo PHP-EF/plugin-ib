@@ -19,13 +19,13 @@ class SecurityAssessment extends ibPortal {
 		$this->TemplateConfig = new TemplateConfig();
 	}
 
-	public function generateSecurityReport($StartDateTime,$EndDateTime,$Realm,$UUID,$Templates,$unnamed,$substring) {
+	public function generateSecurityReport($config) {
 		// Pass APIKey & Realm to ThreatActors Class
 		$this->ThreatActors = new ThreatActors();
-		$this->ThreatActors->SetCSPConfiguration($this->APIKey,$Realm);
+		$this->ThreatActors->SetCSPConfiguration($this->APIKey,$config['Realm']);
 		// Check Active Template Exists
 		$SelectedTemplates = [];
-		foreach ($Templates as $TemplateId) {
+		foreach ($config['Templates'] as $TemplateId) {
 			$SelectedTemplate = $this->TemplateConfig->getSecurityAssessmentTemplateConfigById($TemplateId);
 			if ($SelectedTemplate) {
 				$SelectedTemplates[] = $SelectedTemplate;
@@ -37,7 +37,7 @@ class SecurityAssessment extends ibPortal {
 		}
 
 		// Create Progress File
-		$this->createProgress($UUID,$SelectedTemplates);
+		$this->createProgress($config['UUID'],$SelectedTemplates);
 
 		// Check API Key is valid & get User Info
 		$UserInfo = $this->GetCSPCurrentUser();
@@ -56,14 +56,14 @@ class SecurityAssessment extends ibPortal {
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
 			$CurrentAccount = $AccountInfo->results[array_search($UserInfo->result->account_id, array_column($AccountInfo->results, 'id'))];
 			$this->logging->writeLog("Assessment",$UserInfo->result->name." requested a security assessment report for: ".$CurrentAccount->name,"info");
-			$ReportRecordId = $this->AssessmentReporting->newReportEntry('Security Assessment',$UserInfo->result->name,$CurrentAccount->name,$Realm,$UUID,"Started");
+			$ReportRecordId = $this->AssessmentReporting->newReportEntry('Security Assessment',$UserInfo->result->name,$CurrentAccount->name,$config['Realm'],$config['UUID'],"Started");
 	
 			// Set Progress
 			$Progress = 0;
 	
 			// Set Time Dimensions
-			$StartDimension = str_replace('Z','',$StartDateTime);
-			$EndDimension = str_replace('Z','',$EndDateTime);
+			$StartDimension = str_replace('Z','',$config['StartDateTime']);
+			$EndDimension = str_replace('Z','',$config['EndDateTime']);
 	
 			$HighRiskCategoryList = implode('","',[
 				"Risky Activity",
@@ -113,7 +113,7 @@ class SecurityAssessment extends ibPortal {
 				"Sexuality",
 				"Parked & For Sale Domains"
 			]);
-			$Progress = $this->writeProgress($UUID,$Progress,"Collecting Metrics");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Collecting Metrics");
 			$CubeJSRequests = array(
 				'TopThreatFeeds' => '{"measures":["PortunusAggSecurity.feednameCount"],"dimensions":["PortunusAggSecurity.feed_name"],"timeDimensions":[{"dimension":"PortunusAggSecurity.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggSecurity.type","operator":"equals","values":["2"]},{"member":"PortunusAggSecurity.severity","operator":"equals","values":["High"]}],"limit":"10","ungrouped":false}',
 				'TopDetectedProperties' => '{"measures":["PortunusDnsLogs.tpropertyCount"],"dimensions":["PortunusDnsLogs.tproperty"],"timeDimensions":[{"dimension":"PortunusDnsLogs.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusDnsLogs.type","operator":"equals","values":["2"]},{"member":"PortunusDnsLogs.feed_name","operator":"notEquals","values":["Public_DOH","public-doh","Public_DOH_IP","public-doh-ip"]},{"member":"PortunusDnsLogs.severity","operator":"notEquals","values":["Low","Info"]}],"limit":"10","ungrouped":false}',
@@ -152,17 +152,17 @@ class SecurityAssessment extends ibPortal {
 				//'ThreatActors' => '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}'
 			);
 			// Workaround for EU / US Realm Alignment
-			if ($Realm == 'EU') {
+			if ($config['Realm'] == 'EU') {
 				$CubeJSRequests['ThreatActors'] = '{"segments":[],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false,"order":{"PortunusAggIPSummary.timestampMax":"desc"},"measures":["PortunusAggIPSummary.count"],"dimensions":["PortunusAggIPSummary.threat_indicator","PortunusAggIPSummary.actor_id"],"limit":1000,"filters":[{"and":[{"operator":"set","member":"PortunusAggIPSummary.threat_indicator"},{"operator":"set","member":"PortunusAggIPSummary.actor_id"}]}]}';
-			} elseif ($Realm == 'US') {
+			} elseif ($config['Realm'] == 'US') {
 				$CubeJSRequests['ThreatActors'] = '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}';
 			}
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
 	
 			// Extract Powerpoint Template(s) as Zip
-			$Progress = $this->writeProgress($UUID,$Progress,"Extracting template(s)");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Extracting template(s)");
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
-				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace('.pptx','', 'report'.'-'.$UUID.'-'.$SelectedTemplate['FileName']);
+				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace('.pptx','', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
 				extractZip($this->getDir()['Files'].'/templates/'.$SelectedTemplate['FileName'],$ExtractedDir);
 				$SelectedTemplate['ExtractedDir'] = $ExtractedDir;
 			}
@@ -193,7 +193,7 @@ class SecurityAssessment extends ibPortal {
 			// ********************** //
 
 			// DNS Firewall Activity - Used on Slides 2, 5 & 6
-			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Event Criticality");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Firewall Event Criticality");
 			$DNSFirewallActivity = $CubeJSResults['DNSFirewallActivity']['Body'];
 			if (isset($DNSFirewallActivity->result)) {
 				$HighId = array_search('High', array_column($DNSFirewallActivity->result->data, 'PortunusAggSecurity.severity'));
@@ -219,7 +219,7 @@ class SecurityAssessment extends ibPortal {
 			$LowPerc = $LowEventsCount * $HMLP;
 	
 			// Total DNS Activity - Used on Slides 6 & 9
-			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Activity");
 			$DNSActivity = $CubeJSResults['DNSActivity']['Body'];
 			if (isset($DNSActivity->result->data[0])) {
 				$DNSActivityCount = $DNSActivity->result->data[0]->{'PortunusAggInsight.requests'};
@@ -228,7 +228,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Lookalike Domains - Used on Slides 5, 6 & 24
-			$Progress = $this->writeProgress($UUID,$Progress,"Getting Lookalike Domain Counts");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Getting Lookalike Domain Counts");
 			$LookalikeDomainCounts = $this->QueryCSP("get","api/atcfw/v1/lookalike_domain_counts");
 			if (isset($LookalikeDomainCounts->results->count_total)) { $LookalikeTotalCount = $LookalikeDomainCounts->results->count_total; } else { $LookalikeTotalCount = 0; }
 			if (isset($LookalikeDomainCounts->results->percentage_increase_total)) { $LookalikeTotalPercentage = $LookalikeDomainCounts->results->percentage_increase_total; } else { $LookalikeTotalPercentage = 0; }
@@ -238,7 +238,7 @@ class SecurityAssessment extends ibPortal {
 			if (isset($LookalikeDomainCounts->results->percentage_increase_threats)) { $LookalikeThreatPercentage = $LookalikeDomainCounts->results->percentage_increase_threats; } else { $LookalikeThreatPercentage = 0; }
 	
 			// SOC Insights - Used on Slides 15 & 28
-			$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Criticality");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Threat Criticality");
 			$SOCInsights = $CubeJSResults['SOCInsights']['Body'];
 			if (isset($SOCInsights->result)) {
 				$InfoInsightsId = array_search('INFO', array_column($SOCInsights->result->data, 'InsightsAggregated.priorityText'));
@@ -257,7 +257,7 @@ class SecurityAssessment extends ibPortal {
 			if (isset($CriticalInsightsId) AND $CriticalInsightsId !== false) {$CriticalInsights = $SOCInsights->result->data[$CriticalInsightsId]->{'InsightsAggregated.count'};} else {$CriticalInsights = 0;}
 	
 			// Security Activity
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Security Activity");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Security Activity");
 			$SecurityEvents = $CubeJSResults['SecurityEvents']['Body'];
 			if (isset($SecurityEvents->result->data[0])) {
 				$SecurityEventsCount = $SecurityEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -266,7 +266,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Data Exfiltration Events
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Data Exfiltration Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Data Exfiltration Events");
 			$DataExfilEvents = $CubeJSResults['DataExfilEvents']['Body'];
 			if (isset($DataExfilEvents->result->data[0])) {
 				$DataExfilEventsCount = $DataExfilEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -275,7 +275,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Zero Day DNS Events
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Zero Day DNS Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zero Day DNS Events");
 			$ZeroDayDNSEvents = $CubeJSResults['ZeroDayDNSEvents']['Body'];
 			if (isset($ZeroDayDNSEvents->result->data[0])) {
 				$ZeroDayDNSEventsCount = $ZeroDayDNSEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -284,7 +284,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Suspicious Domains
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Suspicious Domain Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Suspicious Domain Events");
 			$SuspiciousEvents = $CubeJSResults['SuspiciousEvents']['Body'];
 			if (isset($SuspiciousEvents->result->data[0])) {
 				$SuspiciousEventsCount = $SuspiciousEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -293,7 +293,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// High Risk Websites
-			$Progress = $this->writeProgress($UUID,$Progress,"Building High Risk Website Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building High Risk Website Events");
 			$HighRiskWebsites = $CubeJSResults['HighRiskWebsites']['Body'];
 			if (isset($HighRiskWebsites->result->data)) {
 				$HighRiskWebsiteCount = array_sum(array_column($HighRiskWebsites->result->data, 'PortunusAggWebContentDiscovery.count'));
@@ -304,7 +304,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// DNS over HTTPS
-			$Progress = $this->writeProgress($UUID,$Progress,"Building DoH Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DoH Events");
 			$DOHEvents = $CubeJSResults['DOHEvents']['Body'];
 			if (isset($DOHEvents->result->data[0])) {
 				$DOHEventsCount = $DOHEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -313,7 +313,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Newly Observed Domains
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Newly Observed Domain Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Newly Observed Domain Events");
 			$NODEvents = $CubeJSResults['NODEvents']['Body'];
 			if (isset($NODEvents->result->data[0])) {
 				$NODEventsCount = $NODEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -322,7 +322,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Domain Generation Algorithms
-			$Progress = $this->writeProgress($UUID,$Progress,"Building DGA Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DGA Events");
 			$DGAEvents = $CubeJSResults['DGAEvents']['Body'];
 			if (isset($DGAEvents->result->data[0])) {
 				$DGAEventsCount = $DGAEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -331,7 +331,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Unique Applications
-			$Progress = $this->writeProgress($UUID,$Progress,"Building list of Unique Applications");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building list of Unique Applications");
 			$UniqueApplications = $CubeJSResults['UniqueApplications']['Body'];
 			if (isset($UniqueApplications->result->data)) {
 				$UniqueApplicationsCount = count($UniqueApplications->result->data);
@@ -340,15 +340,20 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Threat Actors Metrics
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Actor Metrics");
-			$Progress = $this->writeProgress($UUID,$Progress,"Getting Threat Actor Information (This may take a moment)");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Actor Metrics");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Getting Threat Actor Information (This may take a moment)");
 			if (isset($CubeJSResults['ThreatActors']['Body']->result)) {
 				$ThreatActors = $CubeJSResults['ThreatActors']['Body']->result->data;
 				// Workaround to EU / US Realm Alignment
-				if ($Realm == 'EU') {
-				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsByIdEU($ThreatActors);
-				} elseif ($Realm == 'US') {
-				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsById($ThreatActors,$unnamed,$substring);
+				if ($config['Realm'] == 'EU') {
+				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsByIdEU($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
+				} elseif ($config['Realm'] == 'US') {
+				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsById($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
+				}
+				if ($config['allTAInMetrics'] == 'true') {
+					$ThreatActorsCountMetric = count($ThreatActors);
+				} else {
+					$ThreatActorsCountMetric = count($ThreatActorInfo);
 				}
 				$ThreatActorsCount = count($ThreatActorInfo);
 				// End of workaround
@@ -364,7 +369,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Threat Activity
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Activity");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Activity");
 			$ThreatActivityEvents = $CubeJSResults['ThreatActivityEvents']['Body'];
 			if (isset($ThreatActivityEvents->result->data[0])) {
 				$ThreatActivityEventsCount = $ThreatActivityEvents->result->data[0]->{'PortunusAggInsight.threatCount'};
@@ -373,7 +378,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// DNS Firewall
-			$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Firewall Activity");
 			$DNSFirewallEvents = $CubeJSResults['DNSFirewallEvents']['Body'];
 			if (isset($DNSFirewallEvents->result->data[0])) {
 				$DNSFirewallEventsCount = $DNSFirewallEvents->result->data[0]->{'PortunusAggInsight.requests'};
@@ -382,7 +387,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Web Content
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Web Content Events");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Events");
 			$WebContentEvents = $CubeJSResults['WebContentEvents']['Body'];
 			if (isset($WebContentEvents->result->data[0])) {
 				$WebContentEventsCount = $WebContentEvents->result->data[0]->{'PortunusAggWebcontent.requests'};
@@ -391,7 +396,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Device Count
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Device Count");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Device Count");
 			$Devices = $CubeJSResults['Devices']['Body'];
 
 			if (isset($Devices->result->data[0])) {
@@ -401,7 +406,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// User Count
-			$Progress = $this->writeProgress($UUID,$Progress,"Building User Count");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building User Count");
 			$Users = $CubeJSResults['Users']['Body'];
 			if (isset($Users->result->data[0])) {
 				$UserCount = $Users->result->data[0]->{'PortunusAggInsight.userCount'};
@@ -410,7 +415,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Threat Insight Count
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Insight Count");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Insight Count");
 			$ThreatInsight = $CubeJSResults['ThreatInsight']['Body'];
 			if (isset($ThreatInsight->result->data)) {
 				$ThreatInsightCount = count($ThreatInsight->result->data);
@@ -419,7 +424,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Threat View Count
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Threat View Count");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat View Count");
 			$ThreatView = $CubeJSResults['ThreatView']['Body'];
 			if (isset($ThreatView->result->data[0])) {
 				$ThreatViewCount = $ThreatView->result->data[0]->{'PortunusAggInsight.tpropertyCount'};
@@ -428,7 +433,7 @@ class SecurityAssessment extends ibPortal {
 			}
 	
 			// Source Count
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Sources Count");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Sources Count");
 			$Sources = $CubeJSResults['Sources']['Body'];
 			if (isset($Sources->result->data[0])) {
 				$SourcesCount = $Sources->result->data[0]->{'PortunusAggSecurity.networkCount'};
@@ -437,7 +442,7 @@ class SecurityAssessment extends ibPortal {
 			}
 
 			// Lookalike Threats
-			$Progress = $this->writeProgress($UUID,$Progress,"Building Lookalike Threats");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Lookalike Threats");
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 
@@ -449,7 +454,7 @@ class SecurityAssessment extends ibPortal {
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
 	
 				// Top detected properties
-				$Progress = $this->writeProgress($UUID,$Progress,"Building Threat Properties");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Properties");
 				$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 				if (isset($TopDetectedProperties->result->data)) {
 					$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
@@ -466,7 +471,7 @@ class SecurityAssessment extends ibPortal {
 				}
 		
 				// Content filtration
-				$Progress = $this->writeProgress($UUID,$Progress,"Building Content Filters");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Content Filters");
 				// $ContentFiltration = $CubeJSResults['ContentFiltration']['Body'];
 				// Re-use High-Risk Websites data
 				$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
@@ -490,7 +495,7 @@ class SecurityAssessment extends ibPortal {
 				}
 
 				// Traffic Analysis - DNS Activity
-				$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Activity");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Activity");
 				$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
 				if (isset($DNSActivityDaily->result->data)) {
 					$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
@@ -517,7 +522,7 @@ class SecurityAssessment extends ibPortal {
 				}
 
 				// Traffic Analysis - DNS Firewall Activity
-				$Progress = $this->writeProgress($UUID,$Progress,"Building DNS Firewall Activity");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Firewall Activity");
 				$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
 				if (isset($DNSFirewallActivityDaily->result->data)) {
 					$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
@@ -544,7 +549,7 @@ class SecurityAssessment extends ibPortal {
 				}
 		
 				// Insight Distribution by Threat Type - Sheet 3
-				$Progress = $this->writeProgress($UUID,$Progress,"Building SOC Insight Threat Types");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Threat Types");
 				$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 				if (isset($InsightDistribution->result->data)) {
 					$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
@@ -561,7 +566,7 @@ class SecurityAssessment extends ibPortal {
 				}
 		
 				// Threat Types (Lookalikes) - Sheet 4
-				$Progress = $this->writeProgress($UUID,$Progress,"Building Lookalikes");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Lookalikes");
 				if (isset($LookalikeThreatCounts->results)) {
 					$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
 					$LookalikeThreatCountsSS = IOFactory::load($EmbeddedLookalikes);
@@ -609,7 +614,7 @@ class SecurityAssessment extends ibPortal {
 				//
 				// Skip Threat Actor Slides if Slide Number is set to 0
 				if ($SelectedTemplate['ThreatActorSlide'] != 0) {
-					$Progress = $this->writeProgress($UUID,$Progress,"Generating Threat Actor Slides");
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Generating Threat Actor Slides");
 					// New slides to be appended after this slide number
 					$ThreatActorSlideStart = $SelectedTemplate['ThreatActorSlide'];
 					// Calculate the slide position based on above value
@@ -665,7 +670,7 @@ class SecurityAssessment extends ibPortal {
 							// Append Virus Total Stuff if applicable to the slide
 		
 							// Workaround to EU / US Realm Alignment
-							if ($Realm == 'EU') {
+							if ($config['Realm'] == 'EU') {
 								if (isset($TAI['related_indicators_with_dates'])) {
 									foreach ($TAI['related_indicators_with_dates'] as $TAII) {
 										if (isset($TAII->vt_first_submission_date)) {
@@ -679,7 +684,7 @@ class SecurityAssessment extends ibPortal {
 								} else {
 									$VTIndicatorFound = false;
 								}
-							} elseif ($Realm == 'US') {
+							} elseif ($config['Realm'] == 'US') {
 								if (isset($TAI['observed_iocs'])) {
 									foreach ($TAI['observed_iocs'] as $TAII) {
 										if (isset($TAII['ThreatActors.vtfirstdetectedts'])) {
@@ -769,7 +774,7 @@ class SecurityAssessment extends ibPortal {
 						//
 					}
 				} else {
-					$Progress = $this->writeProgress($UUID,$Progress,"Skipping Threat Actor Slides");
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Skipping Threat Actor Slides");
 				}
 
 				// Save Core XML Files
@@ -777,23 +782,23 @@ class SecurityAssessment extends ibPortal {
 				$xml_pres->save($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
 
 				// Rebuild Powerpoint Template Zip(s)
-				$Progress = $this->writeProgress($UUID,$Progress,"Stitching Powerpoint Template(s)");
-				compressZip($this->getDir()['Files'].'/reports/report'.'-'.$UUID.'-'.$SelectedTemplate['FileName'],$SelectedTemplate['ExtractedDir']);
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Stitching Powerpoint Template(s)");
+				compressZip($this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],$SelectedTemplate['ExtractedDir']);
 
 				// Cleanup Extracted Zip(s)
-				$Progress = $this->writeProgress($UUID,$Progress,"Cleaning up");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Cleaning up");
 				// rmdirRecursive($SelectedTemplate['ExtractedDir']);
 
 				// Extract Powerpoint Template Strings
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
-				$Progress = $this->writeProgress($UUID,$Progress,"Extract Powerpoint Strings");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Extract Powerpoint Strings");
 				$extractor = new BasicExtractor();
 				$mapping = $extractor->extractStringsAndCreateMappingFile(
-					$this->getDir()['Files'].'/reports/report'.'-'.$UUID.'-'.$SelectedTemplate['FileName'],
+					$this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],
 					$SelectedTemplate['ExtractedDir'].'-extracted.pptx'
 				);
 
-				$Progress = $this->writeProgress($UUID,$Progress,"Injecting Powerpoint Strings");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings");
 				##// Slide 2 / 45 - Title Page & Contact Page
 				// Get & Inject Customer Name, Contact Name & Email
 				$mapping = replaceTag($mapping,'#TAG01',$CurrentAccount->name);
@@ -827,7 +832,7 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG18',number_abbr($DataExfilEventsCount)); // DNS Tunnelling
 				$mapping = replaceTag($mapping,'#TAG19',number_abbr($UniqueApplicationsCount)); // Unique Applications
 				$mapping = replaceTag($mapping,'#TAG20',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
-				$mapping = replaceTag($mapping,'#TAG21',number_abbr($ThreatActorsCount)); // Threat Actors
+				$mapping = replaceTag($mapping,'#TAG21',number_abbr($ThreatActorsCountMetric)); // Threat Actors
 
 				$mapping = replaceTag($mapping,'#TAG22',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
 	
@@ -899,7 +904,7 @@ class SecurityAssessment extends ibPortal {
 				if (isset($ThreatActorInfo)) {
 					foreach ($ThreatActorInfo as $TAI) {
 						// Workaround for EU / US Realm Alignment
-						if ($Realm == 'EU') {
+						if ($config['Realm'] == 'EU') {
 							// Get sorted list of observed IOCs not found in Virus Total
 							if (isset($TAI['related_indicators_with_dates'])) {
 								$ObservedIndicators = $TAI['related_indicators_with_dates'];
@@ -941,7 +946,7 @@ class SecurityAssessment extends ibPortal {
 								$ProtectedFor = 'N/A';
 								$IndicatorCount = 'N/A';
 							}
-						} elseif ($Realm == 'US') {
+						} elseif ($config['Realm'] == 'US') {
 							if (isset($TAI['observed_iocs'])) {
 								$ObservedIndicators = $TAI['observed_iocs'];
 								$IndicatorCount = $TAI['observed_count'];
@@ -1002,7 +1007,7 @@ class SecurityAssessment extends ibPortal {
 
 				// Rebuild Powerpoint File(s)
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
-				$Progress = $this->writeProgress($UUID,$Progress,"Rebuilding Powerpoint Template(s)");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Rebuilding Powerpoint Template(s)");
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,
@@ -1011,14 +1016,14 @@ class SecurityAssessment extends ibPortal {
 				);
 		
 				// Cleanup
-				$Progress = $this->writeProgress($UUID,$Progress,"Final Cleanup");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup");
 				unlink($SelectedTemplate['ExtractedDir'].'-extracted.pptx');
 			}
 			// End of new loop
 
 			// Report Status as Done
-			$Progress = $this->writeProgress($UUID,$Progress,"Done");
-			$this->AssessmentReporting->updateReportEntryStatus($UUID,'Completed');
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Done");
+			$this->AssessmentReporting->updateReportEntryStatus($config['UUID'],'Completed');
 	
 			$Status = 'Success';
 		}
@@ -1030,7 +1035,7 @@ class SecurityAssessment extends ibPortal {
 		if (isset($Error)) {
 			$response['Error'] = $Error;
 		} else {
-			$response['id'] = $UUID;
+			$response['id'] = $config['UUID'];
 		}
 		return $response;
 	}
