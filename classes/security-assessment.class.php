@@ -351,7 +351,14 @@ class SecurityAssessment extends ibPortal {
 				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsById($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
 				}
 				if ($config['allTAInMetrics'] == 'true') {
-					$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'PortunusAggIPSummary.actor_id')));
+					switch($config['Realm']) {
+						case 'EU':
+							$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'PortunusAggIPSummary.actor_id')));
+							break;
+						case 'US':
+							$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'ThreatActors.ikbactorid')));
+							break;
+					}
 				} else {
 					$ThreatActorsCountMetric = count($ThreatActorInfo);
 				}
