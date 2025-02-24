@@ -225,7 +225,7 @@
     }
     function getThreatActor(params) {
       var postArr = {}
-      postArr.Realm = $("#Realm").find(":selected").val();
+      postArr.Realm = $("#TARRealm").find(":selected").val();
       postArr.Page = params.data.pageNumber || 1;
       if ($("#TARAPIKey")[0].value) {
         postArr.APIKey = $("#TARAPIKey")[0].value
