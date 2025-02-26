@@ -794,7 +794,7 @@ class SecurityAssessment extends ibPortal {
 
 				// Cleanup Extracted Zip(s)
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Cleaning up");
-				// rmdirRecursive($SelectedTemplate['ExtractedDir']);
+				rmdirRecursive($SelectedTemplate['ExtractedDir']);
 
 				// Extract Powerpoint Template Strings
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
