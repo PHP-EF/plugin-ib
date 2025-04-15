@@ -35,13 +35,15 @@ body.light-theme .ib-black {
 
 /* Loading Icons */
 .tar-loading-icon,
-.sag-loading-icon {
+.sag-loading-icon,
+.cag-loading-icon {
   display: none;
   margin-top: 10px;
   text-align: center;
 }
 
 .tar-loading-div,
-.sag-loading-div {
+.sag-loading-div,
+.cag-loading-div {
   display: none;
 }
