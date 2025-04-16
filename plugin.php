@@ -36,6 +36,7 @@ class ibPlugin extends phpef {
 				$this->settingsOption('auth', 'ACL-SECURITYASSESSMENT', ['label' => 'Security Assessment ACL']),
 				$this->settingsOption('auth', 'ACL-THREATACTORS', ['label' => 'Threat Actors ACL']),
 				$this->settingsOption('auth', 'ACL-LICENSEUSAGE', ['label' => 'License Utilization ACL']),
+				$this->settingsOption('auth', 'ACL-CLOUDASSESSMENT', ['label' => 'Cloud Assessment ACL']),
 				$this->settingsOption('auth', 'ACL-CONFIG', ['label' => 'Configuration Admin ACL']),
 				$this->settingsOption('auth', 'ACL-REPORTING', ['label' => 'Reporting ACL']),
 			)
