@@ -80,8 +80,12 @@ class CloudAssessment extends ibPortal {
 				'CloudSubnetUtilizationAbove50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
 				'CloudSubnetUtilizationBelow50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"lt","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
 				'CloudSubnetsByProvider' => '{"dimensions":["NetworkInsightsSubnet.provider"],"ungrouped":false,"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"measures":["NetworkInsightsSubnet.count"],"segments":[]}',
-				'CloudIPsByProvider' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.provider","values":["AWS","GCP","Azure"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.utilization_used","NetworkInsightsSubnet.utilization_total","NetworkInsightsSubnet.provider"]}',
-				'HighRiskDNSRecords' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["NetworkInsightsDnsRecords.indicator_id"],"filters":[],"timezone":"UTC","segments":[]}'
+				// 'CloudIPsByProvider' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.provider","values":["AWS","GCP","Azure"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.utilization_used","NetworkInsightsSubnet.utilization_total","NetworkInsightsSubnet.provider"]}',
+				'CloudIPsByProvider' => '{"ungrouped":false,"timeDimensions": [{"dimension": "AssetDetails.doc_updated_at","dateRange": ["'.$StartDimension.'","'.$EndDimension.'"],"granularity": null}],"measures":["AssetDetails.count"],"dimensions":["AssetDetails.provider_label"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_ip_address","operator":"set"},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
+				'CloudDNSZonesByProvider' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label","AssetDetails.doc_asset_category"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_category","operator":"equals","values":["dns"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
+				'HighRiskDNSRecords' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["NetworkInsightsDnsRecords.indicator_id"],"filters":[],"timezone":"UTC","segments":[]}',
+				'CloudDNSRecordsByProvider' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"ungrouped":false,"dimensions":["NetworkInsightsDnsRecords.provider"]}',
+				'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}'
 			);
 
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
@@ -134,6 +138,9 @@ class CloudAssessment extends ibPortal {
 			$GhostAssetsCount = 0;
 			$ZombieAssetsCount = 0;
 			$NonCompliantAssetsCount = 0;
+			$ZombieIdleAssetsCount = 0;
+			$ZombieOrphanedAssetsCount = 0;
+			$ZombieAssetsResourceUtilizationCount = 0;
 			$AssetsByClassification = $CubeJSResults['AssetsByClassification']['Body']->result->data ?? array();
 			foreach ($AssetsByClassification as $value) {
 				switch ($value->{'AssetDetails.doc_asset_insight_classification'}) {
@@ -224,15 +231,49 @@ class CloudAssessment extends ibPortal {
 			// IPs by Provider
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building IPs by Provider");
 			$CloudIPsByProvider = $CubeJSResults['CloudIPsByProvider']['Body']->result->data ?? array();
-			$CloudIPsByProviderTotal = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
-			$CloudIPsByProviderTotalUsed = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
-			foreach ($CloudIPsByProvider as $CloudIPsByProviderEntry) {
-				$Provider = $CloudIPsByProviderEntry->{'NetworkInsightsSubnet.provider'};
-				$CloudIPsByProviderTotal[$Provider] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_total'};
-				$CloudIPsByProviderTotal["Total"] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_total'};
-				$CloudIPsByProviderTotalUsed[$Provider] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_used'};
-				$CloudIPsByProviderTotalUsed["Total"] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_used'};
+
+			$AWSIPsCount = 0;
+			$AzureIPsCount = 0;
+			$GCPIPsCount = 0;
+			$TotalCloudIPsCount = 0;
+			foreach ($CloudIPsByProvider as $value) {
+				switch ($value->{'AssetDetails.provider_label'}) {
+					case 'AWS':
+						$AWSIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						$TotalCloudIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						break;
+					case 'Azure':
+						$AzureIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						$TotalCloudIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						break;
+					case 'GCP':
+						$GCPIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						$TotalCloudIPsCount += $value->{'AssetDetails.count'} ?? 0;
+						break;
+				}
+				$TotalSubnetsCount += $value->{'AssetDetails.count'} ?? 0;
 			}
+
+			// $CloudIPsByProviderTotal = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
+			// $CloudIPsByProviderTotalUsed = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
+			// foreach ($CloudIPsByProvider as $CloudIPsByProviderEntry) {
+			// 	$Provider = $CloudIPsByProviderEntry->{'NetworkInsightsSubnet.provider'};
+			// 	$CloudIPsByProviderTotal[$Provider] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_total'};
+			// 	$CloudIPsByProviderTotal["Total"] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_total'};
+			// 	$CloudIPsByProviderTotalUsed[$Provider] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_used'};
+			// 	$CloudIPsByProviderTotalUsed["Total"] += (int)$CloudIPsByProviderEntry->{'NetworkInsightsSubnet.utilization_used'};
+			// }
+
+			// DNS Zones by Provider
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Zones by Provider");
+			$CloudDNSZonesByProvider = $CubeJSResults['CloudDNSZonesByProvider']['Body']->result->data ?? array();
+			$CloudDNSZonesByProviderTotals = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
+			foreach ($CloudDNSZonesByProvider as $CloudDNSZonesByProviderEntry) {
+				$Provider = $CloudDNSZonesByProviderEntry->{'AssetDetails.provider_label'};
+				$CloudDNSZonesByProviderTotals[$Provider] += (int)$CloudDNSZonesByProviderEntry->{'AssetDetails.count'};
+				$CloudDNSZonesByProviderTotals["Total"] += (int)$CloudDNSZonesByProviderEntry->{'AssetDetails.count'};
+			}
+
 
 			// High Risk DNS Records
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building High Risk DNS Records");
@@ -240,6 +281,7 @@ class CloudAssessment extends ibPortal {
 			$AbandonedDNSCount = 0;
 			$UntrustedDNSCount = 0;
 			$DanglingDNSCount = 0;
+			$HighRiskDNSRecordsCount = 0;
 			
 			foreach ($HighRiskDNSRecords as $record) {
 				switch ($record->{'NetworkInsightsDnsRecords.indicator_id'}) {
@@ -253,9 +295,34 @@ class CloudAssessment extends ibPortal {
 						$DanglingDNSCount += $record->{'NetworkInsightsDnsRecords.count'};
 						break;
 				}
+				$HighRiskDNSRecordsCount += $record->{'NetworkInsightsDnsRecords.count'};
 			}
 			
+			// High Risk DNS Records
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Records by Provider");
+			$CloudDNSRecordsByProvider = $CubeJSResults['CloudDNSRecordsByProvider']['Body']->result->data ?? array();
+			$CloudDNSRecordsByProviderTotals = ["amazon_web_service" => 0, "microsoft_azure" => 0, "google_cloud_platform" => 0, "Total" => 0];
+			
+			foreach ($CloudDNSRecordsByProvider as $CloudDNSRecordsByProviderEntry) {
+				$Provider = $CloudDNSRecordsByProviderEntry->{'NetworkInsightsDnsRecords.provider'};
+				$CloudDNSRecordsByProviderTotals[$Provider] += (int)$CloudDNSRecordsByProviderEntry->{'NetworkInsightsDnsRecords.count'};
+				$CloudDNSRecordsByProviderTotals["Total"] += (int)$CloudDNSRecordsByProviderEntry->{'NetworkInsightsDnsRecords.count'};
+			}
 
+			// Subnet Overlap Count
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets");
+			$CloudSubnetOverlapCount = $CubeJSResults['CloudSubnetOverlapCount']['Body']->result->data[0]->{'NetworkInsightsOverlappingBlocksList.count_total'} ?? 0;
+
+			// Token Count
+			$ManagementTokens = 0;
+			$ServerTokens = 0;
+			$ReportingTokens = 0;
+
+			// IPs / 13 = Active IP Tokens + Percentage
+			// Asset Total - Number of Assets Percentage
+			// DDI Objects - Number of DDI Objects Percentage
+			// Protocol Servers - Number of Server Tokens
+			// Reporting - Number of Reporting Tokens
 
 			// Loop for each selected template
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
@@ -305,12 +372,14 @@ class CloudAssessment extends ibPortal {
 				$StartDate = new DateTime($StartDimension);
 				$EndDate = new DateTime($EndDimension);
 				$mapping = replaceTag($mapping,'#DATESOFCOLLECTION',$StartDate->format("jS F Y").' - '.$EndDate->format("jS F Y"));
-				$mapping = replaceTag($mapping,'#NAME',$UserInfo->result->name);
-				$mapping = replaceTag($mapping,'#EMAIL',$UserInfo->result->email);
+				$mapping = replaceTag($mapping,'#NAME01',$UserInfo->result->name);
+				$mapping = replaceTag($mapping,'#NAME02',$UserInfo->result->name);
+				$mapping = replaceTag($mapping,'#EMAIL01',$UserInfo->result->email);
+				$mapping = replaceTag($mapping,'#EMAIL02',$UserInfo->result->email);
 
 				##// Slide 5 - Executive Summary
 				$mapping = replaceTag($mapping,'#TAG01',number_abbr($HighRiskAssetsCount)); // High-Risk Assets
-
+				$mapping = replaceTag($mapping,'#TAG02',number_abbr($CloudSubnetOverlapCount)); // Cloud Subnet Overlap Count
 				$mapping = replaceTag($mapping,'#TAG03',number_abbr($CloudSubnetUtilizationAbove50Total)); // Overutilized Subnets (>=50%)
 				$mapping = replaceTag($mapping,'#TAG04',number_abbr($CloudSubnetUtilizationBelow50Total)); // Underutilized Subnets (<50%)
 				$mapping = replaceTag($mapping,'#TAG06',number_abbr($DanglingDNSCount)); // High-Risk DNS Records - Dangling
@@ -344,10 +413,16 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG26',number_abbr($AzureSubnetsPercentage)); // Azure Subnet Percentage
 				$mapping = replaceTag($mapping,'#TAG27',number_abbr($GCPSubnetsCount)); // GCP Subnet Count
 				$mapping = replaceTag($mapping,'#TAG28',number_abbr($GCPSubnetsPercentage)); // GCP Subnet Percentage
-				$mapping = replaceTag($mapping,'#TAG29',number_abbr($CloudIPsByProviderTotalUsed['Total'])); // Total Allocated Cloud IPs
-				$mapping = replaceTag($mapping,'#TAG30',number_abbr($CloudIPsByProviderTotalUsed['Azure'])); // Total Allocated Azure IPs
-				$mapping = replaceTag($mapping,'#TAG31',number_abbr($CloudIPsByProviderTotalUsed['AWS'])); // Total Allocated AWS IPs
-				$mapping = replaceTag($mapping,'#TAG32',number_abbr($CloudIPsByProviderTotalUsed['GCP'])); // Total Allocated GCP IPs
+				
+				$mapping = replaceTag($mapping,'#TAG29',number_abbr($TotalCloudIPsCount)); // Total Allocated Cloud IPs
+				$mapping = replaceTag($mapping,'#TAG30',number_abbr($AzureIPsCount)); // Total Allocated Azure IPs
+				$mapping = replaceTag($mapping,'#TAG31',number_abbr($AWSIPsCount)); // Total Allocated AWS IPs
+				$mapping = replaceTag($mapping,'#TAG32',number_abbr($GCPIPsCount)); // Total Allocated GCP IPs
+
+				// $mapping = replaceTag($mapping,'#TAG29',number_abbr($CloudIPsByProviderTotalUsed['Total'])); // Total Allocated Cloud IPs
+				// $mapping = replaceTag($mapping,'#TAG30',number_abbr($CloudIPsByProviderTotalUsed['Azure'])); // Total Allocated Azure IPs
+				// $mapping = replaceTag($mapping,'#TAG31',number_abbr($CloudIPsByProviderTotalUsed['AWS'])); // Total Allocated AWS IPs
+				// $mapping = replaceTag($mapping,'#TAG32',number_abbr($CloudIPsByProviderTotalUsed['GCP'])); // Total Allocated GCP IPs
 
 				##// Slide 12 - IP/Subnet Allocation
 				$mapping = replaceTag($mapping,'#TAG33',number_abbr($AWSSubnetsCount)); // Total AWS Subnets
@@ -359,6 +434,22 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG39',number_abbr($GCPSubnetsCount)); // Total GCP Subnets
 				$mapping = replaceTag($mapping,'#TAG40',number_abbr($CloudSubnetUtilizationAbove50ByProvider['GCP'])); // GCP Subnets above 50% Utilization
 				$mapping = replaceTag($mapping,'#TAG41',number_abbr($CloudSubnetUtilizationBelow50ByProvider['GCP'])); // GCP Subnets below 50% Utilization
+
+				##// Slide 15 - DNS Complexity
+				$mapping = replaceTag($mapping,'#TAG44',number_abbr($CloudDNSZonesByProviderTotals['Azure'])); // Azure Zones
+				$mapping = replaceTag($mapping,'#TAG45',number_abbr($CloudDNSZonesByProviderTotals['AWS'])); // AWS Zones
+				$mapping = replaceTag($mapping,'#TAG46',number_abbr($CloudDNSZonesByProviderTotals['GCP'])); // GCP Zones
+				$mapping = replaceTag($mapping,'#TAG47',number_abbr($CloudDNSRecordsByProviderTotals['microsoft_azure'])); // Azure Records
+				$mapping = replaceTag($mapping,'#TAG48',number_abbr($CloudDNSRecordsByProviderTotals['amazon_web_service'])); // AWS Records
+				$mapping = replaceTag($mapping,'#TAG49',number_abbr($CloudDNSRecordsByProviderTotals['google_cloud_platform'])); // GCP Records
+
+				##// Slide 16 - High-Risk DNS Records
+				$mapping = replaceTag($mapping,'#TAG56',number_abbr($HighRiskDNSRecordsCount)); // High-Risk DNS Records
+				$mapping = replaceTag($mapping,'#TAG57',number_abbr($DanglingDNSCount)); // High-Risk DNS Records - Dangling
+				$mapping = replaceTag($mapping,'#TAG58',number_abbr($AbandonedDNSCount)); // High-Risk DNS Records - Abandoned
+				$mapping = replaceTag($mapping,'#TAG59',number_abbr($UntrustedDNSCount)); // High-Risk DNS Records - Untrusted
+
+				##// Slide 20 - Recommendations
 
 				// Rebuild Powerpoint File(s)
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
@@ -399,7 +490,7 @@ class CloudAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 6) + 9,
+			'Total' => ($Total * 6) + 12,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates

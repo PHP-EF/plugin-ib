@@ -55,15 +55,12 @@
                       <option value="EU">EU Realm</option>
                   </select>
               </div>
-              <div class="col-md-3">
-                  <input type="text" id="CAGassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
-              </div>
               <div class="col-auto actions">
                 <button class="btn btn-success" id="Generate">Generate</button>
               </div>
             </div>
             <div class="row justify-content-md-center toolsMenu pt-2">
-              <div class="col-lg-9">
+              <div class="col-lg-8">
                 <div class="accordion" id="assessmentOptionsAccordion">
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="assessmentOptionsHeading">
@@ -128,35 +125,6 @@
   
   <script>
   var haltProgress = false;
-  var maxDaysApart = 30;
-  var today = new Date();
-  var maxPastDate = new Date(today);
-  maxPastDate.setDate(today.getDate() - 30);
-
-  flatpickr("#CAGassessmentStartAndEndDate", {
-    mode: "range",
-    minDate: maxPastDate,
-    maxDate: today,
-    enableTime: true,
-    dateFormat: "Y-m-d H:i",
-    onChange: function(selectedDates, dateStr, instance) {
-      if (selectedDates.length === 1) {
-        const startDate = selectedDates[0];
-        const maxEndDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days later
-        const today = new Date();
-        instance.set('maxDate', maxEndDate > today ? today : maxEndDate);
-      }
-      if (selectedDates.length === 2) {
-        const startDate = selectedDates[0];
-        const endDate = selectedDates[1];
-        const diffInDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
-        if (diffInDays > 30) {
-          toast("Error","","The start and end date cannot exceed 30 days.","warning");
-          instance.clear();
-        }
-      }
-    }
-  });
   
   function download(url) {
     const a = document.createElement("a")
@@ -216,10 +184,6 @@
       return null;
       }
     }
-    if(!$("#CAGassessmentStartAndEndDate")[0].value){
-      toast("Error","Missing Required Fields","The Start & End Date is a required field.","danger","30000");
-      return null;
-    }
   
     $("#Generate").prop("disabled", true)
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
@@ -227,12 +191,7 @@
         let id = data.data;
         let CAGtimer = startTimer();
         showCAGLoading(id,CAGtimer);
-        const assessmentStartAndEndDate = $("#CAGassessmentStartAndEndDate")[0].value.split(" to ");
-        const startDateTime = new Date(assessmentStartAndEndDate[0]);
-        const endDateTime = new Date(assessmentStartAndEndDate[1]);
         var postArr = {};
-        postArr.StartDateTime = startDateTime.toISOString();
-        postArr.EndDateTime = endDateTime.toISOString();
         postArr.Realm = $("#CAGRealm").find(":selected").val();
         postArr.id = id;
         postArr.templates = $("#CAGtemplateSelection").val();

@@ -247,15 +247,13 @@ $app->post('/plugin/ib/assessment/cloud/generate', function ($request, $response
 	$ibPlugin = new CloudAssessment();
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT']) ?? null) {
         $data = $ibPlugin->api->getAPIRequestData($request);
-        if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates'])) {
+        if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates'])) {
             if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
                 if (isValidUuid($data['id'])) {
 
                     $config = [
                         'APIKey' => $data['APIKey'] ?? null,
                         'Realm' => $data['Realm'],
-                        'StartDateTime' => $data['StartDateTime'],
-                        'EndDateTime' => $data['EndDateTime'],
                         'UUID' => $data['id'],
                         'Templates' => $data['templates']
                     ];
