@@ -72,20 +72,28 @@ class CloudAssessment extends ibPortal {
 
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Collecting Metrics");
 			$CubeJSRequests = array(
-				'TotalAssetsCount' => '{"segments": [],"timeDimensions": [{"dimension": "AssetDetails.doc_updated_at","dateRange": ["'.$StartDimension.'","'.$EndDimension.'"],"granularity": null}],"ungrouped": false,"dimensions": [],"measures": ["AssetDetails.count"]}',
-				'AssetsByClassification' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.doc_asset_insight_classification","assetinsighttypes.label","AssetDetails.doc_asset_insight_sub_classification","assetinsightsubclassifications.label"],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"or":[{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["zombie/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["compliance/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["ghost/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["false"]}]}]}],"timezone":"UTC","segments":[]}',
-				'AssetsByClassificationCount' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"or":[{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["zombie/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["compliance/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["ghost/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["false"]}]}]}],"timezone":"UTC","segments":[]}',
-				'AssetsWithMissingRecords' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}],"dimensions":["assetinsightindicators.label","AssetDetails.doc_asset_insight_indicator"],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}],"timezone":"UTC","segments":[]}',
-				'AssetsWithMissingRecordsCount' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}],"timezone":"UTC","segments":[]}',
+				'TotalAssetsCount' => '{"segments": [],"timeDimensions": [{"dimension": "AssetDetails.doc_updated_at","dateRange": ["'.$StartDimension.'","'.$EndDimension.'"],"granularity": null}],"ungrouped": false,"dimensions": [],"measures": ["AssetDetails.count"], "filters": [{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}',
+				'AssetsByClassification' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.doc_asset_insight_classification","assetinsighttypes.label","AssetDetails.doc_asset_insight_sub_classification","assetinsightsubclassifications.label"],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"or":[{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["zombie/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["compliance/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["ghost/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["false"]}]}]}],"timezone":"UTC","segments":[]}',
+				'AssetsByClassificationCount' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"or":[{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["zombie/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["compliance"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["compliance/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]}]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["ghost"]},{"member":"AssetDetails.doc_asset_insight_state","operator":"equals","values":["ghost/active"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["false"]}]}]}],"timezone":"UTC","segments":[]}',
+				'AssetsWithMissingRecords' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["assetinsightindicators.label","AssetDetails.doc_asset_insight_indicator"],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
+				'AssetsWithMissingRecordsCount' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
+				'AssetsByProvider' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label"],"segments":[],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}',
+				'AssetsByLocation' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.location"],"segments":[],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}',
+				'AssetsByCategory' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["assetcategories.name","AssetDetails.doc_asset_category"],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
+				'AssetInsightIndicators' => '{"ungrouped":true,"measures":[],"dimensions":["assetinsightindicators.insightindicator","assetinsightindicators.insightindicator_key","assetinsightindicators.label"],"segments":[]}',
+				'ZombieAssetsByIndicator' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.doc_asset_insight_indicator"],"segments":[],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]}]}]}',
 				'CloudSubnetUtilizationAbove50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
 				'CloudSubnetUtilizationBelow50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"lt","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
-				'CloudSubnetsByProvider' => '{"dimensions":["NetworkInsightsSubnet.provider"],"ungrouped":false,"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"measures":["NetworkInsightsSubnet.count"],"segments":[]}',
+				'CloudSubnetsByProvider' => '{"dimensions":["NetworkInsightsSubnet.provider"],"ungrouped":false,"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]}]}',
 				// 'CloudIPsByProvider' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.provider","values":["AWS","GCP","Azure"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.utilization_used","NetworkInsightsSubnet.utilization_total","NetworkInsightsSubnet.provider"]}',
 				'CloudIPsByProvider' => '{"ungrouped":false,"timeDimensions": [{"dimension": "AssetDetails.doc_updated_at","dateRange": ["'.$StartDimension.'","'.$EndDimension.'"],"granularity": null}],"measures":["AssetDetails.count"],"dimensions":["AssetDetails.provider_label"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_ip_address","operator":"set"},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
 				'CloudDNSZonesByProvider' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label","AssetDetails.doc_asset_category"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_category","operator":"equals","values":["dns"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
-				'HighRiskDNSRecords' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["NetworkInsightsDnsRecords.indicator_id"],"filters":[],"timezone":"UTC","segments":[]}',
-				'CloudDNSRecordsByProvider' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"ungrouped":false,"dimensions":["NetworkInsightsDnsRecords.provider"]}',
-				'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}'
+				'HighRiskDNSRecords' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["NetworkInsightsDnsRecords.indicator_id"],"filters":[{"member":"NetworkInsightsDnsRecords.indicator_id","operator":"set"},{"member":"NetworkInsightsDnsRecords.provider","operator":"equals","values":["amazon_web_service","microsoft_azure","google_cloud_platform"]}],"timezone":"UTC","segments":[]}',
+				'CloudDNSRecordsByProvider' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"ungrouped":false,"dimensions":["NetworkInsightsDnsRecords.provider"],"filters":[{"member":"NetworkInsightsDnsRecords.provider","operator":"equals","values":["amazon_web_service","microsoft_azure","google_cloud_platform"]}]}',
+				'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}',
+				'LicensingManagement' => '{"measures":["TokenUtilManagementObjects.count"],"timeDimensions":[{"dimension":"TokenUtilManagementObjects.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":["TokenUtilManagementObjects.category","TokenUtilManagementObjects.object_type"],"filters":[{"and":[{"member":"TokenUtilManagementObjects.object_type","operator":"equals","values":["DDI","Active IPs","Assets"]},{"member":"TokenUtilManagementObjects.category","operator":"equals","values":["Native"]}]}]}',
+				'LicensingServer' => '{"measures":["TokenUtilProtoSrvSM.count","TokenUtilProtoSrvSM.tokens"],"timeDimensions":[{"dimension":"TokenUtilProtoSrvSM.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
+				'LicensingReporting' => '{"measures":["TokenUtilReporting.count","TokenUtilReporting.tokens"],"timeDimensions":[{"dimension":"TokenUtilReporting.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}'
 			);
 
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
@@ -101,12 +109,13 @@ class CloudAssessment extends ibPortal {
 			// Define the embedded sheets with their corresponding file numbers
 			// This needs to match across all active templates at this moment
 			$EmbeddedSheets = [
-				// 'TopDetectedProperties' => 4,
-				// 'ContentFiltration' => 5,
-				// 'DNSActivity' => 6,
-				// 'DNSFirewallActivity' => 7,
-				// 'InsightDistribution' => 8,
-				// 'Lookalikes' => 9
+				'AssetsByProvider' => 0,
+				'ZombieAssetsByIndicator' => 1,
+				'AssetsByCategory' => 2,
+				'AssetsWithMissingRecords' => 3,
+				'NonCompliantAssets' => 4,
+				'TotalIPsByprovider' => 5,
+				'HighRiskDNSRecordsByCategory' => 6,
 			];
 
 			// Function to get the full path of the file based on the sheet name
@@ -313,23 +322,124 @@ class CloudAssessment extends ibPortal {
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets");
 			$CloudSubnetOverlapCount = $CubeJSResults['CloudSubnetOverlapCount']['Body']->result->data[0]->{'NetworkInsightsOverlappingBlocksList.count_total'} ?? 0;
 
-			// Token Count
-			$ManagementTokens = 0;
-			$ServerTokens = 0;
-			$ReportingTokens = 0;
+			// Licensing
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building License Utilization");
+			$ActiveIPCount = 0;
+			$AssetCount = 0;
+			$DDIObjectCount = 0;
+			$TokensManagement = 0;
+			$TokensActiveIPCount = 0;
+			$TokensActiveIPPercentage = 0;
+			$TokensAssetCount = 0;
+			$TokensAssetPercentage = 0;
+			$TokensDDICount = 0;
+			$TokensDDIPercentage = 0;
+			$TokensServer = 0;
+			$TokensReporting = 0;
 
-			// IPs / 13 = Active IP Tokens + Percentage
-			// Asset Total - Number of Assets Percentage
-			// DDI Objects - Number of DDI Objects Percentage
-			// Protocol Servers - Number of Server Tokens
-			// Reporting - Number of Reporting Tokens
+			$LicensingManagement = $CubeJSResults['LicensingManagement']['Body']->result->data ?? array();
+			foreach ($LicensingManagement as $value) {
+				switch ($value->{'TokenUtilManagementObjects.object_type'}) {
+					case 'Active IPs':
+						$ActiveIPCount += $value->{'TokenUtilManagementObjects.count'};
+						break;
+					case 'Assets':
+						$AssetCount += $value->{'TokenUtilManagementObjects.count'};
+						break;
+					case 'DDI':
+						$DDIObjectCount += $value->{'TokenUtilManagementObjects.count'};
+						break;
+				}
+			}
+
+			$TokensActiveIPCount = $ActiveIPCount / 13;
+			$TokensAssetCount = $AssetCount / 3;
+			$TokensDDICount = $DDIObjectCount / 25;
+			$TokensManagement = ($TokensActiveIPCount+$TokensAssetCount+$TokensDDICount);
+			$TokensManagementCount = $TokensManagement*1.2; // Token Count + 20%
+			$TokensActiveIPPercentage = (100 / $TokensManagement) * $TokensActiveIPCount;
+			$TokensAssetPercentage = (100 / $TokensManagement) * $TokensAssetCount;
+			$TokensDDIPercentage = (100 / $TokensManagement) * $TokensDDICount;
+
+			$TokensServer = $CubeJSResults['LicensingServer']['Body']->result->data[0]->{'TokenUtilProtoSrvSM.tokens'} ?? 0;
+			if ($TokensServer != 0) {
+				$TokensServer = $TokensServer*1.2; // Token Count + 20%
+			} else {
+				$TokensServer = 0;
+			}
+			$TokensReporting = $CubeJSResults['LicensingReporting']['Body']->result->data[0]->{'TokenUtilReporting.tokens'} ?? 0;
+			if ($TokensReporting != 0) {
+				$TokensReporting = $TokensReporting*1.2; // Token Count + 20%
+			} else {
+				$TokensReporting = 0;
+			}
 
 			// Loop for each selected template
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
+
+				// Assets By Provider - Slide 7
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Provider");
+				$AssetsByProvider = $CubeJSResults['AssetsByProvider']['Body'];
+				if (isset($AssetsByProvider->result->data)) {
+					$EmbeddedAssetsByProvider = getEmbeddedSheetFilePath('AssetsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$AssetsByProviderSS = IOFactory::load($EmbeddedAssetsByProvider);
+					$RowNo = 2;
+					foreach ($AssetsByProvider->result->data as $ProviderType) {
+						$AssetsByProviderS = $AssetsByProviderSS->getActiveSheet();
+						$AssetsByProviderS->setCellValue('A'.$RowNo, $ProviderType->{'AssetDetails.provider_label'});
+						$AssetsByProviderS->setCellValue('B'.$RowNo, $ProviderType->{'AssetDetails.count'});
+						$RowNo++;
+					}
+					$AssetsByProviderW = IOFactory::createWriter($AssetsByProviderSS, 'Xlsx');
+					$AssetsByProviderW->save($EmbeddedAssetsByProvider);
+				}
+
+				// Assets By Category - Slide 8
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Category");
+				$AssetsByCategory = $CubeJSResults['AssetsByCategory']['Body'];
+				if (isset($AssetsByCategory->result->data)) {
+					$EmbeddedAssetsByCategory = getEmbeddedSheetFilePath('AssetsByCategory', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$AssetsByCategorySS = IOFactory::load($EmbeddedAssetsByCategory);
+					$RowNo = 2;
+					foreach ($AssetsByCategory->result->data as $AssetCategory) {
+						$AssetsByCategoryS = $AssetsByCategorySS->getActiveSheet();
+						$AssetsByCategoryS->setCellValue('A'.$RowNo, $AssetCategory->{'assetcategories.name'});
+						$AssetsByCategoryS->setCellValue('B'.$RowNo, $AssetCategory->{'AssetDetails.count'});
+						$RowNo++;
+					}
+					$AssetsByCategoryW = IOFactory::createWriter($AssetsByCategorySS, 'Xlsx');
+					$AssetsByCategoryW->save($EmbeddedAssetsByCategory);
+				}
 	
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets by Indicator");
+				$AssetInsightIndicators = $CubeJSResults['AssetInsightIndicators']['Body']->result->data ?? array();
+				$AssetInsightIndicatorsKeys = array_column($AssetInsightIndicators, 'assetinsightindicators.insightindicator_key');
+				$AssetInsightIndicatorsLabels = array_column($AssetInsightIndicators, 'assetinsightindicators.label');
+				$ZombieAssetsByIndicator = $CubeJSResults['ZombieAssetsByIndicator']['Body'];
+
+
+				if (isset($ZombieAssetsByIndicator->result->data)) {
+					$EmbeddedZombieAssetsByIndicator = getEmbeddedSheetFilePath('ZombieAssetsByIndicator', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$ZombieAssetsByIndicatorSS = IOFactory::load($EmbeddedZombieAssetsByIndicator);
+					$RowNo = 2;
+					foreach ($ZombieAssetsByIndicator->result->data as $ZombieAssetIndicator) {
+						$ZombieAssetsByIndicatorS = $ZombieAssetsByIndicatorSS->getActiveSheet();
+
+						$Indicator = implode(',',array_slice(explode('/',$ZombieAssetIndicator->{'AssetDetails.doc_asset_insight_indicator'}),1));
+						$IndicatorIndex = array_search($Indicator, $AssetInsightIndicatorsKeys);
+						$IndicatorLabel = $IndicatorIndex !== false ? $AssetInsightIndicatorsLabels[$IndicatorIndex] : null;
+
+						$ZombieAssetsByIndicatorS->setCellValue('A'.$RowNo, $IndicatorLabel);
+						$ZombieAssetsByIndicatorS->setCellValue('B'.$RowNo, $ZombieAssetIndicator->{'AssetDetails.count'});
+						$RowNo++;
+					}
+					$ZombieAssetsByIndicatorW = IOFactory::createWriter($ZombieAssetsByIndicatorSS, 'Xlsx');
+					$ZombieAssetsByIndicatorW->save($EmbeddedZombieAssetsByIndicator);
+				}
+
 				// Open PPTX Presentation _rels XML
 				$xml_rels = null;
 				$xml_rels = new DOMDocument('1.0', 'utf-8');
@@ -450,6 +560,13 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG59',number_abbr($UntrustedDNSCount)); // High-Risk DNS Records - Untrusted
 
 				##// Slide 20 - Recommendations
+				$mapping = replaceTag($mapping,'#TAG60',number_abbr($TokensManagementCount)); // Management Tokens
+				$mapping = replaceTag($mapping,'#TAG61',number_abbr($TokensActiveIPPercentage)); // Active IP Percentage
+				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ActiveIPCount)); // Active IP Count
+				$mapping = replaceTag($mapping,'#TAG63',number_abbr($TokensAssetPercentage)); // Asset Count
+				$mapping = replaceTag($mapping,'#TAG64',number_abbr($TokensDDIPercentage)); // DDI Objects
+				$mapping = replaceTag($mapping,'#TAG65',number_abbr($TokensServer)); // Server Tokens
+				$mapping = replaceTag($mapping,'#TAG66',number_abbr($TokensReporting)); // Reporting Tokens
 
 				// Rebuild Powerpoint File(s)
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
@@ -490,7 +607,7 @@ class CloudAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 6) + 12,
+			'Total' => ($Total * 9) + 13,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
