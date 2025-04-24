@@ -96,7 +96,10 @@ class CloudAssessment extends ibPortal {
 				'LicensingManagement' => '{"measures":["TokenUtilManagementObjects.count"],"timeDimensions":[{"dimension":"TokenUtilManagementObjects.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":["TokenUtilManagementObjects.category","TokenUtilManagementObjects.object_type"],"filters":[{"and":[{"member":"TokenUtilManagementObjects.object_type","operator":"equals","values":["DDI","Active IPs","Assets"]},{"member":"TokenUtilManagementObjects.category","operator":"equals","values":["Native"]}]}]}',
 				'LicensingServer' => '{"measures":["TokenUtilProtoSrvSM.count","TokenUtilProtoSrvSM.tokens"],"timeDimensions":[{"dimension":"TokenUtilProtoSrvSM.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
 				'LicensingReporting' => '{"measures":["TokenUtilReporting.count","TokenUtilReporting.tokens"],"timeDimensions":[{"dimension":"TokenUtilReporting.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
-				'OverlappingSubnets' => '{"dimensions":["NetworkInsightsOverlappingBlocksRolled.address","NetworkInsightsOverlappingBlocksRolled.overlap_count","NetworkInsightsOverlappingBlocksRolled.sources","NetworkInsightsOverlappingBlocksRolled.providers"],"filters":[{"member":"NetworkInsightsOverlappingBlocksRolled.sources_str","operator":"contains","values":["Cloud"]}],"timeDimensions":[],"limit":3,"offset":0,"total":true,"order":{"NetworkInsightsOverlappingBlocksRolled.overlap_count":"desc"}}'
+				'OverlappingSubnets' => '{"dimensions":["NetworkInsightsOverlappingBlocksRolled.address","NetworkInsightsOverlappingBlocksRolled.overlap_count","NetworkInsightsOverlappingBlocksRolled.sources","NetworkInsightsOverlappingBlocksRolled.providers"],"filters":[{"member":"NetworkInsightsOverlappingBlocksRolled.sources_str","operator":"contains","values":["Cloud"]}],"timeDimensions":[],"limit":3,"offset":0,"total":true,"order":{"NetworkInsightsOverlappingBlocksRolled.overlap_count":"desc"}}',
+				'AbandonedRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Abandoned"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}',
+				'UntrustedRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Untrusted"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}',
+				'DanglingRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Dangling"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}'
 			);
 
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
@@ -664,6 +667,66 @@ class CloudAssessment extends ibPortal {
 				$HighRiskDNSRecordsByCategoryW = IOFactory::createWriter($HighRiskDNSRecordsByCategorySS, 'Xlsx');
 				$HighRiskDNSRecordsByCategoryW->save($EmbeddedHighRiskDNSRecordsByCategory);
 
+				// Dangling Records - Slide 16
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Dangling Records");
+				$DanglingRecords = $CubeJSResults['DanglingRecords']['Body'];
+				if (isset($DanglingRecords->result->data)) {
+					$EmbeddedDanglingRecords = getEmbeddedSheetFilePath('DanglingRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$DanglingRecordsSS = IOFactory::load($EmbeddedDanglingRecords);
+					$RowNo = 2;
+					foreach ($DanglingRecords->result->data as $DanglingRecord) {
+						$DanglingRecordsS = $DanglingRecordsSS->getActiveSheet();
+						$DanglingRecordsS->setCellValue('A'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name'});
+						$DanglingRecordsS->setCellValue('B'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
+						$DanglingRecordsS->setCellValue('C'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
+						$DanglingRecordsS->setCellValue('D'.$RowNo, implode(', ',$DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
+						$DanglingRecordsS->setCellValue('E'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$RowNo++;
+					}
+					$DanglingRecordsW = IOFactory::createWriter($DanglingRecordsSS, 'Xlsx');
+					$DanglingRecordsW->save($EmbeddedDanglingRecords);
+				}
+
+				// Abandoned Records - Slide 16
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Abandoned Records");
+				$AbandonedRecords = $CubeJSResults['AbandonedRecords']['Body'];
+				if (isset($AbandonedRecords->result->data)) {
+					$EmbeddedAbandonedRecords = getEmbeddedSheetFilePath('AbandonedRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$AbandonedRecordsSS = IOFactory::load($EmbeddedAbandonedRecords);
+					$RowNo = 2;
+					foreach ($AbandonedRecords->result->data as $AbandonedRecord) {
+						$AbandonedRecordsS = $AbandonedRecordsSS->getActiveSheet();
+						$AbandonedRecordsS->setCellValue('A'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name'});
+						$AbandonedRecordsS->setCellValue('B'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
+						$AbandonedRecordsS->setCellValue('C'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
+						$AbandonedRecordsS->setCellValue('D'.$RowNo, implode(', ',$AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
+						$AbandonedRecordsS->setCellValue('E'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$RowNo++;
+					}
+					$AbandonedRecordsW = IOFactory::createWriter($AbandonedRecordsSS, 'Xlsx');
+					$AbandonedRecordsW->save($EmbeddedAbandonedRecords);
+				}
+
+				// Untrusted Records - Slide 16
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Untrusted Records");
+				$UntrustedRecords = $CubeJSResults['UntrustedRecords']['Body'];
+				if (isset($UntrustedRecords->result->data)) {
+					$EmbeddedUntrustedRecords = getEmbeddedSheetFilePath('UntrustedRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$UntrustedRecordsSS = IOFactory::load($EmbeddedUntrustedRecords);
+					$RowNo = 2;
+					foreach ($UntrustedRecords->result->data as $UntrustedRecord) {
+						$UntrustedRecordsS = $UntrustedRecordsSS->getActiveSheet();
+						$UntrustedRecordsS->setCellValue('A'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name'});
+						$UntrustedRecordsS->setCellValue('B'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
+						$UntrustedRecordsS->setCellValue('C'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
+						$UntrustedRecordsS->setCellValue('D'.$RowNo, implode(', ',$UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
+						$UntrustedRecordsS->setCellValue('E'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$RowNo++;
+					}
+					$UntrustedRecordsW = IOFactory::createWriter($UntrustedRecordsSS, 'Xlsx');
+					$UntrustedRecordsW->save($EmbeddedUntrustedRecords);
+				}
+
 				// Open PPTX Presentation _rels XML
 				$xml_rels = null;
 				$xml_rels = new DOMDocument('1.0', 'utf-8');
@@ -831,7 +894,7 @@ class CloudAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 19) + 14,
+			'Total' => ($Total * 22) + 14,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
