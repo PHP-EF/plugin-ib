@@ -50,4 +50,28 @@ class ibPlugin extends phpef {
 			'PluginData' => __DIR__ . DIRECTORY_SEPARATOR . 'data'
 		);
 	}
+
+	function timeAgo($timestamp) {
+		$time = strtotime($timestamp);
+		$currentTime = time();
+		$diff = $currentTime - $time;
+		
+		$seconds = $diff;
+		$minutes = round($diff / 60);
+		$hours = round($diff / 3600);
+		$remainingMinutes = floor(($diff % 3600) / 60);
+		$days = round($diff / 86400);
+		$remainingHours = floor(($diff % 86400) / 3600);
+		
+		if ($seconds < 60) {
+			return $seconds . 's';
+		} elseif ($minutes < 60) {
+			return $minutes . 'm';
+		} elseif ($hours < 24) {
+			return $hours . 'h ' . $remainingMinutes . 'm';
+		} else {
+			return $days . 'd ' . $remainingHours . 'h';
+		}
+	}
+		
 }

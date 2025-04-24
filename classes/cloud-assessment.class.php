@@ -42,11 +42,11 @@ class CloudAssessment extends ibPortal {
 			$Error = $UserInfo['Error'];
 		} else {
 			header('Content-Type: application/json; charset=utf-8');
-			echo json_encode(array(
-				'result' => 'Success',
-				'message' => 'Started'
-			));
-			fastcgi_finish_request();
+			// echo json_encode(array(
+			// 	'result' => 'Success',
+			// 	'message' => 'Started'
+			// ));
+			// fastcgi_finish_request();
 	
 			// Logging / Reporting
 			$AccountInfo = $this->QueryCSP("get","v2/current_user/accounts");
@@ -82,8 +82,10 @@ class CloudAssessment extends ibPortal {
 				'AssetsByCategory' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["assetcategories.name","AssetDetails.doc_asset_category"],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
 				'AssetInsightIndicators' => '{"ungrouped":true,"measures":[],"dimensions":["assetinsightindicators.insightindicator","assetinsightindicators.insightindicator_key","assetinsightindicators.label"],"segments":[]}',
 				'ZombieAssetsByIndicator' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.doc_asset_insight_indicator"],"segments":[],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]}]}]}',
-				'CloudSubnetUtilizationAbove50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
-				'CloudSubnetUtilizationBelow50' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"lt","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
+				'CloudSubnetUtilizationAbove50' => '{"measures":[],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.ref_id_resource_id","NetworkInsightsSubnet.address","NetworkInsightsSubnet.utilization_percent","NetworkInsightsSubnet.provider","NetworkInsightsSubnet.usage","NetworkInsightsSubnet.name"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"limit":3}',
+				'CloudSubnetUtilizationAbove50Count' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
+				'CloudSubnetUtilizationBelow50' => '{"measures":[],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"lt","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.ref_id_resource_id","NetworkInsightsSubnet.address","NetworkInsightsSubnet.utilization_percent","NetworkInsightsSubnet.provider","NetworkInsightsSubnet.usage","NetworkInsightsSubnet.name"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"limit":3}',
+				'CloudSubnetUtilizationBelow50Count' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"lt","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
 				'CloudSubnetsByProvider' => '{"dimensions":["NetworkInsightsSubnet.provider"],"ungrouped":false,"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]}]}',
 				// 'CloudIPsByProvider' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"NetworkInsightsSubnet.updated_at","granularity":null}],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.provider","values":["AWS","GCP","Azure"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.utilization_used","NetworkInsightsSubnet.utilization_total","NetworkInsightsSubnet.provider"]}',
 				'CloudIPsByProvider' => '{"ungrouped":false,"timeDimensions": [{"dimension": "AssetDetails.doc_updated_at","dateRange": ["'.$StartDimension.'","'.$EndDimension.'"],"granularity": null}],"measures":["AssetDetails.count"],"dimensions":["AssetDetails.provider_label"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_ip_address","operator":"set"},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
@@ -93,7 +95,8 @@ class CloudAssessment extends ibPortal {
 				'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}',
 				'LicensingManagement' => '{"measures":["TokenUtilManagementObjects.count"],"timeDimensions":[{"dimension":"TokenUtilManagementObjects.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":["TokenUtilManagementObjects.category","TokenUtilManagementObjects.object_type"],"filters":[{"and":[{"member":"TokenUtilManagementObjects.object_type","operator":"equals","values":["DDI","Active IPs","Assets"]},{"member":"TokenUtilManagementObjects.category","operator":"equals","values":["Native"]}]}]}',
 				'LicensingServer' => '{"measures":["TokenUtilProtoSrvSM.count","TokenUtilProtoSrvSM.tokens"],"timeDimensions":[{"dimension":"TokenUtilProtoSrvSM.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
-				'LicensingReporting' => '{"measures":["TokenUtilReporting.count","TokenUtilReporting.tokens"],"timeDimensions":[{"dimension":"TokenUtilReporting.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}'
+				'LicensingReporting' => '{"measures":["TokenUtilReporting.count","TokenUtilReporting.tokens"],"timeDimensions":[{"dimension":"TokenUtilReporting.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
+				'OverlappingSubnets' => '{"dimensions":["NetworkInsightsOverlappingBlocksRolled.address","NetworkInsightsOverlappingBlocksRolled.overlap_count","NetworkInsightsOverlappingBlocksRolled.sources","NetworkInsightsOverlappingBlocksRolled.providers"],"filters":[{"member":"NetworkInsightsOverlappingBlocksRolled.sources_str","operator":"contains","values":["Cloud"]}],"timeDimensions":[],"limit":3,"offset":0,"total":true,"order":{"NetworkInsightsOverlappingBlocksRolled.overlap_count":"desc"}}'
 			);
 
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
@@ -109,19 +112,41 @@ class CloudAssessment extends ibPortal {
 			// Define the embedded sheets with their corresponding file numbers
 			// This needs to match across all active templates at this moment
 			$EmbeddedSheets = [
-				'AssetsByProvider' => 0,
-				'ZombieAssetsByIndicator' => 1,
-				'AssetsByCategory' => 2,
-				'AssetsWithMissingRecords' => 3,
-				'NonCompliantAssets' => 4,
-				'TotalIPsByprovider' => 5,
-				'HighRiskDNSRecordsByCategory' => 6,
+				'AssetsByProvider' => 0, // Slide 7
+				'ZombieAssetsByIndicator' => array(
+					'Landscape' => 2,
+					'Portrait' => 1
+				), // Slide 8
+				'AssetsByCategory' => array(
+					'Landscape' => 1,
+					'Portrait' => 2
+				), // Slide 8
+				'ZombieAssetsTable' => 3, // Slide 8
+				'AssetsWithMissingRecords' => 4, // Slide 9
+				'NonCompliantAssets' => 5, // Slide 9
+				'AssetsWithMissingRecordsTable' => 6, // Slide 9
+				'TotalIPsByProvider' => 7, // Slide 11
+				'OverlappingSubnetsTable' => 8, // Slide 11
+				'OverutilizedSubnetsTable' => 9, // Slide 13
+				'UnderutilizedSubnetsTable' => 10, // Slide 13
+				'HighRiskDNSRecordsByCategory' => 11, // Slide 16
+				'DanglingRecordsTable' => 12, // Slide 16
+				'AbandonedRecordsTable' => 13, // Slide 17
+				'UntrustedRecordsTable' => 14 // Slide 17
 			];
 
 			// Function to get the full path of the file based on the sheet name
-			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
+			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $orientation) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
+					if (is_array($fileIndex)) {
+						// Check for orientation
+						if (isset($fileIndex[$orientation])) {
+							$fileIndex = $fileIndex[$orientation];
+						}
+					} else {
+						$fileIndex = $fileIndex;
+					}
 					if (isset($embeddedFiles[$fileIndex])) {
 						return $embeddedDirectory . $embeddedFiles[$fileIndex];
 					}
@@ -147,6 +172,7 @@ class CloudAssessment extends ibPortal {
 			$GhostAssetsCount = 0;
 			$ZombieAssetsCount = 0;
 			$NonCompliantAssetsCount = 0;
+			$NonCompliantAssets = array();
 			$ZombieIdleAssetsCount = 0;
 			$ZombieOrphanedAssetsCount = 0;
 			$ZombieAssetsResourceUtilizationCount = 0;
@@ -172,6 +198,7 @@ class CloudAssessment extends ibPortal {
 						break;
 					case 'compliance':
 						$NonCompliantAssetsCount += $value->{'AssetDetails.count'};
+						$NonCompliantAssets[$value->{'assetinsightsubclassifications.label'}] = $value->{'AssetDetails.count'};
 						break;
 				}
 			}
@@ -187,17 +214,17 @@ class CloudAssessment extends ibPortal {
 
 			// Subnet Utilization
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Subnet Utilization");
-			$CloudSubnetUtilizationAbove50 = $CubeJSResults['CloudSubnetUtilizationAbove50']['Body']->result->data ?? array();
+			$CloudSubnetUtilizationAbove50Count = $CubeJSResults['CloudSubnetUtilizationAbove50Count']['Body']->result->data ?? array();
 			$CloudSubnetUtilizationAbove50ByProvider = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
 			$CloudSubnetUtilizationAbove50Total = 0;
-			foreach ($CloudSubnetUtilizationAbove50 as $value) {
+			foreach ($CloudSubnetUtilizationAbove50Count as $value) {
 				$CloudSubnetUtilizationAbove50ByProvider[$value->{'NetworkInsightsSubnet.provider'}] = $value->{'NetworkInsightsSubnet.count'} ?? 0;
 				$CloudSubnetUtilizationAbove50Total += $value->{'NetworkInsightsSubnet.count'} ?? 0;
 			}
-			$CloudSubnetUtilizationBelow50 = $CubeJSResults['CloudSubnetUtilizationBelow50']['Body']->result->data ?? array();
+			$CloudSubnetUtilizationBelow50Count = $CubeJSResults['CloudSubnetUtilizationBelow50Count']['Body']->result->data ?? array();
 			$CloudSubnetUtilizationBelow50ByProvider = ["AWS" => 0, "Azure" => 0, "GCP" => 0, "Total" => 0];
 			$CloudSubnetUtilizationBelow50Total = 0;
-			foreach ($CloudSubnetUtilizationBelow50 as $value) {
+			foreach ($CloudSubnetUtilizationBelow50Count as $value) {
 				$CloudSubnetUtilizationBelow50ByProvider[$value->{'NetworkInsightsSubnet.provider'}] = $value->{'NetworkInsightsSubnet.count'} ?? 0;
 				$CloudSubnetUtilizationBelow50Total += $value->{'NetworkInsightsSubnet.count'} ?? 0;
 			}
@@ -374,17 +401,32 @@ class CloudAssessment extends ibPortal {
 				$TokensReporting = 0;
 			}
 
+			// Top 3 Zombie Assets - Slide 8
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Top 3 Zombie Assets");
+			$JSONData = json_decode('{"_base_filters":[{"application":"cloud_discovery"},{"application":"asset_discovery"}],"limit":"3","offset":null,"query":"(asset_insight_classification == \'zombie\') AND (asset_context == \'cloud\')","filters":[{"application":"cloud_discovery"},{"application":"asset_discovery"}],"field_filters":[{"key":"asset_managed","values":["true"]},{"key":"updated_at","gte":"'.$StartDimension.'","lte":"'.$EndDimension.'"}]}');
+			$Top3ZombieAssetsResponse = $this->QueryCSP("post","atlas-search-api/v1/discover",$JSONData);
+			$Top3ZombieAssets = $Top3ZombieAssetsResponse->hits->hits ?? array();
+
+			// Top 3 Assets with Missing Records - Slide 9
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Top 3 Assets with Missing Records");
+			$JSONData = json_decode('{"_base_filters":[{"application":"cloud_discovery"},{"application":"asset_discovery"}],"limit":"3","offset":null,"query":"(asset_insight_registration_status == \'Unregistered\') AND (asset_context == \'cloud\')","filters":[{"application":"cloud_discovery"},{"application":"asset_discovery"}],"field_filters":[{"key":"asset_managed","values":["true"]},{"key":"updated_at","gte":"'.$StartDimension.'","lte":"'.$EndDimension.'"}],"sort":[{"fields":{"doc.updated_at":{"order":"asc"}}}]}');
+			$Top3AssetsWithMissingRecordsResponse = $this->QueryCSP("post","atlas-search-api/v1/discover",$JSONData);
+			$Top3AssetsWithMissingRecords = $Top3AssetsWithMissingRecordsResponse->hits->hits ?? array();
+
 			// Loop for each selected template
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
+				usort($embeddedFiles, 'strnatcmp');
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
 
+
+				// ** CHARTS & TABLES ** //
 				// Assets By Provider - Slide 7
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Provider");
 				$AssetsByProvider = $CubeJSResults['AssetsByProvider']['Body'];
 				if (isset($AssetsByProvider->result->data)) {
-					$EmbeddedAssetsByProvider = getEmbeddedSheetFilePath('AssetsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedAssetsByProvider = getEmbeddedSheetFilePath('AssetsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$AssetsByProviderSS = IOFactory::load($EmbeddedAssetsByProvider);
 					$RowNo = 2;
 					foreach ($AssetsByProvider->result->data as $ProviderType) {
@@ -401,7 +443,7 @@ class CloudAssessment extends ibPortal {
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Category");
 				$AssetsByCategory = $CubeJSResults['AssetsByCategory']['Body'];
 				if (isset($AssetsByCategory->result->data)) {
-					$EmbeddedAssetsByCategory = getEmbeddedSheetFilePath('AssetsByCategory', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedAssetsByCategory = getEmbeddedSheetFilePath('AssetsByCategory', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$AssetsByCategorySS = IOFactory::load($EmbeddedAssetsByCategory);
 					$RowNo = 2;
 					foreach ($AssetsByCategory->result->data as $AssetCategory) {
@@ -413,16 +455,16 @@ class CloudAssessment extends ibPortal {
 					$AssetsByCategoryW = IOFactory::createWriter($AssetsByCategorySS, 'Xlsx');
 					$AssetsByCategoryW->save($EmbeddedAssetsByCategory);
 				}
-	
+
+				// Zombie Assets by Classification - Slide 8
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets by Indicator");
 				$AssetInsightIndicators = $CubeJSResults['AssetInsightIndicators']['Body']->result->data ?? array();
 				$AssetInsightIndicatorsKeys = array_column($AssetInsightIndicators, 'assetinsightindicators.insightindicator_key');
 				$AssetInsightIndicatorsLabels = array_column($AssetInsightIndicators, 'assetinsightindicators.label');
 				$ZombieAssetsByIndicator = $CubeJSResults['ZombieAssetsByIndicator']['Body'];
 
-
 				if (isset($ZombieAssetsByIndicator->result->data)) {
-					$EmbeddedZombieAssetsByIndicator = getEmbeddedSheetFilePath('ZombieAssetsByIndicator', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedZombieAssetsByIndicator = getEmbeddedSheetFilePath('ZombieAssetsByIndicator', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$ZombieAssetsByIndicatorSS = IOFactory::load($EmbeddedZombieAssetsByIndicator);
 					$RowNo = 2;
 					foreach ($ZombieAssetsByIndicator->result->data as $ZombieAssetIndicator) {
@@ -439,6 +481,188 @@ class CloudAssessment extends ibPortal {
 					$ZombieAssetsByIndicatorW = IOFactory::createWriter($ZombieAssetsByIndicatorSS, 'Xlsx');
 					$ZombieAssetsByIndicatorW->save($EmbeddedZombieAssetsByIndicator);
 				}
+
+				// Zombie Assets Table - Slide 8
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets Table");
+				if (isset($Top3ZombieAssets)) {
+					$EmbeddedZombieAssetsTable = getEmbeddedSheetFilePath('ZombieAssetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$ZombieAssetsTableSS = IOFactory::load($EmbeddedZombieAssetsTable);
+					$RowNo = 2;
+					foreach ($Top3ZombieAssets as $Top3ZombieAsset) {
+						$ZombieAssetsTableS = $ZombieAssetsTableSS->getActiveSheet();
+						$ZombieAssetsTableS->setCellValue('A'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'name'}); // Asset Name
+						$ZombieAssetsTableS->setCellValue('B'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
+						$ZombieAssetsTableS->setCellValue('C'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_region'}); // Asset Location (Region)
+						$ZombieAssetsTableS->setCellValue('D'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_insight_classification'}[0]); // Asset Classification
+						$ZombieAssetsTableS->setCellValue('E'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
+						$ZombieAssetsTableS->setCellValue('F'.$RowNo, implode(',',array_slice(explode('/',$Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_insight_sub_classification'}[0]),1))); // Asset Sub-Classification
+						$ZombieAssetsTableS->setCellValue('G'.$RowNo, $this->timeAgo($Top3ZombieAsset->{'_source'}->{'doc'}->{'updated_at'})); // Asset Last Seen
+						$ZombieAssetsTableS->setCellValue('H'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_provider'}); // Asset Provider
+						$RowNo++;
+					}
+					$ZombieAssetsTableW = IOFactory::createWriter($ZombieAssetsTableSS, 'Xlsx');
+					$ZombieAssetsTableW->save($EmbeddedZombieAssetsTable);
+				}
+
+				// Assets with Missing Records - Slide 9
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets with Missing Records");
+				$AssetsWithMissingRecords = $CubeJSResults['AssetsWithMissingRecords']['Body'];
+				if (isset($AssetsWithMissingRecords->result->data)) {
+					$EmbeddedAssetsWithMissingRecords = getEmbeddedSheetFilePath('AssetsWithMissingRecords', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$AssetsWithMissingRecordsSS = IOFactory::load($EmbeddedAssetsWithMissingRecords);
+					$RowNo = 2;
+					foreach ($AssetsWithMissingRecords->result->data as $ProviderType) {
+						$AssetsWithMissingRecordsS = $AssetsWithMissingRecordsSS->getActiveSheet();
+						$AssetsWithMissingRecordsS->setCellValue('A'.$RowNo, $ProviderType->{'assetinsightindicators.label'});
+						$AssetsWithMissingRecordsS->setCellValue('B'.$RowNo, $ProviderType->{'AssetDetails.count'});
+						$RowNo++;
+					}
+					$AssetsWithMissingRecordsW = IOFactory::createWriter($AssetsWithMissingRecordsSS, 'Xlsx');
+					$AssetsWithMissingRecordsW->save($EmbeddedAssetsWithMissingRecords);
+				}
+
+				// Assets with Missing Records Table - Slide 9
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets with Missing Records Table");
+				if (isset($Top3ZombieAssets)) {
+					$EmbeddedAssetsWithMissingRecordsTable = getEmbeddedSheetFilePath('AssetsWithMissingRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$AssetsWithMissingRecordsTableSS = IOFactory::load($EmbeddedAssetsWithMissingRecordsTable);
+					$RowNo = 2;
+					foreach ($Top3AssetsWithMissingRecords as $Top3AssetWithMissingRecords) {
+						$AssetsWithMissingRecordsTableS = $AssetsWithMissingRecordsTableSS->getActiveSheet();
+						$AssetsWithMissingRecordsTableS->setCellValue('A'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'name'}); // Asset Name
+						$AssetsWithMissingRecordsTableS->setCellValue('B'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
+						$AssetsWithMissingRecordsTableS->setCellValue('C'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_region'}); // Asset Location (Region)
+						$AssetsWithMissingRecordsTableS->setCellValue('D'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_insight_classification'}[0]); // Asset Classification
+						$AssetsWithMissingRecordsTableS->setCellValue('E'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
+						$AssetsWithMissingRecordsTableS->setCellValue('F'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_insight_registration_indicator'}[0]); // Asset Registration Indicator
+						$AssetsWithMissingRecordsTableS->setCellValue('G'.$RowNo, $this->timeAgo($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'updated_at'})); // Asset Last Seen
+						$AssetsWithMissingRecordsTableS->setCellValue('H'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_provider'}); // Asset Provider
+						$RowNo++;
+					}
+					$AssetsWithMissingRecordsTableW = IOFactory::createWriter($AssetsWithMissingRecordsTableSS, 'Xlsx');
+					$AssetsWithMissingRecordsTableW->save($EmbeddedAssetsWithMissingRecordsTable);
+				}
+
+
+				// Non-Compliant Assets - Slide 9
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Non-Compliant Assets");
+				if (!empty($NonCompliantAssets)) {
+					$EmbeddedNonCompliantAssets = getEmbeddedSheetFilePath('NonCompliantAssets', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$NonCompliantAssetsSS = IOFactory::load($EmbeddedNonCompliantAssets);
+					$RowNo = 2;
+					foreach ($NonCompliantAssets as $InsightType => $Count) {
+						$NonCompliantAssetsS = $NonCompliantAssetsSS->getActiveSheet();
+						$NonCompliantAssetsS->setCellValue('A'.$RowNo, $InsightType);
+						$NonCompliantAssetsS->setCellValue('B'.$RowNo, $Count);
+						$RowNo++;
+					}
+					$NonCompliantAssetsW = IOFactory::createWriter($NonCompliantAssetsSS, 'Xlsx');
+					$NonCompliantAssetsW->save($EmbeddedNonCompliantAssets);
+				}
+
+				// Overlapping Subnets - Slide 11
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets");
+				$OverlappingSubnets = $CubeJSResults['OverlappingSubnets']['Body'];
+				if (isset($OverlappingSubnets->result->data)) {
+					$EmbeddedOverlappingSubnets = getEmbeddedSheetFilePath('OverlappingSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$OverlappingSubnetsSS = IOFactory::load($EmbeddedOverlappingSubnets);
+					$RowNo = 2;
+					foreach ($OverlappingSubnets->result->data as $ProviderType) {
+						$OverlappingSubnetsS = $OverlappingSubnetsSS->getActiveSheet();
+						$OverlappingSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsOverlappingBlocksRolled.address'});
+						$OverlappingSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsOverlappingBlocksRolled.overlap_count'});
+						$OverlappingSubnetsS->setCellValue('C'.$RowNo, implode(', ',$ProviderType->{'NetworkInsightsOverlappingBlocksRolled.providers'}));
+						$RowNo++;
+					}
+					$OverlappingSubnetsW = IOFactory::createWriter($OverlappingSubnetsSS, 'Xlsx');
+					$OverlappingSubnetsW->save($EmbeddedOverlappingSubnets);
+				}
+
+				// Total IPs By Provider - Slide 11
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Total IPs by Provider");
+				$EmbeddedTotalIPsByProvider = getEmbeddedSheetFilePath('TotalIPsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$TotalIPsByProviderSS = IOFactory::load($EmbeddedTotalIPsByProvider);
+				$TotalIPsByProviderS = $TotalIPsByProviderSS->getActiveSheet();
+				$RowNo = 2;
+				if ($GCPIPsCount > 0) {
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'GCP');
+					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $GCPIPsCount);
+					$RowNo++;
+				}
+				if ($AzureIPsCount > 0) {
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'Azure');
+					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $AzureIPsCount);
+					$RowNo++;
+				}
+				if ($AWSIPsCount > 0) {
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'AWS');
+					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $AWSIPsCount);
+					$RowNo++;
+				}
+				$TotalIPsByProviderW = IOFactory::createWriter($TotalIPsByProviderSS, 'Xlsx');
+				$TotalIPsByProviderW->save($EmbeddedTotalIPsByProvider);
+
+				// Overutilized Subnets - Slide 13
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overutilized Subnets");
+				$OverutilizedSubnets = $CubeJSResults['CloudSubnetUtilizationAbove50']['Body'];
+				if (isset($OverutilizedSubnets->result->data)) {
+					$EmbeddedOverutilizedSubnets = getEmbeddedSheetFilePath('OverutilizedSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$OverutilizedSubnetsSS = IOFactory::load($EmbeddedOverutilizedSubnets);
+					$RowNo = 2;
+					foreach ($OverutilizedSubnets->result->data as $ProviderType) {
+						$OverutilizedSubnetsS = $OverutilizedSubnetsSS->getActiveSheet();
+						$OverutilizedSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.address'});
+						$OverutilizedSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.name'});
+						$OverutilizedSubnetsS->setCellValue('C'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.provider'});
+						$OverutilizedSubnetsS->setCellValue('D'.$RowNo, round($ProviderType->{'NetworkInsightsSubnet.utilization_percent'},1) . '%');
+						$RowNo++;
+					}
+					$OverutilizedSubnetsW = IOFactory::createWriter($OverutilizedSubnetsSS, 'Xlsx');
+					$OverutilizedSubnetsW->save($EmbeddedOverutilizedSubnets);
+				}
+				
+				// Underutilized Subnets - Slide 13
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Underutilized Subnets");
+				$UnderutilizedSubnets = $CubeJSResults['CloudSubnetUtilizationBelow50']['Body'];
+				if (isset($UnderutilizedSubnets->result->data)) {
+					$EmbeddedUnderutilizedSubnets = getEmbeddedSheetFilePath('UnderutilizedSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$UnderutilizedSubnetsSS = IOFactory::load($EmbeddedUnderutilizedSubnets);
+					$RowNo = 2;
+					foreach ($UnderutilizedSubnets->result->data as $ProviderType) {
+						$UnderutilizedSubnetsS = $UnderutilizedSubnetsSS->getActiveSheet();
+						$UnderutilizedSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.address'});
+						$UnderutilizedSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.name'});
+						$UnderutilizedSubnetsS->setCellValue('C'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.provider'});
+						$UnderutilizedSubnetsS->setCellValue('D'.$RowNo, round($ProviderType->{'NetworkInsightsSubnet.utilization_percent'},1) . '%');
+						$RowNo++;
+					}
+					$UnderutilizedSubnetsW = IOFactory::createWriter($UnderutilizedSubnetsSS, 'Xlsx');
+					$UnderutilizedSubnetsW->save($EmbeddedUnderutilizedSubnets);
+				}
+
+				// High-Risk DNS Records by Category - Slide 16
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building High-Risk DNS Records by Category");
+				$EmbeddedHighRiskDNSRecordsByCategory = getEmbeddedSheetFilePath('HighRiskDNSRecordsByCategory', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$HighRiskDNSRecordsByCategorySS = IOFactory::load($EmbeddedHighRiskDNSRecordsByCategory);
+				$HighRiskDNSRecordsByCategoryS = $HighRiskDNSRecordsByCategorySS->getActiveSheet();
+				$RowNo = 2;
+				if ($DanglingDNSCount > 0) {
+					$HighRiskDNSRecordsByCategoryS->setCellValue('A'.$RowNo, 'Dangling');
+					$HighRiskDNSRecordsByCategoryS->setCellValue('B'.$RowNo, $DanglingDNSCount);
+					$RowNo++;
+				}
+				if ($AbandonedDNSCount > 0) {
+					$HighRiskDNSRecordsByCategoryS->setCellValue('A'.$RowNo, 'Abandoned');
+					$HighRiskDNSRecordsByCategoryS->setCellValue('B'.$RowNo, $AbandonedDNSCount);
+					$RowNo++;
+				}
+				if ($UntrustedDNSCount > 0) {
+					$HighRiskDNSRecordsByCategoryS->setCellValue('A'.$RowNo, 'Untrusted');
+					$HighRiskDNSRecordsByCategoryS->setCellValue('B'.$RowNo, $UntrustedDNSCount);
+					$RowNo++;
+				}
+				$HighRiskDNSRecordsByCategoryW = IOFactory::createWriter($HighRiskDNSRecordsByCategorySS, 'Xlsx');
+				$HighRiskDNSRecordsByCategoryW->save($EmbeddedHighRiskDNSRecordsByCategory);
 
 				// Open PPTX Presentation _rels XML
 				$xml_rels = null;
@@ -607,7 +831,7 @@ class CloudAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 9) + 13,
+			'Total' => ($Total * 19) + 14,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
