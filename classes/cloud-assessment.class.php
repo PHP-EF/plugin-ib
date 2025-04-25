@@ -78,9 +78,10 @@ class CloudAssessment extends ibPortal {
 				'AssetsWithMissingRecords' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["assetinsightindicators.label","AssetDetails.doc_asset_insight_indicator"],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
 				'AssetsWithMissingRecordsCount' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[{"member":"AssetDetails.doc_asset_insight_indicator","operator":"startsWith","values":["registration"]},{"member":"AssetDetails.doc_asset_managed","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
 				'AssetsByProvider' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label"],"segments":[],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}',
-				'AssetsByLocation' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.location"],"segments":[],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}',
+				'AssetsByLocation' => '{"ungrouped":false,"measures":["AssetDetails.count"],"dimensions":["AssetDetails.location","AssetDetails.doc_asset_region","AssetDetails.provider_label","AssetDetails.provider_location"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"member":"AssetDetails.doc_asset_region","operator":"notEquals","values":["unknown"]}],"limit":5}',
 				'AssetsByCategory' => '{"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["assetcategories.name","AssetDetails.doc_asset_category"],"filters":[{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}],"timezone":"UTC","segments":[]}',
 				'AssetInsightIndicators' => '{"ungrouped":true,"measures":[],"dimensions":["assetinsightindicators.insightindicator","assetinsightindicators.insightindicator_key","assetinsightindicators.label"],"segments":[]}',
+				'AssetLocations' => '{"dimensions": ["assetlocations.provider","assetlocations.provider_label","assetlocations.region","assetlocations.location","assetlocations.provider_location","assetlocations.provider_region"],"measures": [],"segments": [],"ungrouped": true}',
 				'ZombieAssetsByIndicator' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.doc_asset_insight_indicator"],"segments":[],"filters":[{"member":"AssetDetails.is_valid_sub_classification","operator":"equals","values":["true"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]},{"and":[{"member":"AssetDetails.doc_asset_insight_classification","operator":"equals","values":["zombie"]},{"member":"AssetDetails.doc_asset_insight_sub_classification","operator":"startsWith","values":["zombie"]}]}]}',
 				'CloudSubnetUtilizationAbove50' => '{"measures":[],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.ref_id_resource_id","NetworkInsightsSubnet.address","NetworkInsightsSubnet.utilization_percent","NetworkInsightsSubnet.provider","NetworkInsightsSubnet.usage","NetworkInsightsSubnet.name"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"limit":3}',
 				'CloudSubnetUtilizationAbove50Count' => '{"measures":["NetworkInsightsSubnet.count"],"segments":[],"filters":[{"operator":"equals","member":"NetworkInsightsSubnet.source","values":["Cloud"]},{"operator":"gte","member":"NetworkInsightsSubnet.utilization_percent","values":["50"]}],"ungrouped":false,"dimensions":["NetworkInsightsSubnet.provider"],"timeDimensions":[{"dimension":"NetworkInsightsSubnet.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
@@ -92,11 +93,13 @@ class CloudAssessment extends ibPortal {
 				'CloudDNSZonesByProvider' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label","AssetDetails.doc_asset_category"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_category","operator":"equals","values":["dns"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
 				'HighRiskDNSRecords' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["NetworkInsightsDnsRecords.indicator_id"],"filters":[{"member":"NetworkInsightsDnsRecords.indicator_id","operator":"set"},{"member":"NetworkInsightsDnsRecords.provider","operator":"equals","values":["amazon_web_service","microsoft_azure","google_cloud_platform"]}],"timezone":"UTC","segments":[]}',
 				'CloudDNSRecordsByProvider' => '{"measures":["NetworkInsightsDnsRecords.count"],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecords.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"ungrouped":false,"dimensions":["NetworkInsightsDnsRecords.provider"],"filters":[{"member":"NetworkInsightsDnsRecords.provider","operator":"equals","values":["amazon_web_service","microsoft_azure","google_cloud_platform"]}]}',
-				'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}',
+				// Original Value - Summary number of overlapping subnets
+				//'CloudSubnetOverlapCount' => '{"measures":["NetworkInsightsOverlappingBlocksList.count_total"],"timeDimensions":[{"dimension":"NetworkInsightsOverlappingBlocksList.generated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":[],"filters":[],"timezone":"UTC","segments":[]}',
 				'LicensingManagement' => '{"measures":["TokenUtilManagementObjects.count"],"timeDimensions":[{"dimension":"TokenUtilManagementObjects.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":["TokenUtilManagementObjects.category","TokenUtilManagementObjects.object_type"],"filters":[{"and":[{"member":"TokenUtilManagementObjects.object_type","operator":"equals","values":["DDI","Active IPs","Assets"]},{"member":"TokenUtilManagementObjects.category","operator":"equals","values":["Native"]}]}]}',
 				'LicensingServer' => '{"measures":["TokenUtilProtoSrvSM.count","TokenUtilProtoSrvSM.tokens"],"timeDimensions":[{"dimension":"TokenUtilProtoSrvSM.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
 				'LicensingReporting' => '{"measures":["TokenUtilReporting.count","TokenUtilReporting.tokens"],"timeDimensions":[{"dimension":"TokenUtilReporting.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":"day"}],"dimensions":[]}',
 				'OverlappingSubnets' => '{"dimensions":["NetworkInsightsOverlappingBlocksRolled.address","NetworkInsightsOverlappingBlocksRolled.overlap_count","NetworkInsightsOverlappingBlocksRolled.sources","NetworkInsightsOverlappingBlocksRolled.providers"],"filters":[{"member":"NetworkInsightsOverlappingBlocksRolled.sources_str","operator":"contains","values":["Cloud"]}],"timeDimensions":[],"limit":3,"offset":0,"total":true,"order":{"NetworkInsightsOverlappingBlocksRolled.overlap_count":"desc"}}',
+				'OverlappingZones' => '{"ungrouped":false,"measures":["AssetDetails.count"],"timeDimensions":[{"dimension":"AssetDetails.doc_updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails.provider_label","AssetDetails.doc_asset_category","AssetDetails.doc_name"],"segments":[],"filters":[{"and":[{"member":"AssetDetails.doc_asset_category","operator":"equals","values":["dns"]},{"member":"AssetDetails.provider_label","operator":"equals","values":["AWS","Azure","GCP"]}]}]}',
 				'AbandonedRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Abandoned"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}',
 				'UntrustedRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Untrusted"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}',
 				'DanglingRecords' => '{"dimensions":["NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type","NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids","NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str"],"filters":[{"member":"NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids_str","operator":"contains","values":["Dangling"]}],"timeDimensions":[{"dimension":"NetworkInsightsDnsRecordsRolledByIndicatorId.evaluation_time","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"limit":3,"offset":0,"ungrouped":true,"total":true}'
@@ -116,26 +119,27 @@ class CloudAssessment extends ibPortal {
 			// This needs to match across all active templates at this moment
 			$EmbeddedSheets = [
 				'AssetsByProvider' => 0, // Slide 7
+				'AssetsByLocation' => 1, // Slide 7
 				'ZombieAssetsByIndicator' => array(
-					'Landscape' => 2,
-					'Portrait' => 1
-				), // Slide 8
-				'AssetsByCategory' => array(
-					'Landscape' => 1,
+					'Landscape' => 3,
 					'Portrait' => 2
 				), // Slide 8
-				'ZombieAssetsTable' => 3, // Slide 8
-				'AssetsWithMissingRecords' => 4, // Slide 9
-				'NonCompliantAssets' => 5, // Slide 9
-				'AssetsWithMissingRecordsTable' => 6, // Slide 9
-				'TotalIPsByProvider' => 7, // Slide 11
-				'OverlappingSubnetsTable' => 8, // Slide 11
-				'OverutilizedSubnetsTable' => 9, // Slide 13
-				'UnderutilizedSubnetsTable' => 10, // Slide 13
-				'HighRiskDNSRecordsByCategory' => 11, // Slide 16
-				'DanglingRecordsTable' => 12, // Slide 16
-				'AbandonedRecordsTable' => 13, // Slide 17
-				'UntrustedRecordsTable' => 14 // Slide 17
+				'AssetsByCategory' => array(
+					'Landscape' => 2,
+					'Portrait' => 3
+				), // Slide 8
+				'ZombieAssetsTable' => 4, // Slide 8
+				'AssetsWithMissingRecords' => 5, // Slide 9
+				'NonCompliantAssets' => 6, // Slide 9
+				'AssetsWithMissingRecordsTable' => 7, // Slide 9
+				'TotalIPsByProvider' => 8, // Slide 11
+				'OverlappingSubnetsTable' => 9, // Slide 11
+				'OverutilizedSubnetsTable' => 10, // Slide 13
+				'UnderutilizedSubnetsTable' => 11, // Slide 13
+				'HighRiskDNSRecordsByCategory' => 12, // Slide 16
+				'DanglingRecordsTable' => 13, // Slide 16
+				'AbandonedRecordsTable' => 14, // Slide 17
+				'UntrustedRecordsTable' => 15 // Slide 17
 			];
 
 			// Function to get the full path of the file based on the sheet name
@@ -350,7 +354,15 @@ class CloudAssessment extends ibPortal {
 
 			// Subnet Overlap Count
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets");
-			$CloudSubnetOverlapCount = $CubeJSResults['CloudSubnetOverlapCount']['Body']->result->data[0]->{'NetworkInsightsOverlappingBlocksList.count_total'} ?? 0;
+
+			// Original Value - Summary number of overlapping subnets
+			//$CloudSubnetOverlapCount = $CubeJSResults['CloudSubnetOverlapCount']['Body']->result->data[0]->{'NetworkInsightsOverlappingBlocksList.count_total'} ?? 0;
+
+			// New Value - Total number of overlapping subnets
+			$CloudSubnetOverlapCount = 0;
+			foreach ($CubeJSResults['OverlappingSubnets']['Body']->result->data as $Overlap) {
+				$CloudSubnetOverlapCount += $Overlap->{'NetworkInsightsOverlappingBlocksRolled.overlap_count'} ?? 0;
+			}
 
 			// Licensing
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building License Utilization");
@@ -416,6 +428,68 @@ class CloudAssessment extends ibPortal {
 			$Top3AssetsWithMissingRecordsResponse = $this->QueryCSP("post","atlas-search-api/v1/discover",$JSONData);
 			$Top3AssetsWithMissingRecords = $Top3AssetsWithMissingRecordsResponse->hits->hits ?? array();
 
+			// Cloud Forwarders
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Forwarders");
+			$CloudForwardersResult = $this->QueryCSP("get","api/dns/v1/cloud_forwarder/endpoint");
+			$CloudForwarders = $CloudForwardersResult->results ?? array();
+			$CloudForwarderCounts = [
+				'Microsoft Azure' => ['inbound' => 0, 'outbound' => 0],
+				'Amazon Web Services' => ['inbound' => 0, 'outbound' => 0],
+				'Google Cloud Platform' => ['inbound' => 0, 'outbound' => 0],
+				'Total' => 0
+			];
+				
+			foreach ($CloudForwarders as $CloudForwarder) {
+				$provider = $CloudForwarder->provider_type;
+				$direction = $CloudForwarder->direction;
+				$CloudForwarderCounts[$provider][$direction]++;
+				$CloudForwarderCounts['Total']++;
+			}
+
+			// Overlapping DNS Zones
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping DNS Zones");
+			$OverlappingZones = $CubeJSResults['OverlappingZones']['Body']->result->data ?? array();
+			$OverlappingZonesCount = 0;
+			foreach ($OverlappingZones as $OverlappingZone) {
+				$OverlappingZoneCount = $OverlappingZone->{'AssetDetails.count'} ?? 0;
+				if ($OverlappingZoneCount > 1) {
+					$OverlappingZonesCount += $OverlappingZoneCount;
+				}
+			}
+
+			// DNS Complexity Score
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Complexity Score");
+			$DNSComplexityScore = 0;
+
+			/* Calculate number of Providers */
+			$providers = ['AWS', 'Azure', 'GCP'];
+			$ProviderCount = count(array_filter($providers, fn($provider) => $CloudDNSZonesByProviderTotals[$provider] > 0));
+
+			/* If provider count is greater than 0, add to score */
+			if ($ProviderCount > 0) {
+				$DNSComplexityScore += 20;
+				if ($ProviderCount > 1) {
+					$DNSComplexityScore += ($ProviderCount - 1) * 50;
+				}
+			}
+
+			/* Add points per number of records using these thresholds */
+			$dnsThresholds = [100 => 10, 1000 => 50, PHP_INT_MAX => 75];
+			foreach (['amazon_web_service', 'microsoft_azure', 'google_cloud_platform'] as $provider) {
+				$total = $CloudDNSRecordsByProviderTotals[$provider];
+				foreach ($dnsThresholds as $threshold => $score) {
+					if ($total > $threshold) {
+						$DNSComplexityScore += $score;
+					}
+				}
+			}
+
+			/* Add points per number of inbound and outbound forwarders */
+			$DNSComplexityScore += $CloudForwarderCounts['Total'] * 25;
+
+			/* Add points per number of overlapping zones */
+			$DNSComplexityScore += $OverlappingZonesCount * 100;
+
 			// Loop for each selected template
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
@@ -440,6 +514,31 @@ class CloudAssessment extends ibPortal {
 					}
 					$AssetsByProviderW = IOFactory::createWriter($AssetsByProviderSS, 'Xlsx');
 					$AssetsByProviderW->save($EmbeddedAssetsByProvider);
+				}
+
+				// Assets By Location - Slide 7
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Location");
+				$AssetsByLocation = $CubeJSResults['AssetsByLocation']['Body'];
+				if (isset($AssetsByLocation->result->data)) {
+					$EmbeddedAssetsByLocation = getEmbeddedSheetFilePath('AssetsByLocation', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+					$AssetsByLocationSS = IOFactory::load($EmbeddedAssetsByLocation);
+					$RowNo = 2;
+					$AssetsByLocationIncludedCount = 0;
+					foreach ($AssetsByLocation->result->data as $AssetLocation) {
+						$AssetsByLocationS = $AssetsByLocationSS->getActiveSheet();
+						$AssetsByLocationS->setCellValue('A'.$RowNo, $AssetLocation->{'AssetDetails.provider_location'});
+						$AssetsByLocationS->setCellValue('B'.$RowNo, round((100 / $TotalAssetsCount) * $AssetLocation->{'AssetDetails.count'},2) / 100);
+						$AssetsByLocationIncludedCount += $AssetLocation->{'AssetDetails.count'};
+						$RowNo++;
+					}
+					$AssetsByLocationExcludedCount = $TotalAssetsCount - $AssetsByLocationIncludedCount;
+					if ($AssetsByLocationExcludedCount > 0) {
+						$AssetsByLocationS = $AssetsByLocationSS->getActiveSheet();
+						$AssetsByLocationS->setCellValue('A'.$RowNo, 'Others');
+						$AssetsByLocationS->setCellValue('B'.$RowNo, round((100 / $TotalAssetsCount) * $AssetsByLocationExcludedCount,2) / 100);
+					}
+					$AssetsByLocationW = IOFactory::createWriter($AssetsByLocationSS, 'Xlsx');
+					$AssetsByLocationW->save($EmbeddedAssetsByLocation);
 				}
 
 				// Assets By Category - Slide 8
@@ -485,6 +584,11 @@ class CloudAssessment extends ibPortal {
 					$ZombieAssetsByIndicatorW->save($EmbeddedZombieAssetsByIndicator);
 				}
 
+				// Asset Regions
+				$AssetLocations = $CubeJSResults['AssetLocations']['Body']->result->data ?? array();
+				$AssetLocationsRegionKeys = array_column($AssetLocations, 'assetlocations.region');
+				$AssetLocationsLocationKeys = array_column($AssetLocations, 'assetlocations.location');
+
 				// Zombie Assets Table - Slide 8
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets Table");
 				if (isset($Top3ZombieAssets)) {
@@ -495,7 +599,11 @@ class CloudAssessment extends ibPortal {
 						$ZombieAssetsTableS = $ZombieAssetsTableSS->getActiveSheet();
 						$ZombieAssetsTableS->setCellValue('A'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'name'}); // Asset Name
 						$ZombieAssetsTableS->setCellValue('B'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
-						$ZombieAssetsTableS->setCellValue('C'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_region'}); // Asset Location (Region)
+
+						$RegionIndex = array_search($Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_region'}, $AssetLocationsRegionKeys);
+						$RegionLocation = $RegionIndex !== false ? $AssetLocationsLocationKeys[$RegionIndex] : null;
+
+						$ZombieAssetsTableS->setCellValue('C'.$RowNo, $RegionLocation); // Asset Location (Region)
 						$ZombieAssetsTableS->setCellValue('D'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_insight_classification'}[0]); // Asset Classification
 						$ZombieAssetsTableS->setCellValue('E'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
 						$ZombieAssetsTableS->setCellValue('F'.$RowNo, implode(',',array_slice(explode('/',$Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_insight_sub_classification'}[0]),1))); // Asset Sub-Classification
@@ -534,7 +642,11 @@ class CloudAssessment extends ibPortal {
 						$AssetsWithMissingRecordsTableS = $AssetsWithMissingRecordsTableSS->getActiveSheet();
 						$AssetsWithMissingRecordsTableS->setCellValue('A'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'name'}); // Asset Name
 						$AssetsWithMissingRecordsTableS->setCellValue('B'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
-						$AssetsWithMissingRecordsTableS->setCellValue('C'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_region'}); // Asset Location (Region)
+
+						$RegionIndex = array_search($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_region'}, $AssetLocationsRegionKeys);
+						$RegionLocation = $RegionIndex !== false ? $AssetLocationsLocationKeys[$RegionIndex] : null;
+
+						$AssetsWithMissingRecordsTableS->setCellValue('C'.$RowNo, $RegionLocation); // Asset Location (Region)
 						$AssetsWithMissingRecordsTableS->setCellValue('D'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_insight_classification'}[0]); // Asset Classification
 						$AssetsWithMissingRecordsTableS->setCellValue('E'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
 						$AssetsWithMissingRecordsTableS->setCellValue('F'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_insight_registration_indicator'}[0]); // Asset Registration Indicator
@@ -779,6 +891,7 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG02',number_abbr($CloudSubnetOverlapCount)); // Cloud Subnet Overlap Count
 				$mapping = replaceTag($mapping,'#TAG03',number_abbr($CloudSubnetUtilizationAbove50Total)); // Overutilized Subnets (>=50%)
 				$mapping = replaceTag($mapping,'#TAG04',number_abbr($CloudSubnetUtilizationBelow50Total)); // Underutilized Subnets (<50%)
+				$mapping = replaceTag($mapping,'#TAG05',number_abbr($DNSComplexityScore)); // DNS Complexity Score
 				$mapping = replaceTag($mapping,'#TAG06',number_abbr($DanglingDNSCount)); // High-Risk DNS Records - Dangling
 				$mapping = replaceTag($mapping,'#TAG07',number_abbr($AbandonedDNSCount)); // High-Risk DNS Records - Abandoned
 				$mapping = replaceTag($mapping,'#TAG08',number_abbr($UntrustedDNSCount)); // High-Risk DNS Records - Untrusted
@@ -833,12 +946,20 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG41',number_abbr($CloudSubnetUtilizationBelow50ByProvider['GCP'])); // GCP Subnets below 50% Utilization
 
 				##// Slide 15 - DNS Complexity
+				$mapping = replaceTag($mapping,'#TAG42',number_abbr($OverlappingZonesCount)); // Overlapping DNS Zones
+				$mapping = replaceTag($mapping,'#TAG43',number_abbr($DNSComplexityScore)); // DNS Complexity Score
 				$mapping = replaceTag($mapping,'#TAG44',number_abbr($CloudDNSZonesByProviderTotals['Azure'])); // Azure Zones
 				$mapping = replaceTag($mapping,'#TAG45',number_abbr($CloudDNSZonesByProviderTotals['AWS'])); // AWS Zones
 				$mapping = replaceTag($mapping,'#TAG46',number_abbr($CloudDNSZonesByProviderTotals['GCP'])); // GCP Zones
 				$mapping = replaceTag($mapping,'#TAG47',number_abbr($CloudDNSRecordsByProviderTotals['microsoft_azure'])); // Azure Records
 				$mapping = replaceTag($mapping,'#TAG48',number_abbr($CloudDNSRecordsByProviderTotals['amazon_web_service'])); // AWS Records
 				$mapping = replaceTag($mapping,'#TAG49',number_abbr($CloudDNSRecordsByProviderTotals['google_cloud_platform'])); // GCP Records
+				$mapping = replaceTag($mapping,'#TAG50',number_abbr($CloudForwarderCounts['Microsoft Azure']['inbound'])); // Azure Inbound Endpoints
+				$mapping = replaceTag($mapping,'#TAG51',number_abbr($CloudForwarderCounts['Microsoft Azure']['outbound'])); // Azure Outbound Endpoints
+				$mapping = replaceTag($mapping,'#TAG52',number_abbr($CloudForwarderCounts['Amazon Web Services']['inbound'])); // AWS Inbound Endpoints
+				$mapping = replaceTag($mapping,'#TAG53',number_abbr($CloudForwarderCounts['Amazon Web Services']['outbound'])); // AWS Outbound Endpoints
+				$mapping = replaceTag($mapping,'#TAG54',number_abbr($CloudForwarderCounts['Google Cloud Platform']['inbound'])); // GCP Inbound Endpoints
+				$mapping = replaceTag($mapping,'#TAG55',number_abbr($CloudForwarderCounts['Google Cloud Platform']['outbound'])); // GCP Outbound Endpoints
 
 				##// Slide 16 - High-Risk DNS Records
 				$mapping = replaceTag($mapping,'#TAG56',number_abbr($HighRiskDNSRecordsCount)); // High-Risk DNS Records
@@ -894,7 +1015,7 @@ class CloudAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 22) + 14,
+			'Total' => ($Total * 23) + 17,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
