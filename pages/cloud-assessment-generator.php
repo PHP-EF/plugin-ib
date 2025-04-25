@@ -103,7 +103,7 @@
               </div>
               <hr>
               <div class="progress">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                <div id="cag-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
               </div>
               <br>
               <div id="spinner-container">
@@ -113,8 +113,8 @@
                   <div class="spinner-child spinner-bounce3"></div>
                 </div>
               </div>
-              <p class="progressAction" id="progressAction"></p>
-              <small id="elapsed"></small>
+              <p class="progressAction" id="cag-progressAction"></p>
+              <small id="cag-elapsed"></small>
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@
   
   
   <script>
-  var haltProgress = false;
+  var haltCAGProgress = false;
   
   function download(url) {
     const a = document.createElement("a")
@@ -138,26 +138,26 @@
   function showCAGLoading(id,timer) {
     document.querySelector(".cag-loading-icon").style.display = "block";
     document.querySelector(".cag-loading-div").style.display = "block";
-    haltProgress = false;
-    updateProgress(id,timer);
+    haltCAGProgress = false;
+    updateCAGProgress(id,timer);
   }
   
   function hideCAGLoading(timer) {
     document.querySelector(".cag-loading-icon").style.display = "none";
     document.querySelector(".cag-loading-div").style.display = "none";
-    haltProgress = true;
+    haltCAGProgress = true;
     stopTimer(timer);
   }
   
-  function updateProgress(id,timer) {
+  function updateCAGProgress(id,timer) {
     queryAPI("GET", "/api/plugin/ib/assessment/cloud/progress?id="+id).done(function(response) {
         var data = response.data;
         var progress = parseFloat(data["Progress"]).toFixed(1); // Assuming the server returns a JSON object with a "progress" field
-        $("#progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
-        $("#progressAction").text(data["Action"])
-        if (progress < 100 && haltProgress == false) {
+        $("#cag-progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
+        $("#cag-progressAction").text(data["Action"])
+        if (progress < 100 && haltCAGProgress == false) {
           setTimeout(function() {
-            updateProgress(id,timer);
+            updateCAGProgress(id,timer);
           }, 1000);
         } else if (progress >= 100 && data["Action"] == "Done.." ) {
           toast("Success","","Cloud Assessment Successfully Generated","success","5000");
@@ -168,7 +168,7 @@
         }
     }).fail(function( data, status ) {
       setTimeout(function() {
-        updateProgress(id,timer);
+        updateCAGProgress(id,timer);
       }, 1000);
     });
   }
@@ -189,7 +189,7 @@
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
         let id = data.data;
-        let CAGtimer = startTimer();
+        let CAGtimer = startTimer('#cag-elapsed');
         showCAGLoading(id,CAGtimer);
         var postArr = {};
         postArr.Realm = $("#CAGRealm").find(":selected").val();

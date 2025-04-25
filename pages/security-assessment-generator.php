@@ -143,7 +143,7 @@
               </div>
               <hr>
               <div class="progress">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                <div id="sag-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
               </div>
               <br>
               <div id="spinner-container">
@@ -153,8 +153,8 @@
                   <div class="spinner-child spinner-bounce3"></div>
                 </div>
               </div>
-              <p class="progressAction" id="progressAction"></p>
-              <small id="elapsed"></small>
+              <p class="progressAction" id="sag-progressAction"></p>
+              <small id="sag-elapsed"></small>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@
   
   
   <script>
-  var haltProgress = false;
+  var haltSAGProgress = false;
   var maxDaysApart = 31;
   var today = new Date();
   var maxPastDate = new Date(today);
@@ -207,26 +207,26 @@
   function showSAGLoading(id,timer) {
     document.querySelector(".sag-loading-icon").style.display = "block";
     document.querySelector(".sag-loading-div").style.display = "block";
-    haltProgress = false;
-    updateProgress(id,timer);
+    haltSAGProgress = false;
+    updateSAGProgress(id,timer);
   }
   
   function hideSAGLoading(timer) {
     document.querySelector(".sag-loading-icon").style.display = "none";
     document.querySelector(".sag-loading-div").style.display = "none";
-    haltProgress = true;
+    haltSAGProgress = true;
     stopTimer(timer);
   }
   
-  function updateProgress(id,timer) {
+  function updateSAGProgress(id,timer) {
     queryAPI("GET", "/api/plugin/ib/assessment/security/progress?id="+id).done(function(response) {
         var data = response.data;
         var progress = parseFloat(data["Progress"]).toFixed(1); // Assuming the server returns a JSON object with a "progress" field
-        $("#progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
-        $("#progressAction").text(data["Action"])
-        if (progress < 100 && haltProgress == false) {
+        $("#sag-progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
+        $("#sag-progressAction").text(data["Action"])
+        if (progress < 100 && haltSAGProgress == false) {
           setTimeout(function() {
-            updateProgress(id,timer);
+            updateSAGProgress(id,timer);
           }, 1000);
         } else if (progress >= 100 && data["Action"] == "Done.." ) {
           toast("Success","","Security Assessment Successfully Generated","success","5000");
@@ -237,7 +237,7 @@
         }
     }).fail(function( data, status ) {
       setTimeout(function() {
-        updateProgress(id,timer);
+        updateSAGProgress(id,timer);
       }, 1000);
     });
   }
@@ -262,7 +262,7 @@
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
         let id = data.data;
-        let SAGtimer = startTimer();
+        let SAGtimer = startTimer('#sag-elapsed');
         showSAGLoading(id,SAGtimer);
         const assessmentStartAndEndDate = $("#SAGassessmentStartAndEndDate")[0].value.split(" to ");
         const startDateTime = new Date(assessmentStartAndEndDate[0]);
