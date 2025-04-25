@@ -56,7 +56,7 @@
                   </select>
               </div>
               <div class="col-auto actions">
-                <button class="btn btn-success" id="Generate">Generate</button>
+                <button class="btn btn-success" id="GenerateCA">Generate</button>
               </div>
             </div>
             <div class="row justify-content-md-center toolsMenu pt-2">
@@ -164,7 +164,7 @@
           toast("Success","Please wait..","Downloading Report(s)..","info","30000");
           download("/api/plugin/ib/assessment/cloud/download?id="+id);
           hideCAGLoading(timer);
-          $("#Generate").prop("disabled", false);
+          $("#GenerateCA").prop("disabled", false);
         }
     }).fail(function( data, status ) {
       setTimeout(function() {
@@ -177,7 +177,7 @@
     $("#changelog-modal").modal("show")
   })
   
-  $("#Generate").click(function(){
+  $("#GenerateCA").click(function(){
     if (!$("#CAGAPIKey").is(":disabled")) {
       if(!$("#CAGAPIKey")[0].value) {
       toast("Error","Missing Required Fields","The API Key is a required field.","danger","30000");
@@ -185,7 +185,7 @@
       }
     }
   
-    $("#Generate").prop("disabled", true)
+    $("#GenerateCA").prop("disabled", true)
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
         let id = data.data;
@@ -205,12 +205,12 @@
           } else {
             toast(data["result"],"",data["message"],"danger","30000");
             hideCAGLoading(CAGtimer);
-            $("#Generate").prop("disabled", false);
+            $("#GenerateCA").prop("disabled", false);
           }
         }).fail(function( data, status ) {
             toast("API Error","","Unknown API Error","danger","30000");
             hideCAGLoading(CAGtimer);
-            $("#Generate").prop("disabled", false);
+            $("#GenerateCA").prop("disabled", false);
         })
       } else {
         toast("API Error","","UUID not returned from the API","danger","30000");

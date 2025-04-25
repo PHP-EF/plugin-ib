@@ -59,7 +59,7 @@
                   <input type="text" id="SAGassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
               </div>
               <div class="col-auto actions">
-                <button class="btn btn-success" id="Generate">Generate</button>
+                <button class="btn btn-success" id="GenerateSA">Generate</button>
               </div>
             </div>
             <div class="row justify-content-md-center toolsMenu pt-2">
@@ -233,7 +233,7 @@
           toast("Success","Please wait..","Downloading Report(s)..","info","30000");
           download("/api/plugin/ib/assessment/security/download?id="+id);
           hideSAGLoading(timer);
-          $("#Generate").prop("disabled", false);
+          $("#GenerateSA").prop("disabled", false);
         }
     }).fail(function( data, status ) {
       setTimeout(function() {
@@ -246,7 +246,7 @@
     $("#changelog-modal").modal("show")
   })
   
-  $("#Generate").click(function(){
+  $("#GenerateSA").click(function(){
     if (!$("#SAGAPIKey").is(":disabled")) {
       if(!$("#SAGAPIKey")[0].value) {
       toast("Error","Missing Required Fields","The API Key is a required field.","danger","30000");
@@ -258,7 +258,7 @@
       return null;
     }
   
-    $("#Generate").prop("disabled", true)
+    $("#GenerateSA").prop("disabled", true)
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
         let id = data.data;
@@ -287,12 +287,12 @@
           } else {
             toast(data["result"],"",data["message"],"danger","30000");
             hideSAGLoading(SAGtimer);
-            $("#Generate").prop("disabled", false);
+            $("#GenerateSA").prop("disabled", false);
           }
         }).fail(function( data, status ) {
             toast("API Error","","Unknown API Error","danger","30000");
             hideSAGLoading(SAGtimer);
-            $("#Generate").prop("disabled", false);
+            $("#GenerateSA").prop("disabled", false);
         })
       } else {
         toast("API Error","","UUID not returned from the API","danger","30000");
