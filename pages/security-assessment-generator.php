@@ -164,7 +164,7 @@
   
   
   <script>
-  var haltProgress = false;
+  var haltSAGProgress = false;
   var maxDaysApart = 31;
   var today = new Date();
   var maxPastDate = new Date(today);
@@ -207,14 +207,14 @@
   function showSAGLoading(id,timer) {
     document.querySelector(".sag-loading-icon").style.display = "block";
     document.querySelector(".sag-loading-div").style.display = "block";
-    haltProgress = false;
+    haltSAGProgress = false;
     updateSAGProgress(id,timer);
   }
   
   function hideSAGLoading(timer) {
     document.querySelector(".sag-loading-icon").style.display = "none";
     document.querySelector(".sag-loading-div").style.display = "none";
-    haltProgress = true;
+    haltSAGProgress = true;
     stopTimer(timer);
   }
   
@@ -224,7 +224,7 @@
         var progress = parseFloat(data["Progress"]).toFixed(1); // Assuming the server returns a JSON object with a "progress" field
         $("#sag-progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
         $("#sag-progressAction").text(data["Action"])
-        if (progress < 100 && haltProgress == false) {
+        if (progress < 100 && haltSAGProgress == false) {
           setTimeout(function() {
             updateSAGProgress(id,timer);
           }, 1000);

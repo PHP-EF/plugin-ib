@@ -124,7 +124,7 @@
   
   
   <script>
-  var haltProgress = false;
+  var haltCAGProgress = false;
   
   function download(url) {
     const a = document.createElement("a")
@@ -138,14 +138,14 @@
   function showCAGLoading(id,timer) {
     document.querySelector(".cag-loading-icon").style.display = "block";
     document.querySelector(".cag-loading-div").style.display = "block";
-    haltProgress = false;
+    haltCAGProgress = false;
     updateCAGProgress(id,timer);
   }
   
   function hideCAGLoading(timer) {
     document.querySelector(".cag-loading-icon").style.display = "none";
     document.querySelector(".cag-loading-div").style.display = "none";
-    haltProgress = true;
+    haltCAGProgress = true;
     stopTimer(timer);
   }
   
@@ -155,7 +155,7 @@
         var progress = parseFloat(data["Progress"]).toFixed(1); // Assuming the server returns a JSON object with a "progress" field
         $("#cag-progress-bar").css("width", progress + "%").attr("aria-valuenow", progress).text(progress + "%");
         $("#cag-progressAction").text(data["Action"])
-        if (progress < 100 && haltProgress == false) {
+        if (progress < 100 && haltCAGProgress == false) {
           setTimeout(function() {
             updateCAGProgress(id,timer);
           }, 1000);
