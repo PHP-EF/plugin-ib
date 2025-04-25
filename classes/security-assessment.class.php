@@ -152,11 +152,11 @@ class SecurityAssessment extends ibPortal {
 				//'ThreatActors' => '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}'
 			);
 			// Workaround for EU / US Realm Alignment
-			if ($config['Realm'] == 'EU') {
-				$CubeJSRequests['ThreatActors'] = '{"segments":[],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false,"order":{"PortunusAggIPSummary.timestampMax":"desc"},"measures":["PortunusAggIPSummary.count"],"dimensions":["PortunusAggIPSummary.threat_indicator","PortunusAggIPSummary.actor_id"],"limit":1000,"filters":[{"and":[{"operator":"set","member":"PortunusAggIPSummary.threat_indicator"},{"operator":"set","member":"PortunusAggIPSummary.actor_id"}]}]}';
-			} elseif ($config['Realm'] == 'US') {
+			// if ($config['Realm'] == 'EU') {
+				// $CubeJSRequests['ThreatActors'] = '{"segments":[],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false,"order":{"PortunusAggIPSummary.timestampMax":"desc"},"measures":["PortunusAggIPSummary.count"],"dimensions":["PortunusAggIPSummary.threat_indicator","PortunusAggIPSummary.actor_id"],"limit":1000,"filters":[{"and":[{"operator":"set","member":"PortunusAggIPSummary.threat_indicator"},{"operator":"set","member":"PortunusAggIPSummary.actor_id"}]}]}';
+			// } elseif ($config['Realm'] == 'US') {
 				$CubeJSRequests['ThreatActors'] = '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}';
-			}
+			// }
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
 	
 			// Extract Powerpoint Template(s) as Zip
@@ -345,20 +345,20 @@ class SecurityAssessment extends ibPortal {
 			if (isset($CubeJSResults['ThreatActors']['Body']->result)) {
 				$ThreatActors = $CubeJSResults['ThreatActors']['Body']->result->data;
 				// Workaround to EU / US Realm Alignment
-				if ($config['Realm'] == 'EU') {
-				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsByIdEU($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
-				} elseif ($config['Realm'] == 'US') {
+				// if ($config['Realm'] == 'EU') {
+				//   $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsByIdEU($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
+				// } elseif ($config['Realm'] == 'US') {
 				  $ThreatActorInfo = $this->ThreatActors->GetB1ThreatActorsById($ThreatActors,$config['unnamed'],$config['substring'],$config['unknown']);
-				}
+				// }
 				if ($config['allTAInMetrics'] == 'true') {
-					switch($config['Realm']) {
-						case 'EU':
-							$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'PortunusAggIPSummary.actor_id')));
-							break;
-						case 'US':
+					// switch($config['Realm']) {
+					// 	case 'EU':
+					// 		$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'PortunusAggIPSummary.actor_id')));
+					// 		break;
+						// case 'US':
 							$ThreatActorsCountMetric = count(array_unique(array_column($ThreatActors, 'ThreatActors.ikbactorid')));
-							break;
-					}
+							// break;
+					// }
 				} else {
 					$ThreatActorsCountMetric = count($ThreatActorInfo);
 				}
@@ -677,21 +677,21 @@ class SecurityAssessment extends ibPortal {
 							// Append Virus Total Stuff if applicable to the slide
 		
 							// Workaround to EU / US Realm Alignment
-							if ($config['Realm'] == 'EU') {
-								if (isset($TAI['related_indicators_with_dates'])) {
-									foreach ($TAI['related_indicators_with_dates'] as $TAII) {
-										if (isset($TAII->vt_first_submission_date)) {
-											$TASFile = str_replace('</p:spTree>',$VirusTotalString,$TASFile);
-											$VTIndicatorFound = true;
-											break;
-										} else {
-											$VTIndicatorFound = false;
-										}
-									}
-								} else {
-									$VTIndicatorFound = false;
-								}
-							} elseif ($config['Realm'] == 'US') {
+							// if ($config['Realm'] == 'EU') {
+							// 	if (isset($TAI['related_indicators_with_dates'])) {
+							// 		foreach ($TAI['related_indicators_with_dates'] as $TAII) {
+							// 			if (isset($TAII->vt_first_submission_date)) {
+							// 				$TASFile = str_replace('</p:spTree>',$VirusTotalString,$TASFile);
+							// 				$VTIndicatorFound = true;
+							// 				break;
+							// 			} else {
+							// 				$VTIndicatorFound = false;
+							// 			}
+							// 		}
+							// 	} else {
+							// 		$VTIndicatorFound = false;
+							// 	}
+							// } elseif ($config['Realm'] == 'US') {
 								if (isset($TAI['observed_iocs'])) {
 									foreach ($TAI['observed_iocs'] as $TAII) {
 										if (isset($TAII['ThreatActors.vtfirstdetectedts'])) {
@@ -705,7 +705,7 @@ class SecurityAssessment extends ibPortal {
 								} else {
 									$VTIndicatorFound = false;
 								}
-							}
+							// }
 		
 							// Add Report Link
 							// ** // Use the following code to link based on presence of 'infoblox_references' parameter
@@ -911,49 +911,49 @@ class SecurityAssessment extends ibPortal {
 				if (isset($ThreatActorInfo)) {
 					foreach ($ThreatActorInfo as $TAI) {
 						// Workaround for EU / US Realm Alignment
-						if ($config['Realm'] == 'EU') {
-							// Get sorted list of observed IOCs not found in Virus Total
-							if (isset($TAI['related_indicators_with_dates'])) {
-								$ObservedIndicators = $TAI['related_indicators_with_dates'];
-								$IndicatorCount = count($TAI['related_indicators_with_dates']);
-								$IndicatorsInVT = [];
-								if ($IndicatorCount > 0) {
-									foreach ($ObservedIndicators as $OI) {
-										if (array_key_exists('vt_first_submission_date', json_decode(json_encode($OI), true))) {
-											$IndicatorsInVT[] = $OI;
-										}
-									}
-								}
-								if (count($IndicatorsInVT) > 0) {
-									// Sort the array based on the time difference
-									usort($IndicatorsInVT, function($a, $b) {
-										return $this->calculateVirusTotalDifference($b) <=> $this->calculateVirusTotalDifference($a);
-									});
-									$IndicatorsNotObserved = $TAI['related_count'] - count($ObservedIndicators);
-									$ExampleDomain = $IndicatorsInVT[0]->indicator;
-									$FirstSeen = new DateTime($IndicatorsInVT[0]->te_ik_submitted);
-									$LastSeen = new DateTime($IndicatorsInVT[0]->te_customer_last_dns_query);
-									$VTDate = new DateTime($IndicatorsInVT[0]->vt_first_submission_date);
-									$ProtectedFor = $FirstSeen->diff($LastSeen)->days;
-									$DaysAhead = 'Discovered '.($ProtectedFor - $LastSeen->diff($VTDate)->days).' days ahead';
-								} else {
-									$IndicatorsNotObserved = $TAI['related_count'] - count($ObservedIndicators);
-									$ExampleDomain = $ObservedIndicators[0]->indicator;
-									$FirstSeen = new DateTime($ObservedIndicators[0]->te_ik_submitted);
-									$LastSeen = new DateTime($ObservedIndicators[0]->te_customer_last_dns_query);
-									$DaysAhead = 'Discovered';
-									$ProtectedFor = $FirstSeen->diff($LastSeen)->days;
-								}
-							} else {
-								$IndicatorsNotObserved = 'N/A';
-								$ExampleDomain = 'N/A';
-								$FirstSeen = new DateTime('1901-01-01 00:00');
-								$LastSeen = new DateTime('1901-01-01 00:00');
-								$DaysAhead = 'Discovered';
-								$ProtectedFor = 'N/A';
-								$IndicatorCount = 'N/A';
-							}
-						} elseif ($config['Realm'] == 'US') {
+						// if ($config['Realm'] == 'EU') {
+						// 	// Get sorted list of observed IOCs not found in Virus Total
+						// 	if (isset($TAI['related_indicators_with_dates'])) {
+						// 		$ObservedIndicators = $TAI['related_indicators_with_dates'];
+						// 		$IndicatorCount = count($TAI['related_indicators_with_dates']);
+						// 		$IndicatorsInVT = [];
+						// 		if ($IndicatorCount > 0) {
+						// 			foreach ($ObservedIndicators as $OI) {
+						// 				if (array_key_exists('vt_first_submission_date', json_decode(json_encode($OI), true))) {
+						// 					$IndicatorsInVT[] = $OI;
+						// 				}
+						// 			}
+						// 		}
+						// 		if (count($IndicatorsInVT) > 0) {
+						// 			// Sort the array based on the time difference
+						// 			usort($IndicatorsInVT, function($a, $b) {
+						// 				return $this->calculateVirusTotalDifference($b) <=> $this->calculateVirusTotalDifference($a);
+						// 			});
+						// 			$IndicatorsNotObserved = $TAI['related_count'] - count($ObservedIndicators);
+						// 			$ExampleDomain = $IndicatorsInVT[0]->indicator;
+						// 			$FirstSeen = new DateTime($IndicatorsInVT[0]->te_ik_submitted);
+						// 			$LastSeen = new DateTime($IndicatorsInVT[0]->te_customer_last_dns_query);
+						// 			$VTDate = new DateTime($IndicatorsInVT[0]->vt_first_submission_date);
+						// 			$ProtectedFor = $FirstSeen->diff($LastSeen)->days;
+						// 			$DaysAhead = 'Discovered '.($ProtectedFor - $LastSeen->diff($VTDate)->days).' days ahead';
+						// 		} else {
+						// 			$IndicatorsNotObserved = $TAI['related_count'] - count($ObservedIndicators);
+						// 			$ExampleDomain = $ObservedIndicators[0]->indicator;
+						// 			$FirstSeen = new DateTime($ObservedIndicators[0]->te_ik_submitted);
+						// 			$LastSeen = new DateTime($ObservedIndicators[0]->te_customer_last_dns_query);
+						// 			$DaysAhead = 'Discovered';
+						// 			$ProtectedFor = $FirstSeen->diff($LastSeen)->days;
+						// 		}
+						// 	} else {
+						// 		$IndicatorsNotObserved = 'N/A';
+						// 		$ExampleDomain = 'N/A';
+						// 		$FirstSeen = new DateTime('1901-01-01 00:00');
+						// 		$LastSeen = new DateTime('1901-01-01 00:00');
+						// 		$DaysAhead = 'Discovered';
+						// 		$ProtectedFor = 'N/A';
+						// 		$IndicatorCount = 'N/A';
+						// 	}
+						// } elseif ($config['Realm'] == 'US') {
 							if (isset($TAI['observed_iocs'])) {
 								$ObservedIndicators = $TAI['observed_iocs'];
 								$IndicatorCount = $TAI['observed_count'];
@@ -994,7 +994,7 @@ class SecurityAssessment extends ibPortal {
 								$ProtectedFor = 'N/A';
 								$IndicatorCount = 'N/A';
 							}
-						}
+						// }
 						// Workaround End
 		
 						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'01',ucwords($TAI['actor_name'])); // Threat Actor Name
@@ -1127,13 +1127,13 @@ class SecurityAssessment extends ibPortal {
 	
 	private function calculateVirusTotalDifference($obj) {
 		// Workaround for EU / US Realm Alignment
-		if ($this->Realm == 'EU') {
-			$submitted = new DateTime($obj->te_ik_submitted);
-			$vtsubmitted = new DateTime($obj->vt_first_submission_date);
-		} elseif ($this->Realm == 'US') {
+		// if ($this->Realm == 'EU') {
+		// 	$submitted = new DateTime($obj->te_ik_submitted);
+		// 	$vtsubmitted = new DateTime($obj->vt_first_submission_date);
+		// } elseif ($this->Realm == 'US') {
 			$submitted = new DateTime($obj['ThreatActors.ikbfirstsubmittedts']);
 			$vtsubmitted = new DateTime($obj['ThreatActors.vtfirstdetectedts']);
-		}
+		// }
 		return $vtsubmitted->getTimestamp() - $submitted->getTimestamp();
 	}
 }

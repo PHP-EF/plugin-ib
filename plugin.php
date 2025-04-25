@@ -9,7 +9,7 @@ $GLOBALS['plugins']['IB-Tools'] = [ // Plugin Name
 	'author' => 'TehMuffinMoo', // Who wrote the plugin
 	'category' => 'Infoblox Tools', // One to Two Word Description
 	'link' => 'https://github.com/php-ef/plugin-ib', // Link to plugin info
-	'version' => '1.2.0', // SemVer of plugin
+	'version' => '1.3.0', // SemVer of plugin
 	'image' => 'logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'api' => '/api/plugin/ib/settings', // api route for settings page
@@ -36,6 +36,7 @@ class ibPlugin extends phpef {
 				$this->settingsOption('auth', 'ACL-SECURITYASSESSMENT', ['label' => 'Security Assessment ACL']),
 				$this->settingsOption('auth', 'ACL-THREATACTORS', ['label' => 'Threat Actors ACL']),
 				$this->settingsOption('auth', 'ACL-LICENSEUSAGE', ['label' => 'License Utilization ACL']),
+				$this->settingsOption('auth', 'ACL-CLOUDASSESSMENT', ['label' => 'Cloud Assessment ACL']),
 				$this->settingsOption('auth', 'ACL-CONFIG', ['label' => 'Configuration Admin ACL']),
 				$this->settingsOption('auth', 'ACL-REPORTING', ['label' => 'Reporting ACL']),
 			)
@@ -49,4 +50,28 @@ class ibPlugin extends phpef {
 			'PluginData' => __DIR__ . DIRECTORY_SEPARATOR . 'data'
 		);
 	}
+
+	function timeAgo($timestamp) {
+		$time = strtotime($timestamp);
+		$currentTime = time();
+		$diff = $currentTime - $time;
+		
+		$seconds = $diff;
+		$minutes = round($diff / 60);
+		$hours = round($diff / 3600);
+		$remainingMinutes = floor(($diff % 3600) / 60);
+		$days = round($diff / 86400);
+		$remainingHours = floor(($diff % 86400) / 3600);
+		
+		if ($seconds < 60) {
+			return $seconds . 's';
+		} elseif ($minutes < 60) {
+			return $minutes . 'm';
+		} elseif ($hours < 24) {
+			return $hours . 'h ' . $remainingMinutes . 'm';
+		} else {
+			return $days . 'd ' . $remainingHours . 'h';
+		}
+	}
+		
 }
