@@ -57,6 +57,17 @@ function checkInput(text) {
     }
 }
 
+function imagePreview(elem,img) {
+    const preview = document.getElementById(elem);
+    if (img) {
+      preview.src = img;
+      preview.style.display = "block"; // Show the image preview
+    } else {
+      preview.src = "";
+      preview.style.display = "none"; // Hide the image preview if no file is selected
+    }
+  }
+
 // ** Populate the API Key input field ** //
 // Function to be called when specific elements are created
 function runOnAPIKeyCreation() {
