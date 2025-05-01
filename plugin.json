@@ -31,7 +31,8 @@
           "date": "2025-05-01",
           "changes": [
               "Bug fixes to Threat Actor Query",
-              "Apply consistent styling to all pages"
+              "Apply consistent styling to all pages",
+              "Unique descriptor bugfixes on configuration pages"
           ]
         }
       ]
