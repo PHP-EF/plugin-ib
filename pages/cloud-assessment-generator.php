@@ -28,14 +28,12 @@
   return <<<EOF
   <section class="section">
     <div class="row mx-2">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <center>
-              <h4>Cloud Assessment Report Generator</h4>
-              <p>You can use this tool to generate Cloud Assessment Reports for Infoblox Portal accounts.</p>
-            </center>
-          </div>
+      <div class="card">
+        <div class="card-body">
+          <center>
+            <h4>Cloud Assessment Report Generator</h4>
+            <p>You can use this tool to generate Cloud Assessment Reports for Infoblox Portal accounts.</p>
+          </center>
         </div>
       </div>
     </div>
@@ -93,29 +91,27 @@
     </div>
     <br>
     <div class="row mx-2 cag-loading-div" style="display: none;">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="cag-loading-icon">
-              <br>
-              <div class="alert alert-info genInfo" role="alert">
-                <center>It can take up to 3 minutes to generate the report(s), please be patient.</center>
-              </div>
-              <hr>
-              <div class="progress">
-                <div id="cag-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-              </div>
-              <br>
-              <div id="spinner-container">
-                <div class="spinner-bounce">
-                  <div class="spinner-child spinner-bounce1"></div>
-                  <div class="spinner-child spinner-bounce2"></div>
-                  <div class="spinner-child spinner-bounce3"></div>
-                </div>
-              </div>
-              <p class="progressAction" id="cag-progressAction"></p>
-              <small id="cag-elapsed"></small>
+      <div class="card">
+        <div class="card-body">
+          <div class="cag-loading-icon">
+            <br>
+            <div class="alert alert-info genInfo" role="alert">
+              <center>It can take up to 3 minutes to generate the report(s), please be patient.</center>
             </div>
+            <hr>
+            <div class="progress">
+              <div id="cag-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+            <br>
+            <div id="spinner-container">
+              <div class="spinner-bounce">
+                <div class="spinner-child spinner-bounce1"></div>
+                <div class="spinner-child spinner-bounce2"></div>
+                <div class="spinner-child spinner-bounce3"></div>
+              </div>
+            </div>
+            <p class="progressAction" id="cag-progressAction"></p>
+            <small id="cag-elapsed"></small>
           </div>
         </div>
       </div>

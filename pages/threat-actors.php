@@ -7,84 +7,111 @@
   return <<<EOF
   <section class="section">
     <div class="row mx-2">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <center>
-              <h4>Threat Actor Query</h4>
-              <p>You can use this tool to perform queries on Threat Actors found in a particular Infoblox Portal account.</p>
-            </center>
-          </div>
+      <div class="card">
+        <div class="card-body">
+          <center>
+            <h4>Threat Actor Query</h4>
+            <p>You can use this tool to perform queries on Threat Actors found in a particular Infoblox Portal account.</p>
+          </center>
         </div>
       </div>
     </div>
     <br>
     <div class="row mx-2">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="container">
-              <div class="row justify-content-md-center toolsMenu">
-                <div class="col-md-4 apiKey">
-                    <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="TARAPIKey" type="password" placeholder="Enter API Key" required>
-                    <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
-                </div>
-                <div class="col-md-2 realm">
-                    <select id="TARRealm" class="form-select" aria-label="Realm Selection">
-                        <option value="US" selected>US Realm</option>
-                        <option value="EU">EU Realm</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="TARassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
-                </div>
-                <div class="col-md-2 actions">
-                  <button class="btn btn-success" id="Actors">Generate</button>
-                </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="container">
+            <div class="row justify-content-md-center toolsMenu">
+              <div class="col-md-4 apiKey">
+                  <input class="form-control APIKey" onkeyup="checkInput(this.value)" id="TARAPIKey" type="password" placeholder="Enter API Key" required>
+                  <i class="fas fa-save saveBtn" onclick="apiKeyBtn(this);"></i>
               </div>
-              <div class="row mt-3">
-                <div class="col-md-6 options">
-                  <div class="form-group">
-                    <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="TARunnamed" name="unnamed">
-                      <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <div class="form-check form-switch">
-                      <input class="form-check-input info-field" type="checkbox" id="TARsubstring" name="substring">
-                      <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
-                    </div>
-                  </div>
-                </div>
+              <div class="col-md-2 realm">
+                  <select id="TARRealm" class="form-select" aria-label="Realm Selection">
+                      <option value="US" selected>US Realm</option>
+                      <option value="EU">EU Realm</option>
+                  </select>
               </div>
-              <br>
+              <div class="col-md-3">
+                  <input type="text" id="TARassessmentStartAndEndDate" class="assessmentStartAndEndDate" placeholder="Start & End Date/Time">
+              </div>
+              <div class="col-auto actions">
+                <button class="btn btn-success" id="Actors">Generate</button>
+              </div>
             </div>
+            <div class="row justify-content-md-center toolsMenu pt-2">
+              <div class="col-lg-9">
+                <div class="accordion" id="threatActorOptionsAccordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="threatActorOptionsHeading">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#threatActorOptions" aria-expanded="true" aria-controls="threatActorOptions">
+                      Threat Actor Options
+                      </button>
+                    </h2>
+                    <div id="threatActorOptions" class="accordion-collapse collapse" aria-labelledby="threatActorOptionsHeading" data-bs-parent="#threatActorOptionsAccordion">
+                      <div class="accordion-body">
+                        <div class="card-body" id="threatActorOptionsCard">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="TARunnamed" name="unnamed">
+                                      <label class="form-check-label" for="unnamed">Enable Unnamed Actors</label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="TARsubstring" name="substring">
+                                      <label class="form-check-label" for="substring">Enable Substring_* Actors</label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <div class="form-group">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="TARunknown" name="unknown">
+                                      <label class="form-check-label" for="unknown">Enable Unknown Actors</label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <br>
           </div>
         </div>
       </div>
     </div>
     <br>
     <div class="row mx-2 tar-loading-div" style="display: none;">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="tar-loading-icon">
-              <div class="alert alert-info genInfo" role="alert">
-                <center>It can take up to 2 minutes to generate the list of Threat Actors, please be patient.</center>
-              </div>
-              <br>
-              <div id="spinner-container">
-                <div class="spinner-bounce">
-                  <div class="spinner-child spinner-bounce1"></div>
-                  <div class="spinner-child spinner-bounce2"></div>
-                  <div class="spinner-child spinner-bounce3"></div>
-                </div>
-              </div>
-              <small id="elapsed"></small>
+      <div class="card">
+        <div class="card-body">
+          <div class="tar-loading-icon">
+            <div class="alert alert-info genInfo" role="alert">
+              <center>It can take up to 2 minutes to generate the list of Threat Actors, please be patient.</center>
             </div>
-            <table id="threatActorTable" class="table table-striped rounded"></table>
+            <br>
+            <div id="spinner-container">
+              <div class="spinner-bounce">
+                <div class="spinner-child spinner-bounce1"></div>
+                <div class="spinner-child spinner-bounce2"></div>
+                <div class="spinner-child spinner-bounce3"></div>
+              </div>
+            </div>
+            <small id="elapsed"></small>
           </div>
+          <table id="threatActorTable" class="table table-striped rounded"></table>
         </div>
       </div>
     </div>
@@ -309,6 +336,7 @@
       postArr.Realm = $("#TARRealm").find(":selected").val()
       postArr.unnamed = $("#TARunnamed")[0].checked;
       postArr.substring = $("#TARsubstring")[0].checked;
+      postArr.unknown = $("#TARunknown")[0].checked;
       if ($("#TARAPIKey")[0].value) {
         postArr.APIKey = $("#TARAPIKey")[0].value
       }

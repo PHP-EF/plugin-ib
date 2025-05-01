@@ -168,7 +168,7 @@ class ThreatActors extends ibPortal {
 				$this->logging->writeLog("ThreatActors",$UserInfo->result->name." queried list of Threat Actors","info");
 				$Actors = $this->GetB1ThreatActorIds($data['StartDateTime'],$data['EndDateTime']);
 				if (!isset($Actors->Error)) {
-					$this->api->setAPIResponseData($this->GetB1ThreatActorsById($Actors,$data['unnamed'],$data['substring']));
+					$this->api->setAPIResponseData($this->GetB1ThreatActorsById($Actors,$data['unnamed'],$data['substring'],$data['unknown']));
 				} else {
 					$this->api->setAPIResponse('Error','Unable to get list of Threat Actors','502',$Actors);
 				};
