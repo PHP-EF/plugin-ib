@@ -14,7 +14,7 @@
     "last_updated": "2025-05-01",
     "github_folder": "",
     "changelog": {
-      "type": "data",
+      "type": "builtin",
       "url": "",
       "title": "Change Log",
       "data": [
