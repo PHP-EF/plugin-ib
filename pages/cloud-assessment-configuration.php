@@ -31,7 +31,7 @@
               data-sort-name="Status"
               data-sort-order="asc"
               data-page-size="25"
-              data-buttons="templateButtons"
+              data-buttons="CAtemplateButtons"
               data-buttons-order="btnAddTemplate,refresh"
               class="table table-striped" id="cloudAssessmentTemplateTable">
 
@@ -43,7 +43,7 @@
                   <th data-field="Description" data-sortable="true">Description</th>
                   <th data-field="FileName" data-sortable="true">File Name</th>
                   <th data-field="Created" data-sortable="true">Upload Date</th>
-                  <th data-formatter="templateActionFormatter" data-events="actionEvents">Actions</th>
+                  <th data-formatter="CAtemplateActionFormatter" data-events="actionEvents">Actions</th>
                 </tr>
               </thead>
             </table>
@@ -54,131 +54,131 @@
   </div>
 
   <!-- Edit Template Modal -->
-  <div class="modal fade" id="editTemplateModal" tabindex="-1" role="dialog" aria-labelledby="editTemplateModalLabel" aria-hidden="true">
+  <div class="modal fade" id="editCATemplateModal" tabindex="-1" role="dialog" aria-labelledby="editCATemplateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editTemplateModalLabel">Template Information</h5>
+          <h5 class="modal-title" id="editCATemplateModalLabel">Template Information</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true"></span>
           </button>
         </div>
-        <div class="modal-body" id="editTemplateModalBody">
+        <div class="modal-body" id="editCATemplateModalBody">
           <div class="form-group">
             <div class="form-group" hidden>
-              <input type="text" class="form-control info-field" id="templateId" aria-describedby="templateIdHelp" name="templateId" disabled>
+              <input type="text" class="form-control info-field" id="CAtemplateId" aria-describedby="CAtemplateIdHelp" name="CAtemplateId" disabled>
             </div>
-            <label for="templateStatus">Template Status</label>
-            <select id="templateStatus" class="form-select" aria-label="Template Status" aria-describedby="templateStatusHelp">
+            <label for="CAtemplateStatus">Template Status</label>
+            <select id="CAtemplateStatus" class="form-select" aria-label="Template Status" aria-describedby="CAtemplateStatusHelp">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-            <small id="templateStatusHelp" class="form-text text-muted">The current status of the template.</small>
+            <small id="CAtemplateStatusHelp" class="form-text text-muted">The current status of the template.</small>
           </div>
           <div class="form-group">
-            <label for="templateName">Template Name</label>
-            <input type="text" class="form-control info-field" id="templateName" aria-describedby="templateNameHelp" name="templateName">
-            <small id="templateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <label for="CAtemplateName">Template Name</label>
+            <input type="text" class="form-control info-field" id="CAtemplateName" aria-describedby="CAtemplateNameHelp" name="CAtemplateName">
+            <small id="CAtemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
           </div>
           <div class="form-group">
-            <label for="templateDescription">Template Description</label>
-            <input type="text" class="form-control info-field" id="templateDescription" aria-describedby="templateDescriptionHelp" name="templateDescription">
-            <small id="templateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <label for="CAtemplateDescription">Template Description</label>
+            <input type="text" class="form-control info-field" id="CAtemplateDescription" aria-describedby="CAtemplateDescriptionHelp" name="CAtemplateDescription">
+            <small id="CAtemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
           </div>
           <div class="form-group">
-            <label for="templateOrientation" class="col-form-label">Template Orientation</label>
-            <select id="templateOrientation" class="form-select" name="templateOrientation">
+            <label for="CAtemplateOrientation" class="col-form-label">Template Orientation</label>
+            <select id="CAtemplateOrientation" class="form-select" name="CAtemplateOrientation">
               <option value="Portrait" selected>Portrait</option>
               <option value="Landscape">Landscape</option>
             </select>
-            <small id="templateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
+            <small id="CAtemplateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
           </div>
           <div class="form-group">
-            <label for="templateSelectedByDefault">Selected by Default</label>
+            <label for="CAtemplateSelectedByDefault">Selected by Default</label>
             <div class="form-check form-switch">
-              <input class="form-check-input info-field" type="checkbox" id="templateSelectedByDefault" name="templateSelectedByDefault" value="">  
+              <input class="form-check-input info-field" type="checkbox" id="CAtemplateSelectedByDefault" name="CAtemplateSelectedByDefault" value="">  
             </div>
-            <small id="templateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
+            <small id="CAtemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
           <div class="form-group row">
-            <label for="templatePPTX" class="col-form-label">PowerPoint Template</label>
+            <label for="CAtemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="templatePPTX" accept=".pptx" aria-describedby="templatePPTXHelp">
-              <small id="templatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
+              <input type="file" class="form-control" id="CAtemplatePPTX" accept=".pptx" aria-describedby="CAtemplatePPTXHelp">
+              <small id="CAtemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
               <img id="imagePreviewSVG" src="" alt="PNG Image Preview" style="display:none; margin-top: 10px; max-width: 100%;">
             </div>
           </div>
           <div class="form-group">
-            <label for="templateFileName">Template File Name</label>
-            <input type="text" class="form-control info-field" id="templateFileName" aria-describedby="templateFileNameHelp" name="templateFileName" disabled>
-            <small id="templateFileNameHelp" class="form-text text-muted">The file name for the Cloud Assessment Template.</small>
+            <label for="CAtemplateFileName">Template File Name</label>
+            <input type="text" class="form-control info-field" id="CAtemplateFileName" aria-describedby="CAtemplateFileNameHelp" name="CAtemplateFileName" disabled>
+            <small id="CAtemplateFileNameHelp" class="form-text text-muted">The file name for the Cloud Assessment Template.</small>
           </div>
           <div class="form-group">
-            <label for="templateUploadDate">Upload Date</label>
-            <input type="text" class="form-control" id="templateUploadDate" aria-describedby="templateUploadDateHelp" disabled>
-            <small id="templateUploadDateHelp" class="form-text text-muted">The upload date of this template.</small>
+            <label for="CAtemplateUploadDate">Upload Date</label>
+            <input type="text" class="form-control" id="CAtemplateUploadDate" aria-describedby="CAtemplateUploadDateHelp" disabled>
+            <small id="CAtemplateUploadDateHelp" class="form-text text-muted">The upload date of this template.</small>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button class="btn btn-primary" id="editTemplateSubmit">Save</button>
+          <button class="btn btn-primary" id="editCATemplateSubmit">Save</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- New Template Modal -->
-  <div class="modal fade" id="newTemplateModal" tabindex="-1" role="dialog" aria-labelledby="newTemplateModalLabel" aria-hidden="true">
+  <div class="modal fade" id="newCATemplateModal" tabindex="-1" role="dialog" aria-labelledby="newCATemplateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="newTemplateModalLabel">New Template Wizard</h5>
+          <h5 class="modal-title" id="newCATemplateModalLabel">New Template Wizard</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true"></span>
           </button>
         </div>
-        <div class="modal-body" id="newTemplateModelBody">
+        <div class="modal-body" id="newCATemplateModelBody">
           <p>Enter the new template information below to add it to the list.</p>
           <div class="form-group">
-            <label for="newTemplateStatus">Template Status</label>
-            <select id="newTemplateStatus" class="form-select" aria-label="Template Status" aria-describedby="newTemplateStatusHelp">
+            <label for="newCATemplateStatus">Template Status</label>
+            <select id="newCATemplateStatus" class="form-select" aria-label="Template Status" aria-describedby="newCATemplateStatusHelp">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-            <small id="newTemplateStatusHelp" class="form-text text-muted">The status of the new template.</small>
+            <small id="newCATemplateStatusHelp" class="form-text text-muted">The status of the new template.</small>
           </div>
           <div class="form-group">
-            <label for="newTemplateName">Template Name</label>
-            <input type="text" class="form-control" id="newTemplateName" aria-describedby="newTemplateNameHelp" name="newTemplateName">
-            <small id="newTemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <label for="newCATemplateName">Template Name</label>
+            <input type="text" class="form-control" id="newCATemplateName" aria-describedby="newCATemplateNameHelp" name="newCATemplateName">
+            <small id="newCATemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
           </div>
           <div class="form-group">
-            <label for="newTemplateDescription">Template Description</label>
-            <input type="text" class="form-control" id="newTemplateDescription" aria-describedby="newTemplateDescriptionHelp" name="newTemplateDescription">
-            <small id="newTemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <label for="newCATemplateDescription">Template Description</label>
+            <input type="text" class="form-control" id="newCATemplateDescription" aria-describedby="newCATemplateDescriptionHelp" name="newCATemplateDescription">
+            <small id="newCATemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
           </div>
           <div class="form-group">
-            <label for="newTemplateOrientation" class="col-form-label">Template Orientation</label>
-            <select id="newTemplateOrientation" class="form-select" name="newTemplateOrientation">
+            <label for="newCATemplateOrientation" class="col-form-label">Template Orientation</label>
+            <select id="newCATemplateOrientation" class="form-select" name="newCATemplateOrientation">
               <option value="Portrait" selected>Portrait</option>
               <option value="Landscape">Landscape</option>
             </select>
-            <small id="newTemplateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
+            <small id="newCATemplateOrientationHelp" class="form-text text-muted">The orientation of the powerpoint template.</small>
           </div>
           <div class="form-group">
-            <label for="newTemplateSelectedByDefault">Selected by Default</label>
+            <label for="newCATemplateSelectedByDefault">Selected by Default</label>
             <div class="form-check form-switch">
-              <input class="form-check-input info-field" type="checkbox" id="newTemplateSelectedByDefault" name="newTemplateSelectedByDefault" value="">  
+              <input class="form-check-input info-field" type="checkbox" id="newCATemplateSelectedByDefault" name="newCATemplateSelectedByDefault" value="">  
             </div>
-            <small id="newTemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
+            <small id="newCATemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
           <div class="form-group row">
-            <label for="newTemplatePPTX" class="col-form-label">PowerPoint Template</label>
+            <label for="newCATemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="newTemplatePPTX" accept=".pptx" aria-describedby="newTemplatePPTXHelp">
-              <small id="newTemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
+              <input type="file" class="form-control" id="newCATemplatePPTX" accept=".pptx" aria-describedby="newCATemplatePPTXHelp">
+              <small id="newCATemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
               <img id="imagePreviewSVG" src="" alt="PNG Image Preview" style="display:none; margin-top: 10px; max-width: 100%;">
@@ -187,19 +187,19 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button class="btn btn-primary" id="newTemplateSubmit">Save</button>
+          <button class="btn btn-primary" id="newCATemplateSubmit">Save</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    function templateActionFormatter(value, row, index) {
+    function CAtemplateActionFormatter(value, row, index) {
       return [
-        `<a class="editTemplate" title="Edit">`,
+        `<a class="editCATemplate" title="Edit">`,
         `<i class="fa fa-pencil"></i>`,
         `</a>&nbsp;`,
-        `<a class="deleteTemplate" title="Delete">`,
+        `<a class="deleteCATemplate" title="Delete">`,
         `<i class="fa fa-trash"></i>`,
         `</a>`
       ].join("")
@@ -211,8 +211,8 @@
           text: "Add Cloud Assessment Template",
           icon: "bi-plus-lg",
           event: function() {
-            $("#newTemplateModal").modal("show");
-            $("#newTemplateModal input").val("");
+            $("#newCATemplateModal").modal("show");
+            $("#newCATemplateModal input").val("");
           },
           attributes: {
             title: "Add a new Cloud Assessment Template",
@@ -222,39 +222,28 @@
       }
     }
 
-    function listTemplate(row) {
-      $("#editTemplateModal input").val("");
-      $("#templateId").val(row["id"]);
-      $("#templateStatus").val(row["Status"]);
-      $("#templateName").val(row["TemplateName"]);
-      $("#templateDescription").val(row["Description"]);
-      $("#templateFileName").val(row["FileName"]);
-      $("#templateOrientation").val(row["Orientation"]);
+    function listCATemplate(row) {
+      $("#editCATemplateModal input").val("");
+      $("#CAtemplateId").val(row["id"]);
+      $("#CAtemplateStatus").val(row["Status"]);
+      $("#CAtemplateName").val(row["TemplateName"]);
+      $("#CAtemplateDescription").val(row["Description"]);
+      $("#CAtemplateFileName").val(row["FileName"]);
+      $("#CAtemplateOrientation").val(row["Orientation"]);
       if (String(row["isDefault"]).toLowerCase() == "true") {
-        $("#templateSelectedByDefault").attr("checked",true);
+        $("#CAtemplateSelectedByDefault").attr("checked",true);
       } else {
-        $("#templateSelectedByDefault").attr("checked",false);
+        $("#CAtemplateSelectedByDefault").attr("checked",false);
       }
-      $("#templateUploadDate").val(row["Created"]);
-    }
-
-    function imagePreview(elem,img) {
-      const preview = document.getElementById(elem);
-      if (img) {
-        preview.src = img;
-        preview.style.display = "block"; // Show the image preview
-      } else {
-        preview.src = "";
-        preview.style.display = "none"; // Hide the image preview if no file is selected
-      }
+      $("#CAtemplateUploadDate").val(row["Created"]);
     }
 
     window.actionEvents = {
-      "click .editTemplate": function (e, value, row, index) {
-        listTemplate(row);
-        $("#editTemplateModal").modal("show");
+      "click .editCATemplate": function (e, value, row, index) {
+        listCATemplate(row);
+        $("#editCATemplateModal").modal("show");
       },
-      "click .deleteTemplate": function (e, value, row, index) {
+      "click .deleteCATemplate": function (e, value, row, index) {
         if(confirm("Are you sure you want to delete "+row.TemplateName+" from the list of Templates? This is irriversible.") == true) {
           queryAPI("DELETE", "/api/plugin/ib/assessment/cloud/config/"+row.id).done(function( data, status ) {
             if (data["result"] == "Success") {
@@ -272,17 +261,17 @@
       }
     }
 
-    $(document).on("click", "#newTemplateSubmit", function(event) {
-      const templateFiles = $("#newTemplatePPTX")[0].files;
+    $(document).on("click", "#newCATemplateSubmit", function(event) {
+      const templateFiles = $("#newCATemplatePPTX")[0].files;
 
       var postArr = {}
-      postArr.Status = encodeURIComponent($("#newTemplateStatus").val());
-      postArr.TemplateName = encodeURIComponent($("#newTemplateName").val());
-      postArr.Description = encodeURIComponent($("#newTemplateDescription").val());
-      postArr.Orientation = encodeURIComponent($("#newTemplateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#templateSelectedByDefault")[0].checked);
+      postArr.Status = encodeURIComponent($("#newCATemplateStatus").val());
+      postArr.TemplateName = encodeURIComponent($("#newCATemplateName").val());
+      postArr.Description = encodeURIComponent($("#newCATemplateDescription").val());
+      postArr.Orientation = encodeURIComponent($("#newCATemplateOrientation").val());
+      postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
       if (templateFiles[0]) {
-        postArr.FileName = $("#newTemplateName").val().toLowerCase().replace(/ /g, "-");
+        postArr.FileName = $("#newCATemplateName").val().toLowerCase().replace(/ /g, "-");
       }
       queryAPI("POST", "/api/plugin/ib/assessment/cloud/config", postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
@@ -322,22 +311,22 @@
       }).fail(function( data, status ) {
           toast("API Error","","Failed to add new template","danger","30000");
       }).always(function( data, status) {
-        $("#newTemplateModal").modal("hide");
+        $("#newCATemplateModal").modal("hide");
       })
     });
 
-    $(document).on("click", "#editTemplateSubmit", function(event) {
-      const templateFiles = $("#templatePPTX")[0].files;
+    $(document).on("click", "#editCATemplateSubmit", function(event) {
+      const templateFiles = $("#CAtemplatePPTX")[0].files;
       
-      var id = encodeURIComponent($("#templateId").val());
+      var id = encodeURIComponent($("#CAtemplateId").val());
       var postArr = {}
-      postArr.Status = encodeURIComponent($("#templateStatus").val());
-      postArr.TemplateName = encodeURIComponent($("#templateName").val());
-      postArr.Description = encodeURIComponent($("#templateDescription").val());
-      postArr.Orientation = encodeURIComponent($("#templateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#templateSelectedByDefault")[0].checked);
+      postArr.Status = encodeURIComponent($("#CAtemplateStatus").val());
+      postArr.TemplateName = encodeURIComponent($("#CAtemplateName").val());
+      postArr.Description = encodeURIComponent($("#CAtemplateDescription").val());
+      postArr.Orientation = encodeURIComponent($("#CAtemplateOrientation").val());
+      postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
       if (templateFiles[0]) {
-        postArr.FileName = $("#templateName").val().toLowerCase().replace(/ /g, "-");
+        postArr.FileName = $("#CAtemplateName").val().toLowerCase().replace(/ /g, "-");
       }
       queryAPI("PATCH", "/api/plugin/ib/assessment/cloud/config/"+id, postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
@@ -377,7 +366,7 @@
       }).fail(function( data, status ) {
           toast("API Error","","Failed to edit template","danger","30000");
       }).always(function( data, status) {
-        $("#editTemplateModal").modal("hide");
+        $("#editCATemplateModal").modal("hide");
       })
     });
 
