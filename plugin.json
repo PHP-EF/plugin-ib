@@ -1,17 +1,40 @@
 [
-    {
-      "name": "IB-Tools",
-      "repo": "https://github.com/php-ef/plugin-ib",
-      "author": "TehMuffinMoo",
-      "category": "Infoblox Tools",
-      "description": "This PHP-EF plugin enables various tools for use by Infoblox SAs.",
-      "icon": "https://raw.githubusercontent.com/php-ef/plugin-ib/main/logo.png",
-      "contact": "https://github.com/php-ef/plugin-ib/issues",
-      "link": "https://github.com/php-ef/plugin-ib",
-      "version": "1.3.0",
-      "minimum_php-ef_version": "0.8.2",
-      "release_date": "2024-12-20",
-      "last_updated": "2025-04-25",
-      "github_folder": ""
+  {
+    "name": "IB-Tools",
+    "repo": "https://github.com/php-ef/plugin-ib",
+    "author": "TehMuffinMoo",
+    "category": "Infoblox Tools",
+    "description": "This PHP-EF plugin enables various tools for use by Infoblox SAs.",
+    "icon": "https://raw.githubusercontent.com/php-ef/plugin-ib/main/logo.png",
+    "contact": "https://github.com/php-ef/plugin-ib/issues",
+    "link": "https://github.com/php-ef/plugin-ib",
+    "version": "1.3.1",
+    "minimum_php-ef_version": "0.8.5",
+    "release_date": "2024-12-20",
+    "last_updated": "2025-05-01",
+    "github_folder": "",
+    "changelog": {
+      "type": "builtin",
+      "url": "",
+      "title": "Change Log",
+      "data": [
+        {
+          "version": "1.3.0",
+          "date": "2025-04-25",
+          "changes": [
+              "First release of the Cloud Assessment",
+              "Bug fixes & improvements to Security Assessment"
+          ]
+        },
+        {
+          "version": "1.3.1",
+          "date": "2025-05-01",
+          "changes": [
+              "Bug fixes to Threat Actor Query",
+              "Apply consistent styling to all pages"
+          ]
+        }
+      ]
+    }
     }
 ]
