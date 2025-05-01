@@ -33,7 +33,7 @@
               data-page-size="25"
               data-buttons="templateButtons"
               data-buttons-order="btnAddTemplate,refresh"
-              class="table table-striped" id="templateTable">
+              class="table table-striped" id="cloudAssessmentTemplateTable">
 
               <thead>
                 <tr>
@@ -259,7 +259,7 @@
           queryAPI("DELETE", "/api/plugin/ib/assessment/cloud/config/"+row.id).done(function( data, status ) {
             if (data["result"] == "Success") {
               toast(data["result"],"",data["message"],"success");
-              $("#templateTable").bootstrapTable("refresh");
+              $("#cloudAssessmentTemplateTable").bootstrapTable("refresh");
             } else if (data["result"] == "Error") {
               toast(data["result"],"",data["message"],"danger","30000");
             } else {
@@ -287,7 +287,7 @@
       queryAPI("POST", "/api/plugin/ib/assessment/cloud/config", postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
           toast(data["result"],"",data["message"],"success");
-          $("#templateTable").bootstrapTable("refresh");
+          $("#cloudAssessmentTemplateTable").bootstrapTable("refresh");
           if (templateFiles.length > 0) {
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
@@ -342,7 +342,7 @@
       queryAPI("PATCH", "/api/plugin/ib/assessment/cloud/config/"+id, postArr).done(function( data, status ) {
         if (data["result"] == "Success") {
           toast(data["result"],"",data["message"],"success");
-          $("#templateTable").bootstrapTable("refresh");
+          $("#cloudAssessmentTemplateTable").bootstrapTable("refresh");
           if (templateFiles.length > 0) {
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
@@ -381,6 +381,6 @@
       })
     });
 
-    $("#templateTable").bootstrapTable();
+    $("#cloudAssessmentTemplateTable").bootstrapTable();
   </script>
 EOF;
