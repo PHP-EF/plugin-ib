@@ -677,13 +677,16 @@ $app->post('/plugin/ib/assessment/license/generate', function ($request, $respon
 		->withStatus($GLOBALS['responseCode']);
 });
 
-// Lame Delegation
-$app->get('/plugin/ib/sittingducks/lame', function ($request, $response, $args) {
-	$ibPlugin = new SittingDucks("one.one.one.one");
+// ** DEV ** //
+
+// DNS Over HTTPS
+$app->get('/plugin/ib/doh/query', function ($request, $response, $args) {
+	$ibPlugin = new ibDNS();
     if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG') ?? null) {
         $data = $request->getQueryParams();
-        if (isset($data['domain'])) {
-            $ibPlugin->api->setAPIResponseData([$ibPlugin->isLame($data['domain'])]);
+        if (isset($data['domain']) && isset($data['type'])) {
+            $Server = $data['server'] ?? null;
+            $ibPlugin->api->setAPIResponseData($ibPlugin->dohQuery($data['domain'],$data['type'],$Server));
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -691,53 +694,3 @@ $app->get('/plugin/ib/sittingducks/lame', function ($request, $response, $args) 
 		->withHeader('Content-Type', 'application/json;charset=UTF-8')
 		->withStatus($GLOBALS['responseCode']);
 });
-// Sitting Ducks
-$app->get('/plugin/ib/sittingducks/check', function ($request, $response, $args) {
-	$ibPlugin = new SittingDucks("one.one.one.one");
-    if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG') ?? null) {
-        $data = $request->getQueryParams();
-        if (isset($data['domain'])) {
-
-            // Example usage
-            $result = array(
-                'Dangling' => $ibPlugin->checkDNSRecords($data['domain']),
-                'Expired' => $ibPlugin->checkDomainExpiry($data['domain']),
-                'Subdomains' => $ibPlugin->checkSubdomainTakeover($data['domain'])
-            );
-            
-            $ibPlugin->api->setAPIResponseData($result);
-        }
-    }
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-// Sitting Ducks - Subdomains
-$app->get('/plugin/ib/sittingducks/subdomains', function ($request, $response, $args) {
-	$ibPlugin = new SittingDucks("one.one.one.one");
-    if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG') ?? null) {
-        $data = $request->getQueryParams();
-        if (isset($data['domain'])) {
-        
-            # Generate permutations and alterations of subdomain names
-            $subdomains = ["sub1.example.com", "sub2.example.com"]; // Example subdomains
-
-            $result = array(
-                'cnameRecords' => $cnameRecords,
-                // 'permutations' => $ibPlugin->generatePermutations($subdomains),
-                'links' => $ibPlugin->searchWebServer($data['domain']),
-                'ctLogs' => $ibPlugin->getCertificateTransparencyLogs($data['domain']),
-                'sslCert' => $ibPlugin->checkSSLCertificates($data['domain']),
-                'dnsRecords' => $ibPlugin->getDNSRecords($data['domain'])
-            );
-            
-            $ibPlugin->api->setAPIResponseData($ibPlugin->extractUniqueDomains($result));
-        }
-    }
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
