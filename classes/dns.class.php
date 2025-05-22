@@ -7,9 +7,21 @@ class ibDNS extends ibPortal {
 		parent::__construct();
 	}
 
+    protected const RECORD_TYPES = [
+        'A' => 1,
+        'NS' => 2,
+        'CNAME' => 5,
+        'SOA' => 6,
+        'PTR' => 12,
+        'MX' => 15,
+        'TXT' => 16,
+        'AAAA' => 28,
+        'DS' => 43,
+    ];
+
     public string $dohEndpoint = 'https://cloudflare-dns.com/dns-query';
 
-    public function dohQuery(string $domain, int $type = 1, string $dohDomain = null): array {
+    public function dohQuery(string $domain, $type, string $dohDomain = null): array {
         if ($dohDomain != null) {
             $this->dohEndpoint = 'https://' . $dohDomain . '/dns-query';
         }
@@ -28,7 +40,51 @@ class ibDNS extends ibPortal {
         return $this->parseResponse($response->body);
     }
 
-    protected function buildQuery(string $domain, int $type): string {
+
+    protected function convertRecordType(string|int $value): string|int
+        {
+            if (is_string($value)) {
+                if (isset(self::RECORD_TYPES[$value])) {
+                    return self::RECORD_TYPES[$value];
+                }
+                throw new Exception("Unsupported DNS record type: " . $value);
+            } elseif (is_int($value)) {
+                $type = array_search($value, self::RECORD_TYPES, true);
+                if ($type !== false) {
+                    return $type;
+                }
+                throw new Exception("Unsupported DNS record code: " . $value);
+            }
+            throw new Exception("Invalid input type. Must be string or int.");
+    }
+
+    protected function returnRecordType(string $type): int {
+        switch ($type) {
+            case 'A':
+                return 1;
+            case 'NS':
+                return 2;
+            case 'CNAME':
+                return 5;
+            case 'SOA':
+                return 6;
+            case 'PTR':
+                return 12;
+            case 'MX':
+                return 15;
+            case 'TXT':
+                return 16;
+            case 'AAAA':
+                return 28;
+            case 'DS':
+                return 43;
+            default:
+                throw new Exception("Unsupported DNS record type: " . $type);
+        }
+    }
+
+    protected function buildQuery(string $domain, string $type): string {
+        $typeInt = $this->convertRecordType($type);
         $id = random_int(0, 0xffff);
         $flags = 0x0100;
         $qdcount = 1;
@@ -41,12 +97,13 @@ class ibDNS extends ibPortal {
         }
         $qname .= "\0";
 
-        $question = $qname . pack('nn', $type, 1); // QTYPE, QCLASS
+        $question = $qname . pack('nn', $typeInt, 1); // QTYPE, QCLASS
 
         return $header . $question;
     }
 
     protected function parseResponse(string $data): array {
+        
         $flags = unpack('n', substr($data, 2, 2))[1];
         $rcode = $flags & 0x000F;
     
@@ -72,7 +129,8 @@ class ibDNS extends ibPortal {
             $byte = ord($data[$offset]);
             $offset += ($byte & 0xC0) === 0xC0 ? 2 : strlen($this->readName($data, $offset)) + 2;
 
-            $type = unpack('n', substr($data, $offset, 2))[1];
+            $typeint = unpack('n', substr($data, $offset, 2))[1];
+            $type = $this->convertRecordType($typeint);
             $offset += 2 + 2 + 4; // type + class + TTL
             $rdlength = unpack('n', substr($data, $offset, 2))[1];
             $offset += 2;
@@ -80,18 +138,18 @@ class ibDNS extends ibPortal {
             $rdata = substr($data, $offset, $rdlength);
 
             switch ($type) {
-                case 1: // A
+                case 'A': // A
                     $records[] = ['type' => 'A', 'value' => inet_ntop($rdata)];
                     break;
-                case 2: // NS
+                case 'NS': // NS
                     $ns = $this->readName($data, $offset);
                     $records[] = ['type' => 'NS', 'value' => $ns];
                     break;
-                case 5: // CNAME
+                case 'CNAME': // CNAME
                     $cname = $this->readName($data, $offset);
                     $records[] = ['type' => 'CNAME', 'value' => $cname];
                     break;
-                case 6: // SOA
+                case 'SOA': // SOA
                     $mname = $this->readName($data, $offset);
                     $rname = $this->readName($data, $offset + strlen($mname) + 1);
                     $serial = unpack('N', substr($rdata, 0, 4))[1];
@@ -110,24 +168,24 @@ class ibDNS extends ibPortal {
                         'minimum' => $minimum
                     ];
                     break;
-                case 12: // PTR
+                case 'PTR': // PTR
                     $ptr = $this->readName($data, $offset);
                     $records[] = ['type' => 'PTR', 'value' => $ptr];
                     break;
-                case 15: // MX
+                case 'MX': // MX
                     $priority = unpack('n', substr($rdata, 0, 2))[1];
                     $exchange = $this->readName($data, $offset + 2);
                     $records[] = ['type' => 'MX', 'priority' => $priority, 'exchange' => $exchange];
                     break;
-                case 16: // TXT
+                case 'TXT': // TXT
                     $txtLen = ord($rdata[0]);
                     $txt = substr($rdata, 1, $txtLen);
                     $records[] = ['type' => 'TXT', 'value' => $txt];
                     break;
-                case 28: // AAAA
+                case 'AAAA': // AAAA
                     $records[] = ['type' => 'AAAA', 'value' => inet_ntop($rdata)];
                     break;
-                case 43: // DS
+                case 'DS': // DS
                     $keyTag = unpack('n', substr($rdata, 0, 2))[1];
                     $algorithm = ord($rdata[2]);
                     $digestType = ord($rdata[3]);
