@@ -1032,6 +1032,42 @@ class SecurityAssessment extends ibPortal {
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Done");
 			$this->AssessmentReporting->updateReportEntryStatus($config['UUID'],'Completed');
 	
+			// Write to Anonymised Metrics
+			// dns_requests INTEGER,
+			// security_events_high_risk INTEGER,
+			// security_events_medium_risk INTEGER,
+			// security_events_low_risk INTEGER,
+			// security_events_doh INTEGER,
+			// security_events_zero_day INTEGER,
+			// security_events_suspicious INTEGER,
+			// security_events_newly_observed_domains INTEGER,
+			// security_events_dga INTEGER,
+			// security_events_tunnelling INTEGER,
+			// security_insights INTEGER,
+			// security_threat_actors INTEGER,
+			// web_unique_applications INTEGER,
+			// web_high_risk_categories INTEGER,
+			// lookalikes_custom_domains INTEGER
+			$this->AssessmentReporting->newSecurityMetricsEntry([
+				'date_start' => $StartDate,
+				'date_end' => $EndDate,
+				'dns_requests' => $DNSActivityCount,
+				'security_events_high_risk' => $HighEventsCount,
+				'security_events_medium_risk' => $MediumEventsCount,
+				'security_events_low_risk' => $LowEventsCount,
+				'security_events_doh' => $DOHEventsCount,
+				'security_events_zero_day' => $ZeroDayDNSEventsCount,
+				'security_events_suspicious' => $SuspiciousEventsCount,
+				'security_events_newly_observed_domains' => $NODEventsCount,
+				'security_events_dga' => $DGAEventsCount,
+				'security_events_tunnelling' => $DataExfilEventsCount,
+				'security_insights' => $TotalInsights,
+				'security_threat_actors' => $ThreatActorsCountMetric,
+				'web_unique_applications' => $UniqueApplicationsCount,
+				'web_high_risk_categories' => $HighRiskWebCategoryCount,
+				'lookalikes_custom_domains' => $LookalikeThreatCount
+			]);
+
 			$Status = 'Success';
 		}
 	

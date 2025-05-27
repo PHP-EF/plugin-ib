@@ -43,28 +43,34 @@ $return = '
                     <option value="nameserver">NS Record</option>
                     <option value="soa">SOA Record</option>
                     <option value="all">Query All DNS Records</option>
-                    <option value="reverse">IP/Reverse DNS Lookup</option>
+                    <option value="ptr">IP/Reverse DNS Lookup</option>
                     <option value="port">Check If Port Open</option>
                   </select>
                 </div>
                 <div class="col-auto">
-                  <select id="source" class="form-select">
+                  <select onchange="showAdditionalFields()" id="source" class="form-select me-5">
                     <option value="google">Google DNS</option>
                     <option value="cloudflare">Cloudflare DNS</option>
+                    <option value="doh">DNS Over HTTPS</option>
                   </select>
-                </div>
-                <div class="col-auto">
-                  <button class="btn btn-success" id="dnsQuery">Search</button>
                 </div>
                 <!--<div class="col-auto">
                   <button id="copyLink" class="form-control btn btn-success" title="Copy link to clipboard">
                     <span class="fas fa-link" style="padding-top:4px;padding-bottom:4px;"/>
                   </button>
                 </div>-->
-                <div class="col-auto">
-                  <div style="visibility: hidden" id="port-container">
+                <div class="col-auto" style="display:none;">
+                  <div id="port-container">
                     <input type="text" name="port" id="port" class="form-control" placeholder="Port number(s) (i.e 22,80)">
                   </div>
+                </div>
+                <div class="col-auto" style="display:none;">
+                  <div id="doh-container">
+                    <input type="text" name="doh" id="doh" class="form-control" placeholder="DoH Server">
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <button class="btn btn-success" id="dnsQuery">Search</button>
                 </div>
               </div>
             </div>
@@ -183,12 +189,31 @@ $return = '
       event.preventDefault();
       showLoadingDNS();
       var type = document.getElementById("file").value;
-      if (document.getElementById("domain").value.endsWith(".") || type == "reverse") {
+      var source = document.getElementById("source").value;
+      if (document.getElementById("domain").value.endsWith(".") || type == "ptr" || source == "doh") {
         var domain = document.getElementById("domain").value;
       } else {
         var domain = document.getElementById("domain").value+".";
       }
-      returnDnsDetails(domain, type, document.getElementById("port").value, $("#source").val());
+      if (type == "port") {
+        if (document.getElementById("port").value == "") {
+          var port = "22,25,53,80,443";
+        } else {
+          var port = document.getElementById("port").value;
+        }
+      } else {
+        var port = null;
+      }
+      if (source == "doh") {
+        if (document.getElementById("doh").value == "") {
+          var doh = "cloudflare-dns.com";
+        } else {
+          var doh = document.getElementById("doh").value;
+        }
+      } else {
+        var doh = null;
+      }
+      returnDnsDetails(domain, type, port, $("#source").val(), doh);
   });
 </script>
 ';

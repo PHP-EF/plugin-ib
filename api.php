@@ -734,7 +734,7 @@ $app->get('/dnstoolbox', function ($request, $response, $args) {
                 'dmarc' => 'dmarc',
                 'nameserver' => 'ns',
                 'soa' => 'soa',
-                'reverse' => 'reverse'
+                'ptr' => 'ptr'
             ];
             if (array_key_exists($data['request'], $methods)) {
                 $method = $methods[$data['request']];
@@ -742,7 +742,11 @@ $app->get('/dnstoolbox', function ($request, $response, $args) {
                     $phpef->api->setAPIResponseData($DNSToolbox->$method($domain, $port));
                 } else {
                     if (!empty($sourceserver)) {
-                        $phpef->api->setAPIResponseData($DNSToolbox->$method($domain, $sourceserver));
+                        if ($source != "doh") {
+                            $phpef->api->setAPIResponseData($DNSToolbox->$method($domain, $sourceserver));
+                        } else {
+                            $phpef->api->setAPIResponseData($DNSToolbox->dohQuery($domain, $method, $sourceserver));
+                        }
                     }
                 }
             } else {
@@ -751,24 +755,6 @@ $app->get('/dnstoolbox', function ($request, $response, $args) {
         }
     }
 
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
-// ** DEV ** //
-
-// DNS Over HTTPS
-$app->get('/plugin/ib/doh/query', function ($request, $response, $args) {
-	$ibPlugin = new ibDNS();
-    if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG') ?? null) {
-        $data = $request->getQueryParams();
-        if (isset($data['domain']) && isset($data['type'])) {
-            $Server = $data['server'] ?? null;
-            $ibPlugin->api->setAPIResponseData($ibPlugin->dohQuery($data['domain'],$data['type'],$Server));
-        }
-    }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response
 		->withHeader('Content-Type', 'application/json;charset=UTF-8')
