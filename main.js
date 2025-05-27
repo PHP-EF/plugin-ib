@@ -95,10 +95,20 @@ function hideLoadingDNS() {
   document.querySelector('.loading-div').style.display = 'none';
 }
 
-function returnDnsDetails(domain, callType, port, source) {
+function returnDnsDetails(domain, callType, port, source, doh) {
   $('#txtHint, .info').html('');
 
-  queryAPI("GET", "/api/dnstoolbox?domain=" + domain + "&request=" + callType + "&port=" + port + "&source=" + source).done(function( data ) {
+  console.log(domain, callType, port, source, doh);
+
+  var queryParams = 'domain=' + encodeURIComponent(domain) + '&request=' + callType + '&source=' + source;
+  if (port) {
+    queryParams += '&port=' + encodeURIComponent(port);
+  }
+  if (doh) {
+    queryParams += '&dohServer=' + encodeURIComponent(doh);
+  }
+
+  queryAPI("GET", "/api/dnstoolbox?" + queryParams).done(function( data ) {
       if (data['result'] == 'Error') {
           toast(data['result'],"",data['Message'],"danger","30000");
           hideLoadingDNS();
@@ -121,7 +131,7 @@ function returnDnsDetails(domain, callType, port, source) {
                       sortable: true
                   });
                   break;
-              case 'reverse':
+              case 'ptr':
                   columns.push({
                       field: 'ip',
                       title: 'IP Address',
@@ -195,19 +205,33 @@ function returnDnsDetails(domain, callType, port, source) {
 
 function showAdditionalFields() {
   var file = $("#file");
+  var source = $("#source");;
   var port = $("#port-container");
-  var source = document.getElementById("source");
-  if(file.val() === 'port') {
-    port.css('visibility','visible');
-    source.disabled = true;
-  } else if (file.val() === 'reverseLookup') {
-    port.css('visibility','hidden');
-    $('#port').val('');
-    source.disabled = true;
-  } else {
-    port.css('visibility','hidden');
-    $('#port').val('');
-    source.disabled = false;
+  var doh = $("#doh-container");
+
+  source.attr('disabled', false);
+  source.parent().css('display','block');
+  port.parent().css('display','none');
+  doh.parent().css('display','none');
+  $('#port, #doh').val('');
+
+  switch (file.val()) {
+      case 'port':
+          port.parent().css('display','block');
+          source.attr('disabled', true);
+          source.parent().css('display','none');
+          break;
+      case 'reverseLookup':
+          break;
+      default:
+          switch (source.val()) {
+            case 'doh':
+              doh.parent().css('display','block');
+                break;
+            default:
+                break;
+          }
+          break;
   }
 }
 

@@ -4,7 +4,32 @@ class AssessmentReporting extends ibPlugin {
 		parent::__construct();
         // Create or open the SQLite database
         $this->createReportingTables();
+		$this->createSecurityMetricsTables();
     }
+
+	private function createSecurityMetricsTables() {
+	    // Create security assessments anonymised metrics table if it doesn't exist
+		$this->sql->exec("CREATE TABLE IF NOT EXISTS anonymised_metrics_security (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			date_start DATETIME,
+			date_end DATETIME,
+			dns_requests INTEGER,
+			security_events_high_risk INTEGER,
+			security_events_medium_risk INTEGER,
+			security_events_low_risk INTEGER,
+			security_events_doh INTEGER,
+			security_events_zero_day INTEGER,
+			security_events_suspicious INTEGER,
+			security_events_newly_observed_domains INTEGER,
+			security_events_dga INTEGER,
+			security_events_tunnelling INTEGER,
+			security_insights INTEGER,
+			security_threat_actors INTEGER,
+			web_unique_applications INTEGER,
+			web_high_risk_categories INTEGER,
+			lookalikes_custom_domains INTEGER
+		)");
+	}
 
 	private function createReportingTables() {
 	    // Create assessments table if it doesn't exist
@@ -174,5 +199,38 @@ class AssessmentReporting extends ibPlugin {
 			$summary[$type][$dateKey]++;
 		}
 		return $summary;
+	}
+
+	// Anonymised Security Metrics
+	public function newSecurityMetricsEntry($data) {
+		// Prepare the SQL statement to insert a new entry based on the provided data, which may not include all fields
+		$fields = [];
+		$placeholders = [];
+		$values = [];
+
+		$StartDate = $data['date_start'];
+		$EndDate = $data['date_end'];
+		$DateDiff = $EndDate->getTimestamp() - $StartDate->getTimestamp();
+		$data['date_start'] = date_format($data['date_start'], 'Y-m-d H:i:s');
+		$data['date_end'] = date_format($data['date_end'], 'Y-m-d H:i:s');
+
+		foreach ($data as $key => $value) {
+			$fields[] = $key;
+			$placeholders[] = ':' . $key;
+
+			if ($key != 'date_start' && $key != 'date_end') {
+				// Normalise the value to an hourly value based on the difference between start and end dates $StartDate and $EndDate
+				$hours = max(1, round($DateDiff / 3600)); // Ensure at least 1 hour
+				$outvalue = round($value / $hours, 2); // Normalise to hourly value
+			} else {
+				$outvalue = $value; // Keep date values as they are
+			}
+
+			$values[':' . $key] = $outvalue;
+		}
+		$sql = "INSERT INTO anonymised_metrics_security (" . implode(',', $fields) . ") VALUES (" . implode(',', $placeholders) . ")";
+		$stmt = $this->sql->prepare($sql);
+		$stmt->execute($values);
+		return $this->sql->lastInsertId();
 	}
 }

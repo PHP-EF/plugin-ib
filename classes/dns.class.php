@@ -1,22 +1,125 @@
 <?php
-// ibPortal DNS Class
-// This class provides a way to perform DNS queries using DNS over HTTPS (DoH).
-class ibDNS extends ibPortal {
+use RemotelyLiving\PHPDNS\Resolvers;
+use RemotelyLiving\PHPDNS\Entities;
 
-    public function __construct() {
-		parent::__construct();
-	}
+class DNSToolbox {
+
+    public function a($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getARecords($hostname);
+        return $records;
+    }
+
+    public function aaaa($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getAAAARecords($hostname);
+        return $records;
+    }
+
+    public function cname($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getCNAMERecords($hostname);
+        return $records;
+    }
+
+    public function all($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getRecords($hostname);
+        return $records;
+    }
+
+    public function dmarc($hostname,$sourceserver) {
+        $dmarc = "_dmarc.";
+        $dmarchostname = $dmarc . $hostname;
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getTXTRecords($dmarchostname);
+        return $records;
+    }
+
+    public function txt($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getTxtRecords($hostname);
+        return $records;
+    }
+
+    public function mx($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $records = $resolver->getMXRecords($hostname);
+        return $records;
+    }
+
+    public function ns($domain,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $dnsType = new Entities\DNSRecordType("NS");
+        $records = $resolver->getRecords($domain,$dnsType);
+        return $records;
+    }
+
+    public function soa($hostname,$sourceserver) {
+        $nameserver = new Entities\Hostname($sourceserver);
+        $resolver = new Resolvers\Dig(null,null,$nameserver);
+        $dnsType = new Entities\DNSRecordType("SOA");
+        $records = $resolver->getRecords($hostname,$dnsType);
+        return $records;
+    }
+
+    public function reverse($ip,$source) {
+        if((bool)ip2long($ip)){
+            $response = gethostbyaddr($ip);
+            return [array(
+                'ip' => $ip,
+                'hostname' => $response
+            )];
+        } else {
+            return array(
+                'Status' => 'Error',
+                'Message' => 'Invalid IP Address'
+            );
+        }
+    }
+
+    public function port($hostname,$port) {
+        if (count($port) == 0) {
+            $port = [22, 25, 53, 80 , 443, 445, 3389];
+        }
+        $portList = [];
+        for ($i = 0; $i < count($port); $i++) {
+            $fp = fsockopen($hostname, $port[$i], $errno, $errstr, 5);
+            if ($fp) {
+                $result = 'Open';
+                fclose($fp);
+            } else {
+                $result = 'Closed';
+            }
+            $portList[] = array(
+                'hostname' => $hostname,
+                'port' => $port[$i],
+                'result' => $result
+            );
+        }
+        return $portList;
+    }
+
+    // ** DNS over HTTPS (DoH) Implementation ** //
 
     protected const RECORD_TYPES = [
-        'A' => 1,
-        'NS' => 2,
-        'CNAME' => 5,
-        'SOA' => 6,
-        'PTR' => 12,
-        'MX' => 15,
-        'TXT' => 16,
-        'AAAA' => 28,
-        'DS' => 43,
+        'a' => 1,
+        'ns' => 2,
+        'cname' => 5,
+        'soa' => 6,
+        'ptr' => 12,
+        'mx' => 15,
+        'txt' => 16,
+        'aaaa' => 28,
+        'ds' => 43,
     ];
 
     public string $dohEndpoint = 'https://cloudflare-dns.com/dns-query';
@@ -37,7 +140,7 @@ class ibDNS extends ibPortal {
             throw new Exception("DoH query failed with status: " . $response->status_code);
         }
 
-        return $this->parseResponse($response->body);
+        return $this->parseResponse($domain, $response->body);
     }
 
 
@@ -56,31 +159,6 @@ class ibDNS extends ibPortal {
                 throw new Exception("Unsupported DNS record code: " . $value);
             }
             throw new Exception("Invalid input type. Must be string or int.");
-    }
-
-    protected function returnRecordType(string $type): int {
-        switch ($type) {
-            case 'A':
-                return 1;
-            case 'NS':
-                return 2;
-            case 'CNAME':
-                return 5;
-            case 'SOA':
-                return 6;
-            case 'PTR':
-                return 12;
-            case 'MX':
-                return 15;
-            case 'TXT':
-                return 16;
-            case 'AAAA':
-                return 28;
-            case 'DS':
-                return 43;
-            default:
-                throw new Exception("Unsupported DNS record type: " . $type);
-        }
     }
 
     protected function buildQuery(string $domain, string $type): string {
@@ -102,15 +180,11 @@ class ibDNS extends ibPortal {
         return $header . $question;
     }
 
-    protected function parseResponse(string $data): array {
+    protected function parseResponse(string $hostname, string $data): array {
         
         $flags = unpack('n', substr($data, 2, 2))[1];
         $rcode = $flags & 0x000F;
     
-        if ($rcode === 3) {
-            return ['error' => 'NXDOMAIN: Domain does not exist'];
-        }
-
         $offset = 12;
         $qdcount = unpack('n', substr($data, 4, 2))[1];
         $ancount = unpack('n', substr($data, 6, 2))[1];
@@ -124,6 +198,10 @@ class ibDNS extends ibPortal {
 
         $records = [];
 
+        if ($rcode === 3) {
+            return array(['data' => 'NXDOMAIN', 'IPAddress' => 'NXDOMAIN', 'hostname' => $hostname]);
+        }
+
         for ($i = 0; $i < $ancount; $i++) {
             
             $byte = ord($data[$offset]);
@@ -135,21 +213,27 @@ class ibDNS extends ibPortal {
             $rdlength = unpack('n', substr($data, $offset, 2))[1];
             $offset += 2;
 
+            // calculate ttl
+            $ttl = unpack('N', substr($data, $offset - 6, 4))[1];
+            if ($ttl < 0) {
+                $ttl = 0;
+            }
+
             $rdata = substr($data, $offset, $rdlength);
 
             switch ($type) {
-                case 'A': // A
-                    $records[] = ['type' => 'A', 'value' => inet_ntop($rdata)];
+                case 'a': // A
+                    $records[] = ['type' => 'A', 'IPAddress' => inet_ntop($rdata), 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'NS': // NS
+                case 'ns': // NS
                     $ns = $this->readName($data, $offset);
-                    $records[] = ['type' => 'NS', 'value' => $ns];
+                    $records[] = ['type' => 'NS', 'data' => $ns, 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'CNAME': // CNAME
+                case 'cname': // CNAME
                     $cname = $this->readName($data, $offset);
-                    $records[] = ['type' => 'CNAME', 'value' => $cname];
+                    $records[] = ['type' => 'CNAME', 'data' => $cname, 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'SOA': // SOA
+                case 'soa': // SOA
                     $mname = $this->readName($data, $offset);
                     $rname = $this->readName($data, $offset + strlen($mname) + 1);
                     $serial = unpack('N', substr($rdata, 0, 4))[1];
@@ -165,27 +249,29 @@ class ibDNS extends ibPortal {
                         'refresh' => $refresh,
                         'retry' => $retry,
                         'expire' => $expire,
-                        'minimum' => $minimum
+                        'minimum' => $minimum,
+                        'hostname' => $hostname,
+                        'TTL' => $ttl
                     ];
                     break;
-                case 'PTR': // PTR
+                case 'ptr': // PTR
                     $ptr = $this->readName($data, $offset);
-                    $records[] = ['type' => 'PTR', 'value' => $ptr];
+                    $records[] = ['type' => 'PTR', 'data' => $ptr, 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'MX': // MX
+                case 'mx': // MX
                     $priority = unpack('n', substr($rdata, 0, 2))[1];
                     $exchange = $this->readName($data, $offset + 2);
-                    $records[] = ['type' => 'MX', 'priority' => $priority, 'exchange' => $exchange];
+                    $records[] = ['type' => 'MX', 'priority' => $priority, 'exchange' => $exchange, 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'TXT': // TXT
+                case 'txt': // TXT
                     $txtLen = ord($rdata[0]);
                     $txt = substr($rdata, 1, $txtLen);
-                    $records[] = ['type' => 'TXT', 'value' => $txt];
+                    $records[] = ['type' => 'TXT', 'data' => $txt];
                     break;
-                case 'AAAA': // AAAA
-                    $records[] = ['type' => 'AAAA', 'value' => inet_ntop($rdata)];
+                case 'aaaa': // AAAA
+                    $records[] = ['type' => 'AAAA', 'IPAddress' => inet_ntop($rdata), 'hostname' => $hostname, 'TTL' => $ttl];
                     break;
-                case 'DS': // DS
+                case 'ds': // DS
                     $keyTag = unpack('n', substr($rdata, 0, 2))[1];
                     $algorithm = ord($rdata[2]);
                     $digestType = ord($rdata[3]);
@@ -195,7 +281,9 @@ class ibDNS extends ibPortal {
                         'keyTag' => $keyTag,
                         'algorithm' => $algorithm,
                         'digestType' => $digestType,
-                        'digest' => bin2hex($digest)
+                        'digest' => bin2hex($digest),
+                        'hostname' => $hostname,
+                        'TTL' => $ttl
                     ];
                     break;
                 default:
@@ -229,4 +317,3 @@ class ibDNS extends ibPortal {
         return implode('.', $labels);
     }
 }
-        
