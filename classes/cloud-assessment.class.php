@@ -508,7 +508,7 @@ class CloudAssessment extends ibPortal {
 					$RowNo = 2;
 					foreach ($AssetsByProvider->result->data as $ProviderType) {
 						$AssetsByProviderS = $AssetsByProviderSS->getActiveSheet();
-						$AssetsByProviderS->setCellValue('A'.$RowNo, $ProviderType->{'AssetDetails.provider_label'});
+						$AssetsByProviderS->setCellValue('A'.$RowNo, $this->convertProvider($ProviderType->{'AssetDetails.provider_label'}));
 						$AssetsByProviderS->setCellValue('B'.$RowNo, $ProviderType->{'AssetDetails.count'});
 						$RowNo++;
 					}
@@ -526,7 +526,7 @@ class CloudAssessment extends ibPortal {
 					$AssetsByLocationIncludedCount = 0;
 					foreach ($AssetsByLocation->result->data as $AssetLocation) {
 						$AssetsByLocationS = $AssetsByLocationSS->getActiveSheet();
-						$AssetsByLocationS->setCellValue('A'.$RowNo, $AssetLocation->{'AssetDetails.provider_location'});
+						$AssetsByLocationS->setCellValue('A'.$RowNo, $this->convertProvider($AssetLocation->{'AssetDetails.provider_label'}).': '.$AssetLocation->{'AssetDetails.location'});
 						$AssetsByLocationS->setCellValue('B'.$RowNo, round((100 / $TotalAssetsCount) * $AssetLocation->{'AssetDetails.count'},2) / 100);
 						$AssetsByLocationIncludedCount += $AssetLocation->{'AssetDetails.count'};
 						$RowNo++;
@@ -598,7 +598,7 @@ class CloudAssessment extends ibPortal {
 					foreach ($Top3ZombieAssets as $Top3ZombieAsset) {
 						$ZombieAssetsTableS = $ZombieAssetsTableSS->getActiveSheet();
 						$ZombieAssetsTableS->setCellValue('A'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'name'}); // Asset Name
-						$ZombieAssetsTableS->setCellValue('B'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
+						$ZombieAssetsTableS->setCellValue('B'.$RowNo, $this->convertProvider($Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_vendor'})); // Asset Vendor
 
 						$RegionIndex = array_search($Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_region'}, $AssetLocationsRegionKeys);
 						$RegionLocation = $RegionIndex !== false ? $AssetLocationsLocationKeys[$RegionIndex] : null;
@@ -608,7 +608,7 @@ class CloudAssessment extends ibPortal {
 						$ZombieAssetsTableS->setCellValue('E'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
 						$ZombieAssetsTableS->setCellValue('F'.$RowNo, implode(',',array_slice(explode('/',$Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_insight_sub_classification'}[0]),1))); // Asset Sub-Classification
 						$ZombieAssetsTableS->setCellValue('G'.$RowNo, $this->timeAgo($Top3ZombieAsset->{'_source'}->{'doc'}->{'updated_at'})); // Asset Last Seen
-						$ZombieAssetsTableS->setCellValue('H'.$RowNo, $Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_provider'}); // Asset Provider
+						$ZombieAssetsTableS->setCellValue('H'.$RowNo, $this->convertProvider($Top3ZombieAsset->{'_source'}->{'doc'}->{'asset_provider'})); // Asset Provider
 						$RowNo++;
 					}
 					$ZombieAssetsTableW = IOFactory::createWriter($ZombieAssetsTableSS, 'Xlsx');
@@ -641,7 +641,7 @@ class CloudAssessment extends ibPortal {
 					foreach ($Top3AssetsWithMissingRecords as $Top3AssetWithMissingRecords) {
 						$AssetsWithMissingRecordsTableS = $AssetsWithMissingRecordsTableSS->getActiveSheet();
 						$AssetsWithMissingRecordsTableS->setCellValue('A'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'name'}); // Asset Name
-						$AssetsWithMissingRecordsTableS->setCellValue('B'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_vendor'}); // Asset Vendor
+						$AssetsWithMissingRecordsTableS->setCellValue('B'.$RowNo, $this->convertProvider($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_vendor'})); // Asset Vendor
 
 						$RegionIndex = array_search($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_region'}, $AssetLocationsRegionKeys);
 						$RegionLocation = $RegionIndex !== false ? $AssetLocationsLocationKeys[$RegionIndex] : null;
@@ -651,7 +651,7 @@ class CloudAssessment extends ibPortal {
 						$AssetsWithMissingRecordsTableS->setCellValue('E'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_ip_address'}[0] ?? null); // Asset IP Address
 						$AssetsWithMissingRecordsTableS->setCellValue('F'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_insight_registration_indicator'}[0]); // Asset Registration Indicator
 						$AssetsWithMissingRecordsTableS->setCellValue('G'.$RowNo, $this->timeAgo($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'updated_at'})); // Asset Last Seen
-						$AssetsWithMissingRecordsTableS->setCellValue('H'.$RowNo, $Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_provider'}); // Asset Provider
+						$AssetsWithMissingRecordsTableS->setCellValue('H'.$RowNo, $this->convertProvider($Top3AssetWithMissingRecords->{'_source'}->{'doc'}->{'asset_provider'})); // Asset Provider
 						$RowNo++;
 					}
 					$AssetsWithMissingRecordsTableW = IOFactory::createWriter($AssetsWithMissingRecordsTableSS, 'Xlsx');
@@ -686,7 +686,7 @@ class CloudAssessment extends ibPortal {
 						$OverlappingSubnetsS = $OverlappingSubnetsSS->getActiveSheet();
 						$OverlappingSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsOverlappingBlocksRolled.address'});
 						$OverlappingSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsOverlappingBlocksRolled.overlap_count'});
-						$OverlappingSubnetsS->setCellValue('C'.$RowNo, implode(', ',$ProviderType->{'NetworkInsightsOverlappingBlocksRolled.providers'}));
+						$OverlappingSubnetsS->setCellValue('C'.$RowNo, implode(', ', array_map([$this, 'convertProvider'], $ProviderType->{'NetworkInsightsOverlappingBlocksRolled.providers'})));
 						$RowNo++;
 					}
 					$OverlappingSubnetsW = IOFactory::createWriter($OverlappingSubnetsSS, 'Xlsx');
@@ -700,17 +700,17 @@ class CloudAssessment extends ibPortal {
 				$TotalIPsByProviderS = $TotalIPsByProviderSS->getActiveSheet();
 				$RowNo = 2;
 				if ($GCPIPsCount > 0) {
-					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'GCP');
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, $this->convertProvider('GCP'));
 					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $GCPIPsCount);
 					$RowNo++;
 				}
 				if ($AzureIPsCount > 0) {
-					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'Azure');
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, $this->convertProvider('Azure'));
 					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $AzureIPsCount);
 					$RowNo++;
 				}
 				if ($AWSIPsCount > 0) {
-					$TotalIPsByProviderS->setCellValue('A'.$RowNo, 'AWS');
+					$TotalIPsByProviderS->setCellValue('A'.$RowNo, $this->convertProvider('AWS'));
 					$TotalIPsByProviderS->setCellValue('B'.$RowNo, $AWSIPsCount);
 					$RowNo++;
 				}
@@ -728,7 +728,7 @@ class CloudAssessment extends ibPortal {
 						$OverutilizedSubnetsS = $OverutilizedSubnetsSS->getActiveSheet();
 						$OverutilizedSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.address'});
 						$OverutilizedSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.name'});
-						$OverutilizedSubnetsS->setCellValue('C'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.provider'});
+						$OverutilizedSubnetsS->setCellValue('C'.$RowNo, $this->convertProvider($ProviderType->{'NetworkInsightsSubnet.provider'}));
 						$OverutilizedSubnetsS->setCellValue('D'.$RowNo, round($ProviderType->{'NetworkInsightsSubnet.utilization_percent'},1) . '%');
 						$RowNo++;
 					}
@@ -747,7 +747,7 @@ class CloudAssessment extends ibPortal {
 						$UnderutilizedSubnetsS = $UnderutilizedSubnetsSS->getActiveSheet();
 						$UnderutilizedSubnetsS->setCellValue('A'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.address'});
 						$UnderutilizedSubnetsS->setCellValue('B'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.name'});
-						$UnderutilizedSubnetsS->setCellValue('C'.$RowNo, $ProviderType->{'NetworkInsightsSubnet.provider'});
+						$UnderutilizedSubnetsS->setCellValue('C'.$RowNo, $this->convertProvider($ProviderType->{'NetworkInsightsSubnet.provider'}));
 						$UnderutilizedSubnetsS->setCellValue('D'.$RowNo, round($ProviderType->{'NetworkInsightsSubnet.utilization_percent'},1) . '%');
 						$RowNo++;
 					}
@@ -792,7 +792,7 @@ class CloudAssessment extends ibPortal {
 						$DanglingRecordsS->setCellValue('B'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
 						$DanglingRecordsS->setCellValue('C'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
 						$DanglingRecordsS->setCellValue('D'.$RowNo, implode(', ',$DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
-						$DanglingRecordsS->setCellValue('E'.$RowNo, $DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$DanglingRecordsS->setCellValue('E'.$RowNo, $this->convertProvider($DanglingRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'}));
 						$RowNo++;
 					}
 					$DanglingRecordsW = IOFactory::createWriter($DanglingRecordsSS, 'Xlsx');
@@ -812,7 +812,7 @@ class CloudAssessment extends ibPortal {
 						$AbandonedRecordsS->setCellValue('B'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
 						$AbandonedRecordsS->setCellValue('C'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
 						$AbandonedRecordsS->setCellValue('D'.$RowNo, implode(', ',$AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
-						$AbandonedRecordsS->setCellValue('E'.$RowNo, $AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$AbandonedRecordsS->setCellValue('E'.$RowNo, $this->convertProvider($AbandonedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'}));
 						$RowNo++;
 					}
 					$AbandonedRecordsW = IOFactory::createWriter($AbandonedRecordsSS, 'Xlsx');
@@ -832,7 +832,7 @@ class CloudAssessment extends ibPortal {
 						$UntrustedRecordsS->setCellValue('B'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_absolute_zone_name'});
 						$UntrustedRecordsS->setCellValue('C'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_record_type'});
 						$UntrustedRecordsS->setCellValue('D'.$RowNo, implode(', ',$UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.indicator_ids'}));
-						$UntrustedRecordsS->setCellValue('E'.$RowNo, $UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'});
+						$UntrustedRecordsS->setCellValue('E'.$RowNo, $this->convertProvider($UntrustedRecord->{'NetworkInsightsDnsRecordsRolledByIndicatorId.record_asset_provider_types_str'}));
 						$RowNo++;
 					}
 					$UntrustedRecordsW = IOFactory::createWriter($UntrustedRecordsSS, 'Xlsx');
@@ -1052,6 +1052,22 @@ class CloudAssessment extends ibPortal {
 		}
 		
 		return $count;
+	}
+
+	public function convertProvider($Provider) {
+		switch ($Provider) {
+			case 'AWS':
+			case 'amazon_web_service':
+				return 'AWS';
+			case 'Azure':
+			case 'microsoft_azure':
+				return 'Azure';
+			case 'GCP':
+			case 'google_cloud_platform':
+				return 'Google Cloud';
+			default:
+				return $Provider;
+		}
 	}
 	
 	public function getProgress($id) {

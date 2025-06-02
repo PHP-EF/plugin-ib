@@ -513,6 +513,47 @@ $app->get('/plugin/ib/assessment/reports/summary', function ($request, $response
 		->withStatus($GLOBALS['responseCode']);
 });
 
+// Get Anonymised Metrics
+// Get Assessment Tracking Records
+$app->get('/plugin/ib/anonymised/security/records', function ($request, $response, $args) {
+	$ibPlugin = new AssessmentReporting();
+    $data = $request->getQueryParams();
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+        if (isset($data['granularity']) && isset($data['filters'])) {
+            $Filters = $data['filters'];
+            $Start = $data['start'] ?? null;
+            $End = $data['end'] ?? null;
+            $ibPlugin->logging->writeLog("Reporting","Queried Security Anonymised Metrics","info");
+            $ibPlugin->api->setAPIResponseData($ibPlugin->getAnonymisedMetricsSecurity($data['granularity'],json_decode($Filters,true),$Start,$End));
+        } else {
+            $ibPlugin->api->setAPIResponse('Error','Required values are missing from the request');
+        }
+    }
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
+$app->get('/plugin/ib/anonymised/security/averages', function ($request, $response, $args) {
+	$ibPlugin = new AssessmentReporting();
+    $data = $request->getQueryParams();
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+        if (isset($data['granularity'])) {
+            $Start = $data['start'] ?? null;
+            $End = $data['end'] ?? null;
+            $ibPlugin->logging->writeLog("Reporting","Queried Security Anonymised Metrics","info");
+            $ibPlugin->api->setAPIResponseData($ibPlugin->getAnonymisedMetricsSecurityAverages($data['granularity'],$Start,$End));
+        } else {
+            $ibPlugin->api->setAPIResponse('Error','Required values are missing from the request');
+        }
+    }
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
 // Get Threat Actor List (IB Portal)
 $app->post('/plugin/ib/threatactors', function ($request, $response, $args) {
 	$ibPlugin = new ThreatActors();
