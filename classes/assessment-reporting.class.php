@@ -325,6 +325,8 @@ class AssessmentReporting extends ibPlugin {
 	    }
 
 		$averages = [];
+		$averages['recordCount'] = $recordCount;
+		
 		foreach ($sums as $key => $sum) {
 			$averages[$key] = $recordCount > 0 ? $sum / $recordCount : 0;
 		}
