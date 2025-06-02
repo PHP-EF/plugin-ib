@@ -19,7 +19,7 @@ $app->get('/plugin/ib/settings', function ($request, $response, $args) {
 // Generate Security Assessment
 $app->post('/plugin/ib/assessment/security/generate', function ($request, $response, $args) {
 	$ibPlugin = new SecurityAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null)) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates'])) {
             if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
@@ -52,7 +52,7 @@ $app->post('/plugin/ib/assessment/security/generate', function ($request, $respo
 // Get Assessment Progress
 $app->get('/plugin/ib/assessment/security/progress', function ($request, $response, $args) {
 	$ibPlugin = new SecurityAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null)) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
             $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'])); // Produces percentage for use on progress bar
@@ -67,7 +67,7 @@ $app->get('/plugin/ib/assessment/security/progress', function ($request, $respon
 // Download Security Assessment Report
 $app->get('/plugin/ib/assessment/security/download', function ($request, $response, $args) {
     $ibPlugin = new SecurityAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-SECURITYASSESSMENT'] ?? null)) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
             $ibPlugin->logging->writeLog("Assessment","Downloaded security assessment report","info");
@@ -245,7 +245,7 @@ $app->post('/plugin/ib/assessment/security/config/upload', function ($request, $
 // Generate Cloud Assessment
 $app->post('/plugin/ib/assessment/cloud/generate', function ($request, $response, $args) {
 	$ibPlugin = new CloudAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT'] ?? null)) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['Realm']) AND isset($data['id']) AND isset($data['templates'])) {
             if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
@@ -272,7 +272,7 @@ $app->post('/plugin/ib/assessment/cloud/generate', function ($request, $response
 // Get Assessment Progress
 $app->get('/plugin/ib/assessment/cloud/progress', function ($request, $response, $args) {
 	$ibPlugin = new CloudAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT'] ?? null)) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
             $ibPlugin->api->setAPIResponseData($ibPlugin->getProgress($data['id'])); // Produces percentage for use on progress bar
@@ -287,7 +287,7 @@ $app->get('/plugin/ib/assessment/cloud/progress', function ($request, $response,
 // Download Security Assessment Report
 $app->get('/plugin/ib/assessment/cloud/download', function ($request, $response, $args) {
     $ibPlugin = new CloudAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CLOUDASSESSMENT'] ?? null)) {
         $data = $request->getQueryParams();
         if (isset($data['id']) AND isValidUuid($data['id'])) {
             $ibPlugin->logging->writeLog("Assessment","Downloaded cloud assessment report","info");
@@ -460,7 +460,7 @@ $app->post('/plugin/ib/assessment/cloud/config/upload', function ($request, $res
 $app->get('/plugin/ib/assessment/reports/records', function ($request, $response, $args) {
 	$ibPlugin = new AssessmentReporting();
     $data = $request->getQueryParams();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING')) {
         if (isset($data['granularity']) && isset($data['filters'])) {
             $Filters = $data['filters'];
             $Start = $data['start'] ?? null;
@@ -481,7 +481,7 @@ $app->get('/plugin/ib/assessment/reports/records', function ($request, $response
 $app->get('/plugin/ib/assessment/reports/stats', function ($request, $response, $args) {
 	$ibPlugin = new AssessmentReporting();
     $data = $request->getQueryParams();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING')) {
         if (isset($data['granularity']) && isset($data['filters'])) {
             $Filters = $data['filters'];
             $Start = $data['start'] ?? null;
@@ -502,7 +502,7 @@ $app->get('/plugin/ib/assessment/reports/stats', function ($request, $response, 
 $app->get('/plugin/ib/assessment/reports/summary', function ($request, $response, $args) {
 	$ibPlugin = new AssessmentReporting();
     $data = $request->getQueryParams();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING')) {
         $ibPlugin->logging->writeLog("Reporting","Queried Assessment Reports","info");
         $ibPlugin->api->setAPIResponseData($ibPlugin->getAssessmentReportsSummary());
     }
@@ -518,7 +518,7 @@ $app->get('/plugin/ib/assessment/reports/summary', function ($request, $response
 $app->get('/plugin/ib/anonymised/security/records', function ($request, $response, $args) {
 	$ibPlugin = new AssessmentReporting();
     $data = $request->getQueryParams();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING')) {
         if (isset($data['granularity']) && isset($data['filters'])) {
             $Filters = $data['filters'];
             $Start = $data['start'] ?? null;
@@ -538,7 +538,7 @@ $app->get('/plugin/ib/anonymised/security/records', function ($request, $respons
 $app->get('/plugin/ib/anonymised/security/averages', function ($request, $response, $args) {
 	$ibPlugin = new AssessmentReporting();
     $data = $request->getQueryParams();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING']) ?: 'ACL-REPORTING') {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-REPORTING'] ?: 'ACL-REPORTING')) {
         if (isset($data['granularity'])) {
             $Start = $data['start'] ?? null;
             $End = $data['end'] ?? null;
@@ -557,7 +557,7 @@ $app->get('/plugin/ib/anonymised/security/averages', function ($request, $respon
 // Get Threat Actor List (IB Portal)
 $app->post('/plugin/ib/threatactors', function ($request, $response, $args) {
 	$ibPlugin = new ThreatActors();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-THREATACTORS']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-THREATACTORS'] ?? null)) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
             $ibPlugin->getThreatActors($data);
@@ -572,7 +572,7 @@ $app->post('/plugin/ib/threatactors', function ($request, $response, $args) {
 // Get Threat Actor By ID (IB Portal)
 $app->post('/plugin/ib/threatactor/{ActorID}', function ($request, $response, $args) {
 	$ibPlugin = new ThreatActors();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-THREATACTORS']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-THREATACTORS'] ?? null)) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
             $ibPlugin->GetB1ThreatActor($args['ActorID'],$data['Page'] ?? null);
@@ -704,7 +704,7 @@ $app->post('/plugin/ib/threatactors/config/upload', function ($request, $respons
 // Generate License Assessment
 $app->post('/plugin/ib/assessment/license/generate', function ($request, $response, $args) {
 	$ibPlugin = new LicenseAssessment();
-    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-LICENSEUSAGE']) ?? null) {
+    if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-LICENSEUSAGE'] ?? null)) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         if ($ibPlugin->SetCSPConfiguration($data['APIKey'] ?? null,$data['Realm'] ?? null)) {
             if ((isset($data['APIKey']) OR isset($_COOKIE['crypt'])) AND isset($data['StartDateTime']) AND isset($data['EndDateTime']) AND isset($data['Realm'])) {
