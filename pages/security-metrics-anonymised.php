@@ -10,39 +10,41 @@
       <div class="row">
         <!-- Columns -->
         <div class="col-lg-12">
-          <div class="row">
-            <!-- Granularity Card -->
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-              <div class="card info-card granularity-card">
-                <div class="card-body">
-                  <h5 class="card-title">Granularity</span></h5>
-                  <div class="d-flex align-items-center">
-                    <div class="btn-group">
-                      <button id="granularityBtn" class="btn btn-secondary btn-sm dropdown-toggle" data-granularity="last30Days" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Last 30 Days
-                      </button>
-                      <div class="dropdown-menu">
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="today" href="#">Today</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="last30Days" href="#">Last 30 Days</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisWeek" href="#">This Week</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisMonth" href="#">This Month</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisYear" href="#">This Year</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastMonth" href="#">Last Month</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastYear" href="#">Last Year</a>
-                        <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="custom" href="#">Custom</a>
+          <div class="row mx-2">
+            <div class="container">
+              <div class="row">
+                <!-- Granularity Card -->
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="card info-card granularity-card">
+                    <div class="card-body">
+                      <h5 class="card-title">Granularity</span></h5>
+                      <div class="d-flex align-items-center">
+                        <div class="btn-group">
+                          <button id="granularityBtn" class="btn btn-secondary btn-sm dropdown-toggle" data-granularity="last30Days" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Last 30 Days
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="today" href="#">Today</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="last30Days" href="#">Last 30 Days</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisWeek" href="#">This Week</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisMonth" href="#">This Month</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisYear" href="#">This Year</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastMonth" href="#">Last Month</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastYear" href="#">Last Year</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="custom" href="#">Custom</a>
+                          </div>
+                          <button id="clearFilters" class="btn btn-info btn-sm clearFilters" type="button">
+                            Clear Filters
+                          </button>
+                        </div>
                       </div>
-                      <button id="clearFilters" class="btn btn-info btn-sm clearFilters" type="button">
-                        Clear Filters
-                      </button>
                     </div>
                   </div>
-                </div>
+                </div><!-- Granularity Card -->
               </div>
-            </div><!-- Granularity Card -->
-          </div>
-
-          <div class="row" id="metrics-container"></div>
-
+              <div class="row" id="metrics-container"></div>
+            </div>
+          </div><!-- End row -->
         </div><!-- End columns -->
       </div>
     </section>
@@ -113,8 +115,8 @@
           const formattedValue = Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
           const card = document.createElement("div");
-          card.className = "col-lg-auto col-md-4 col-sm-6 col-12";
-          card.innerHTML = '<div class="card info-card reports-'+granularity.toLowerCase()+'-card"><div class="card-body"><h5 class="card-title">'+title+' <span class="granularity-title">| '+granularity+'</span></h5><div class="d-flex align-items-center"><div class="pt-1 ps-3"><h6 class="metric-circle border-5">'+formattedValue+'</h6></div></div></div></div>'
+          card.className = "col-lg-2 col-md-4 col-sm-6 col-12";
+          card.innerHTML = '<div class="card info-card reports-'+granularity.toLowerCase()+'-card"><div class="card-body"><h5 class="card-title">'+title+'</h5><div class="d-flex align-items-center"><div class="pt-1 ps-3"><h6 class="metric-circle border-5">'+formattedValue+'</h6></div></div></div></div>'
           container.appendChild(card);
           console.log(title, formattedValue);
         });
