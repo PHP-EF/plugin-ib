@@ -88,7 +88,7 @@
         
         // Friendly name mapping
         const friendlyNames = {
-          recordCount: "Cloud Assessment Count",
+          recordCount: "Security Assessment Count",
           dns_requests: "DNS Requests",
           security_events_high_risk: "High Risk Events",
           security_events_medium_risk: "Medium Risk Events",
