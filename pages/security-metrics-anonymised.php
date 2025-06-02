@@ -112,7 +112,7 @@
 
         Object.entries(data).forEach(([key, value]) => {
           const title = friendlyNames[key] || key.replace(/_/g, " ");
-          const formattedValue = Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
+          const formattedValue = Number(Math.ceil(value)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
           const card = document.createElement("div");
           card.className = "col-lg-2 col-md-4 col-sm-6 col-12";
