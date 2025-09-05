@@ -150,6 +150,9 @@ class SecurityAssessment extends ibPortal {
 				//'ThreatActors' => '{"segments":[],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false,"order":{"PortunusAggIPSummary.timestampMax":"desc"},"measures":["PortunusAggIPSummary.count"],"dimensions":["PortunusAggIPSummary.threat_indicator","PortunusAggIPSummary.actor_id"],"limit":1000,"filters":[{"and":[{"operator":"set","member":"PortunusAggIPSummary.threat_indicator"},{"operator":"set","member":"PortunusAggIPSummary.actor_id"}]}]}'
 				// Removed due to workaround below
 				//'ThreatActors' => '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}'
+				'FirstToDetect' => '{"measures":["TIDERPZStatsDetails.domainCount","TIDERPZStatsDetails.minutesAheadOfIndustryAvg"],"timeDimensions":[{"dimension":"TIDERPZStatsDetails.lastSeenForCustomer","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["TIDERPZStatsDetails.threatClass"],"filters":[],"timezone":"UTC","segments":[]}',
+				'BandwidthSavings' => '{"measures":["PortunusAggThreat_ch.bandwidthTotal"],"timeDimensions":[{"dimension":"PortunusAggThreat_ch.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["PortunusAggThreat_ch.tclass"],"filters":[{"member":"PortunusAggThreat_ch.action","operator":"equals","values":["Block"]}],"timezone":"UTC","segments":[]}',
+				'BandwidthSavingsPercentage' => '{"measures":["PortunusAggThreat_ch.bandwidthSavedPercentage"],"timeDimensions":[{"dimension":"PortunusAggThreat_ch.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["PortunusAggThreat_ch.action"],"filters":[{"member":"PortunusAggThreat_ch.action","operator":"equals","values":["Block"]}],"timezone":"UTC","segments":[]}'
 			);
 			// Workaround for EU / US Realm Alignment
 			// if ($config['Realm'] == 'EU') {
@@ -226,6 +229,40 @@ class SecurityAssessment extends ibPortal {
 			} else {
 				$DNSActivityCount = 0;
 			}
+
+			// Bandwidth Savings - Used on Slides 5 & 7
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Bandwidth Savings");
+			$BandwidthSavings = $CubeJSResults['BandwidthSavings']['Body'];
+			$TotalBandwidthBytes = 0;
+			if (isset($BandwidthSavings->result->data) && is_array($BandwidthSavings->result->data)) {
+				foreach ($BandwidthSavings->result->data as $Entry) {
+					$TotalBandwidthBytes += $Entry->{'PortunusAggThreat_ch.bandwidthTotal'};
+				}
+			}
+			$TotalBandwidthSaved = $this->formatBytes($TotalBandwidthBytes);
+
+			// Bandwidth Savings Percentage - Used on Slide 7
+			$BandwidthSavingsPercentage = $CubeJSResults['BandwidthSavingsPercentage']['Body'];
+			if (isset($BandwidthSavingsPercentage->result->data[0])) {
+				$BandwidthSavedPercentage = round($BandwidthSavingsPercentage->result->data[0]->{'PortunusAggThreat_ch.bandwidthSavedPercentage'},2);
+			} else {
+				$BandwidthSavedPercentage = 0;
+			}
+
+			// First to Detect - Used on Slide 5
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building First to Detect");
+			$FirstToDetect = $CubeJSResults['FirstToDetect']['Body'];
+			$FirstToDetectData = [];
+			if (isset($FirstToDetect->result->data) && is_array($FirstToDetect->result->data)) {
+				foreach ($FirstToDetect->result->data as $Entry) {
+					$Class = $Entry->{'TIDERPZStatsDetails.threatClass'};
+					$FirstToDetectData[$Class] = [
+						'DomainCount' => $Entry->{'TIDERPZStatsDetails.domainCount'},
+						'MinutesAheadOfIndustryAvg' => $Entry->{'TIDERPZStatsDetails.minutesAheadOfIndustryAvg'}
+					];
+				}
+			}
+			$FirstToDetectTotalDomains = array_sum(array_column($FirstToDetectData, 'DomainCount'));
 	
 			// Lookalike Domains - Used on Slides 5, 6 & 24
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Getting Lookalike Domain Counts");
@@ -819,104 +856,120 @@ class SecurityAssessment extends ibPortal {
 				$PLACEHOLDER = 0; // Placeholder for future metrics
 
 				##// Slide 5 - Executive Summary
-				$mapping = replaceTag($mapping,'#TAG502',number_abbr($HighEventsCount)); // High-Risk Events
-				$mapping = replaceTag($mapping,'#TAG503',number_abbr($HighRiskWebsiteCount)); // High-Risk Websites
-				$mapping = replaceTag($mapping,'#TAG504',number_abbr($DataExfilEventsCount)); // Data Exfil / Tunneling
-				$mapping = replaceTag($mapping,'#TAG505',number_abbr($LookalikeThreatCount)); // Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG506',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
+				$mapping = replaceTag($mapping,'#TAG01',number_abbr($HighEventsCount)); // High-Risk Events
+				$mapping = replaceTag($mapping,'#TAG02',number_abbr($HighRiskWebsiteCount)); // High-Risk Websites
+				$mapping = replaceTag($mapping,'#TAG03',number_abbr($DataExfilEventsCount)); // Data Exfil / Tunneling
+				$mapping = replaceTag($mapping,'#TAG04',number_abbr($LookalikeThreatCount)); // Lookalike Domains
+				$mapping = replaceTag($mapping,'#TAG05',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
 
 				// ** TODO ** //
-				$mapping = replaceTag($mapping,'#TAG507',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
-				$mapping = replaceTag($mapping,'#TAG508',number_abbr($PLACEHOLDER)); // First to Detect (Domain Count)
-				$mapping = replaceTag($mapping,'#TAG509',number_abbr($PLACEHOLDER)); // Bandwidth Savings
+				$mapping = replaceTag($mapping,'#TAG06',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
+				$mapping = replaceTag($mapping,'#TAG07',number_abbr($FirstToDetectTotalDomains)); // First to Detect (Domain Count)
+				$mapping = replaceTag($mapping,'#TAG08',$TotalBandwidthSaved); // Bandwidth Savings
 		
 				##// Slide 6 - Security Indicator Summary
-				$mapping = replaceTag($mapping,'#TAG601',number_abbr($DNSActivityCount)); // DNS Requests
-				$mapping = replaceTag($mapping,'#TAG602',number_abbr($HighEventsCount)); // High-Risk Events
-				$mapping = replaceTag($mapping,'#TAG603',number_abbr($MediumEventsCount)); // Medium-Risk Events
-				$mapping = replaceTag($mapping,'#TAG604',number_abbr($TotalInsights)); // Insights
-				$mapping = replaceTag($mapping,'#TAG605',number_abbr($LookalikeThreatCount)); // Custom Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG606',number_abbr($DOHEventsCount)); // DoH
-				$mapping = replaceTag($mapping,'#TAG607',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
+				$mapping = replaceTag($mapping,'#TAG09',number_abbr($DNSActivityCount)); // DNS Requests
+				$mapping = replaceTag($mapping,'#TAG10',number_abbr($HighEventsCount)); // High-Risk Events
+				$mapping = replaceTag($mapping,'#TAG11',number_abbr($MediumEventsCount)); // Medium-Risk Events
+				$mapping = replaceTag($mapping,'#TAG12',number_abbr($TotalInsights)); // Insights
+				$mapping = replaceTag($mapping,'#TAG13',number_abbr($LookalikeThreatCount)); // Custom Lookalike Domains
+				$mapping = replaceTag($mapping,'#TAG14',number_abbr($DOHEventsCount)); // DoH
+				$mapping = replaceTag($mapping,'#TAG15',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
 
 				// ** TODO ** //
-				$mapping = replaceTag($mapping,'#TAG608',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
+				$mapping = replaceTag($mapping,'#TAG16',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
 		
-				$mapping = replaceTag($mapping,'#TAG609',number_abbr($NODEventsCount)); // Newly Observed Domains
-				$mapping = replaceTag($mapping,'#TAG610',number_abbr($DGAEventsCount)); // Domain Generated Algorithms
-				$mapping = replaceTag($mapping,'#TAG611',number_abbr($DataExfilEventsCount)); // DNS Tunnelling
-				$mapping = replaceTag($mapping,'#TAG612',number_abbr($UniqueApplicationsCount)); // Unique Applications
-				$mapping = replaceTag($mapping,'#TAG613',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
-				$mapping = replaceTag($mapping,'#TAG614',number_abbr($ThreatActorsCountMetric)); // Threat Actors
+				$mapping = replaceTag($mapping,'#TAG17',number_abbr($NODEventsCount)); // Newly Observed Domains
+				$mapping = replaceTag($mapping,'#TAG18',number_abbr($DGAEventsCount)); // Domain Generated Algorithms
+				$mapping = replaceTag($mapping,'#TAG19',number_abbr($DataExfilEventsCount)); // DNS Tunnelling
+				$mapping = replaceTag($mapping,'#TAG20',number_abbr($UniqueApplicationsCount)); // Unique Applications
+				$mapping = replaceTag($mapping,'#TAG21',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
+				$mapping = replaceTag($mapping,'#TAG22',number_abbr($ThreatActorsCountMetric)); // Threat Actors
+				$mapping = replaceTag($mapping,'#TAG23',number_abbr($FirstToDetectTotalDomains)); // First to Detect (Domain Count)
+				$mapping = replaceTag($mapping,'#TAG24',$PLACEHOLDER); // Malicious TDS Events
 
-				// ** TODO ** //
-				$mapping = replaceTag($mapping,'#TAG615',number_abbr($PLACEHOLDER)); // First to Detect (Domain Count)
-				$mapping = replaceTag($mapping,'#TAG616',number_abbr($PLACEHOLDER)); // Malicious TDS Events
-				// This has been removed?
-				$mapping = replaceTag($mapping,'#TAG22',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
+				// Only present on landscape template
+				$mapping = replaceTag($mapping,'#TAG25',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
+
+				##// Slide 7 - Bandwidth Savings
+				$mapping = replaceTag($mapping,'#TAG26',$TotalBandwidthSaved); // Total Savings (MB/GB/TB)
+				$mapping = replaceTag($mapping,'#TAG27',$BandwidthSavedPercentage); // Percentage Overall %
 	
 				##// Slide 8 - Additional Threat Intel Insights
 				// ** CURRENTLY DONE MANUALLY BY ITI ** //
 		
 				##// Slide 11 - Traffic Usage Analysis
 				// Total DNS Activity
-				$mapping = replaceTag($mapping,'#TAG1101',number_abbr($DNSActivityCount));
+				$mapping = replaceTag($mapping,'#TAG28',number_abbr($DNSActivityCount));
 				// DNS Firewall Activity
-				$mapping = replaceTag($mapping,'#TAG1102',number_abbr($HML)); // Total
-				$mapping = replaceTag($mapping,'#TAG1103',number_abbr($HighEventsCount)); // High Int
-				$mapping = replaceTag($mapping,'#TAG1104',number_format($HighPerc,2).'%'); // High Percent
-				$mapping = replaceTag($mapping,'#TAG1105',number_abbr($MediumEventsCount)); // Medium Int
-				$mapping = replaceTag($mapping,'#TAG1106',number_format($MediumPerc,2).'%'); // Medium Percent
-				$mapping = replaceTag($mapping,'#TAG1107',number_abbr($LowEventsCount)); // Low Int
-				$mapping = replaceTag($mapping,'#TAG1108',number_format($LowPerc,2).'%'); // Low Percent
+				$mapping = replaceTag($mapping,'#TAG29',number_abbr($HML)); // Total
+				$mapping = replaceTag($mapping,'#TAG30',number_abbr($HighEventsCount)); // High Int
+				$mapping = replaceTag($mapping,'#TAG31',number_format($HighPerc,2).'%'); // High Percent
+				$mapping = replaceTag($mapping,'#TAG32',number_abbr($MediumEventsCount)); // Medium Int
+				$mapping = replaceTag($mapping,'#TAG33',number_format($MediumPerc,2).'%'); // Medium Percent
+				$mapping = replaceTag($mapping,'#TAG34',number_abbr($LowEventsCount)); // Low Int
+				$mapping = replaceTag($mapping,'#TAG35',number_format($LowPerc,2).'%'); // Low Percent
 				// Threat Activity
-				$mapping = replaceTag($mapping,'#TAG1109',number_abbr($ThreatActivityEventsCount));
+				$mapping = replaceTag($mapping,'#TAG36',number_abbr($ThreatActivityEventsCount));
 				// Data Exfiltration Incidents
-				$mapping = replaceTag($mapping,'#TAG1110',number_abbr($DataExfilEventsCount));
+				$mapping = replaceTag($mapping,'#TAG37',number_abbr($DataExfilEventsCount));
 		
 				##// Slide 12 - Traffic Analysis - DNS Activity
-				$mapping = replaceTag($mapping,'#TAG1201',number_abbr($DNSActivityDailyAverage));
+				$mapping = replaceTag($mapping,'#TAG38',number_abbr($DNSActivityDailyAverage));
 				##// Slide 13 - Traffic Analysis - DNS Firewall Activity
-				$mapping = replaceTag($mapping,'#TAG1301',number_abbr($DNSFirewallActivityDailyAverage));
+				$mapping = replaceTag($mapping,'#TAG39',number_abbr($DNSFirewallActivityDailyAverage));
 	
 				##// Slide 15 - Key Insights
 				// Insight Severity
-				$mapping = replaceTag($mapping,'#TAG1501',number_abbr($TotalInsights)); // Total Open Insights
-				$mapping = replaceTag($mapping,'#TAG1502',number_abbr($CriticalInsights)); // Critical Priority Insights
-				$mapping = replaceTag($mapping,'#TAG1503',number_abbr($HighInsights)); // High Priority Insights
-				$mapping = replaceTag($mapping,'#TAG1504',number_abbr($MediumInsights)); // Medium Priority Insights
-				$mapping = replaceTag($mapping,'#TAG1505',number_abbr($LowInsights)); // Low Priority Insights
-				$mapping = replaceTag($mapping,'#TAG1506',number_abbr($InfoInsights)); // Info Priority Insights
+				$mapping = replaceTag($mapping,'#TAG40',number_abbr($TotalInsights)); // Total Open Insights
+				$mapping = replaceTag($mapping,'#TAG41',number_abbr($CriticalInsights)); // Critical Priority Insights
+				$mapping = replaceTag($mapping,'#TAG42',number_abbr($HighInsights)); // High Priority Insights
+				$mapping = replaceTag($mapping,'#TAG43',number_abbr($MediumInsights)); // Medium Priority Insights
+				$mapping = replaceTag($mapping,'#TAG44',number_abbr($LowInsights)); // Low Priority Insights
+				$mapping = replaceTag($mapping,'#TAG45',number_abbr($InfoInsights)); // Info Priority Insights
 				// Event To Insight Aggregation
-				$mapping = replaceTag($mapping,'#TAG1507',number_abbr($SecurityEventsCount)); // Events
-				$mapping = replaceTag($mapping,'#TAG1508',number_abbr($TotalInsights)); // Key Insights
+				$mapping = replaceTag($mapping,'#TAG46',number_abbr($SecurityEventsCount)); // Events
+				$mapping = replaceTag($mapping,'#TAG47',number_abbr($TotalInsights)); // Key Insights
 		
+				##// Slide 19 - Application Detection
+				$mapping = replaceTag($mapping,'#TAG48',number_abbr($PLACEHOLDER)); // Total Requests
+				$mapping = replaceTag($mapping,'#TAG49',number_abbr($PLACEHOLDER)); // Total Devices
+
+				##// Slide 19 - Web Content Discovery
+				$mapping = replaceTag($mapping,'#TAG50',number_abbr($PLACEHOLDER)); // Total Requests
+				$mapping = replaceTag($mapping,'#TAG51',number_abbr($PLACEHOLDER)); // Total Devices
+
 				##// Slide 24 - Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG2501',number_abbr($LookalikeTotalCount)); // Total Lookalikes
+				$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeTotalCount)); // Total Lookalikes
 				// if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG2502',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
 				// if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG2503',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
 				// if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
 		
-				##// Slide 29 - Security Activities
-				$mapping = replaceTag($mapping,'#TAG2901',number_abbr($SecurityEventsCount)); // Security Events
-				$mapping = replaceTag($mapping,'#TAG2902',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
-				$mapping = replaceTag($mapping,'#TAG2903',number_abbr($WebContentEventsCount)); // Web Content
-				$mapping = replaceTag($mapping,'#TAG2904',number_abbr($DeviceCount)); // Devices
-				$mapping = replaceTag($mapping,'#TAG2905',number_abbr($UserCount)); // Users
-				$mapping = replaceTag($mapping,'#TAG2906',number_abbr($TotalInsights)); // Insights
-				$mapping = replaceTag($mapping,'#TAG2907',number_abbr($ThreatInsightCount)); // Threat Insight
-				$mapping = replaceTag($mapping,'#TAG2908',number_abbr($ThreatViewCount)); // Threat View
-				$mapping = replaceTag($mapping,'#TAG2909',number_abbr($SourcesCount)); // Sources
+				##// Slide 29/31 - Security Activities
+				$mapping = replaceTag($mapping,'#TAG55',number_abbr($SecurityEventsCount)); // Security Events
+				$mapping = replaceTag($mapping,'#TAG56',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
+				$mapping = replaceTag($mapping,'#TAG57',number_abbr($WebContentEventsCount)); // Web Content
+				$mapping = replaceTag($mapping,'#TAG58',number_abbr($DeviceCount)); // Devices
+				$mapping = replaceTag($mapping,'#TAG59',number_abbr($UserCount)); // Users
+				$mapping = replaceTag($mapping,'#TAG60',number_abbr($TotalInsights)); // Insights
+				$mapping = replaceTag($mapping,'#TAG61',number_abbr($ThreatInsightCount)); // Threat Insight
+				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatViewCount)); // Threat View
+				$mapping = replaceTag($mapping,'#TAG63',number_abbr($SourcesCount)); // Sources
+
+				##// Slide 35/38 - Zero Day DNS
+				$mapping = replaceTag($mapping,'#TAG64',number_abbr($PLACEHOLDER)); // Zero Day DNS Events // ZeroDayDNSEventsCount
+				$mapping = replaceTag($mapping,'#TAG65',number_abbr($PLACEHOLDER)); // Suspicious Events // ZeroDayDNSSuspiciousEventsCount
+				$mapping = replaceTag($mapping,'#TAG66',number_abbr($PLACEHOLDER)); // Malicious Events // ZeroDayDNSMaliciousEventsCount
 		
-				##// Slide 32 -> Onwards - Threat Actors
+				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
 				$TagStart = 100;
@@ -1099,7 +1152,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 13) + 27,
+			'Total' => ($Total * 13) + 29,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates

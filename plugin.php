@@ -73,5 +73,19 @@ class ibPlugin extends phpef {
 			return $days . 'd ' . $remainingHours . 'h';
 		}
 	}
+
+	function formatBytes($bytes, $precision = 2) {
+		$units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+		if ($bytes < 0) {
+			return 'Invalid size';
+		}
+
+		$power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+		$power = min($power, count($units) - 1);
+
+		$formatted = $bytes / pow(1024, $power);
+		return round($formatted, $precision) . $units[$power];
+	}
 		
 }
