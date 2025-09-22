@@ -160,7 +160,9 @@ class SecurityAssessment extends ibPortal {
 				'IVThirtyDays' => '{"dimensions":["IVThirtyDays.dimensionLabel","IVThirtyDays.dimensionMetric","IVThirtyDays.industryName","IVThirtyDays.accountDimensionMetricSum","IVThirtyDays.industryDimensionMetricSum","IVThirtyDays.allAccountsDimensionMetricSum","IVThirtyDays.accountDimensionSum","IVThirtyDays.industryDimensionSum","IVThirtyDays.allAccountsDimensionSum","IVThirtyDays.accountPercentage","IVThirtyDays.industryPercentage","IVThirtyDays.overallPercentage"]}',
 				'IVPeerAndOverallCount' => '{"measures":["IndustryVerticalPeerAndOverallCount.industryCount","IndustryVerticalPeerAndOverallCount.totalCount"]}',
 				'IVThreatActors' => '{"dimensions":["IVThreatActors.accountThirtyDays","IVThreatActors.industryThirtyDays","IVThreatActors.allAccountThirtyDays"]}',
-				'IVTrend' => '{"dimensions":["IVTrend.dimensionLabel","IVTrend.trendPercentage"]}'
+				'IVTrend' => '{"dimensions":["IVTrend.dimensionLabel","IVTrend.trendPercentage"]}',
+				'SecurityTokens' => '{"ungrouped":false,"segments":[],"measures":["TokenUtilSecurityDaily.tokens","TokenUtilSecurityDaily.count"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null,"dimension":"TokenUtilSecurityDaily.timestamp"}],"dimensions":["TokenUtilSecurityDaily.account_id","TokenUtilSecurityDaily.category","TokenUtilSecurityDaily.type","TokenUtilSecurityDaily.timestamp","TokenUtilSecurityDaily.sub_type"]}',
+				'ReportingTokens' => '{"ungrouped":false,"segments":[],"measures":["TokenUtilReportingDaily.tokens","TokenUtilReportingDaily.count"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null,"dimension":"TokenUtilReportingDaily.timestamp"}],"dimensions":["TokenUtilReportingDaily.account_id","TokenUtilReportingDaily.category","TokenUtilReportingDaily.timestamp"]}'
 			);
 			// Workaround for EU / US Realm Alignment
 			// if ($config['Realm'] == 'EU') {
@@ -181,48 +183,50 @@ class SecurityAssessment extends ibPortal {
 			// Define the embedded sheets with their corresponding file numbers
 			// This needs to match across all active templates at this moment
 			$EmbeddedSheets = [
+				'BandwidthSavings' => 0,
 				'TopDetectedProperties' => 5,
 				'ContentFiltration' => 6,
 				'DNSActivity' => 7,
 				'DNSFirewallActivity' => 8,
 				'InsightDistribution' => 9,
+				// 10/11 - Outlier Insight
 				'AppDiscovery' => 12,
 				'WebContentDiscovery' => 13,
 				'Lookalikes' => 14,
 				'ZeroDayDNS' => array(
-					'Landscape' => 16,
+					'Landscape' => 15,
 					'Portrait' => 15
 				),
 				'IVRiskyIndicatorsAccount' => array(
-					'Landscape' => 17,
+					'Landscape' => 16,
 					'Portrait' => 16
 				),
 				'IVRiskyIndicatorsIndustry' => array(
-					'Landscape' => 18,
+					'Landscape' => 17,
 					'Portrait' => 17
 				),
 				'IVThreatActorsAccount' => array(
-					'Landscape' => 21,
+					'Landscape' => 20,
 					'Portrait' => 18
 				),
 				'IVThreatActorsIndustry' => array(
-					'Landscape' => 22,
+					'Landscape' => 21,
 					'Portrait' => 19
 				),
 				'IVMaliciousIndicatorsAccount' => array(
-					'Landscape' => 19,
+					'Landscape' => 18,
 					'Portrait' => 20
 				),
 				'IVMaliciousIndicatorsIndustry' => array(
-					'Landscape' => 20,
+					'Landscape' => 19,
 					'Portrait' => 21
 				),
 				'IVThreatInsightAccount' => array(
-					'Landscape' => 23,
+					'Landscape' => 22,
 					'Portrait' => 22
 				),
 				'IVThreatInsightIndustry' => array(
-					'Landscape' => 24,
+					'Landscape' => 23,
 					'Portrait' => 23
 				)
 			];
@@ -298,6 +302,7 @@ class SecurityAssessment extends ibPortal {
 				}
 			}
 			$TotalBandwidthSaved = $this->formatBytes($TotalBandwidthBytes);
+			$TotalBandwidthSavedTop5Classes = array_slice($BandwidthSavings->result->data, 0, 5);
 
 			// Bandwidth Savings Percentage - Used on Slide 7
 			$BandwidthSavingsPercentage = $CubeJSResults['BandwidthSavingsPercentage']['Body'];
@@ -854,6 +859,128 @@ class SecurityAssessment extends ibPortal {
 				$ZeroDayDNSDetectionsMaliciousPercent = 0;
 			}
 
+			// Token Calculator
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Token Usage");
+			$SecurityTokenCategories = [
+				'SOC Insights' => [
+					'Verified Assets' => 0,
+					'Unverified Assets' => 0,
+					'Total'	=> 0
+				],
+				'Lookalikes' => [
+					'Domains' => 0,
+					'Total'	=> 0
+				],
+				'Cloud Asset Protection' => [
+					'Verified Assets' => 0,
+					'Unverified Assets' => 0,
+					'Total'	=> 0
+				],
+				'Dossier' => [
+					'Queries' => 0,
+					'Total'	=> 0
+				],
+				'Threat Defense for NIOS' => [
+					'X5' => 0,
+					'X6' => 0,
+					'Total'	=> 0
+				],
+				'Total' => 0
+			];
+			$ReportingTokenCategories = [
+				'30-day Active Search' => 0,
+				'Ecosystem'	=> 0,
+				'S3' => 0,
+				'Total' => 0
+			];
+
+			$SecurityTokenUsage = $CubeJSResults['SecurityTokens']['Body']->result->data ?? [];
+			$SecurityTokenDailyUsage = [];
+			if (isset($SecurityTokenUsage)) {
+				foreach ($SecurityTokenUsage as $STU) {
+					// Group categories by timestamp, then identify the date with peak usage. The peak usage should then be used to populate $SecurityTokenCategories, including the respective totals
+					$timestamp = $STU->{'TokenUtilSecurityDaily.timestamp'};
+					$date = date('Y-m-d', strtotime($timestamp));
+					if (!isset($SecurityTokenDailyUsage[$date])) {
+						$SecurityTokenDailyUsage[$date] = [];
+					}
+					$SecurityTokenDailyUsage[$date][] = $STU;
+
+				}
+				// Now we have an array of daily usage, identify the peak day
+				$SecurityPeakDate = null;
+				$SecurityPeakTotal = 0;
+				foreach ($SecurityTokenDailyUsage as $date => $usages) {
+					$DailyTotal = array_sum(array_column($usages, 'TokenUtilSecurityDaily.tokens'));
+					if ($DailyTotal > $SecurityPeakTotal) {
+						$SecurityPeakTotal = $DailyTotal;
+						$SecurityPeakDate = $date;
+					}
+				}
+				// Now populate $SecurityTokenCategories based on the peak day usages
+				if ($SecurityPeakDate !== null) {
+					foreach ($SecurityTokenDailyUsage[$SecurityPeakDate] as $STU) {
+						$category = $STU->{'TokenUtilSecurityDaily.category'};
+						$type = $STU->{'TokenUtilSecurityDaily.type'};
+						$count = $STU->{'TokenUtilSecurityDaily.tokens'};
+						if (isset($SecurityTokenCategories[$category])) {
+							if (in_array($category, ['SOC Insights', 'Cloud Asset Protection']) && in_array($type, ['Verified Assets', 'Unverified Assets'])) {
+								$SecurityTokenCategories[$category][$type] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Lookalikes' && $type === 'Domains') {
+								$SecurityTokenCategories[$category]['Domains'] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Dossier' && $type === 'Queries') {
+								$SecurityTokenCategories[$category]['Queries'] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Threat Defense for NIOS' && in_array($type, ['X5', 'X6'])) {
+								$SecurityTokenCategories[$category][$type] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							}
+							$SecurityTokenCategories['Total'] += $count;
+						}
+					}
+				}
+			}
+
+			$ReportingTokenUsage = $CubeJSResults['ReportingTokens']['Body']->result->data ?? [];
+			$ReportingTokenDailyUsage = [];
+			if (isset($ReportingTokenUsage)) {
+				foreach ($ReportingTokenUsage as $RTU) {
+					// Group categories by timestamp, then identify the date with peak usage. The peak usage should then be used to populate $ReportingTokenCategories, including the respective totals
+					$timestamp = $RTU->{'TokenUtilReportingDaily.timestamp'};
+					$date = date('Y-m-d', strtotime($timestamp));
+					if (!isset($ReportingTokenDailyUsage[$date])) {
+						$ReportingTokenDailyUsage[$date] = [];
+					}
+					$ReportingTokenDailyUsage[$date][] = $RTU;
+				}
+				// Now we have an array of daily usage, identify the peak day
+				$ReportingPeakDate = null;
+				$ReportingPeakTotal = 0;
+				foreach ($ReportingTokenDailyUsage as $date => $usages) {
+					$DailyTotal = array_sum(array_column($usages, 'TokenUtilReportingDaily.tokens'));
+					if ($DailyTotal > $ReportingPeakTotal) {
+						$ReportingPeakTotal = $DailyTotal;
+						$ReportingPeakDate = $date;
+					}
+				}
+				// Now populate $ReportingTokenCategories based on the peak day usages. If the category is '30-day Active Search', exclude it from the total
+				if ($ReportingPeakDate !== null) {
+					foreach ($ReportingTokenDailyUsage[$ReportingPeakDate] as $RTU) {
+						$category = $RTU->{'TokenUtilReportingDaily.category'};
+						$count = $RTU->{'TokenUtilReportingDaily.tokens'};
+						if (isset($ReportingTokenCategories[$category])) {
+							$ReportingTokenCategories[$category] += $count;
+							if ($category !== '30-day Active Search') {
+								$ReportingTokenCategories['Total'] += $count;
+							}
+						}
+					}
+				}
+			}
+			// End of Token Calculator
+
 
 			// New Loop for support of multiple selected templates
 			// writeProgress result should be Selected Template 27 + 13 x N
@@ -1007,6 +1134,28 @@ class SecurityAssessment extends ibPortal {
 					$LookalikeThreatCountsW->save($EmbeddedLookalikes);
 				}
 
+				// Bandwidth Savings - Slide 7
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Bandwidth Savings Page");
+				$EmbeddedBandwidthSavings = getEmbeddedSheetFilePath('BandwidthSavings', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$BandwidthSavingsSS = IOFactory::load($EmbeddedBandwidthSavings);
+				$RowNo = 2;
+				if (isset($TotalBandwidthSavedTop5Classes) AND is_array($TotalBandwidthSavedTop5Classes)) {
+					foreach ($TotalBandwidthSavedTop5Classes as $BandwidthClass) {
+						$BandwidthSavingsS = $BandwidthSavingsSS->getActiveSheet();
+						$BandwidthSavingsS->setCellValue('A'.$RowNo, $BandwidthClass->{'PortunusAggThreat_ch.tclass'});
+						// Work out percentage from $TotalBandwidthBytes
+						if ($TotalBandwidthBytes > 0) {
+							$BandwidthClassPercentage = ($BandwidthClass->{'PortunusAggThreat_ch.bandwidthTotal'} / $TotalBandwidthBytes) * 100;
+						} else {
+							$BandwidthClassPercentage = 0;
+						}
+						$BandwidthSavingsS->setCellValue('B'.$RowNo, $BandwidthClassPercentage);
+						$RowNo++;
+					}
+				}
+				$BandwidthSavingsW = IOFactory::createWriter($BandwidthSavingsSS, 'Xlsx');
+				$BandwidthSavingsW->save($EmbeddedBandwidthSavings);
+
 				// Application Detection - Slide 19
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Application Detection Page");
 				$AppDiscoveryApplications->result->data = array_slice($AppDiscoveryApplications->result->data, 0, 10);
@@ -1065,7 +1214,6 @@ class SecurityAssessment extends ibPortal {
 				$RowNo = 2;
 				if (isset($ZeroDayDNSDetections->detections) AND is_array($ZeroDayDNSDetections->detections)) {
 					$ZeroDayDNSDetectionsSliced = array_slice($ZeroDayDNSDetections->detections, 0, 5);
-					error_log(print_r($ZeroDayDNSDetectionsSliced,true));
 					foreach ($ZeroDayDNSDetectionsSliced as $ZeroDayDNSDetection) {
 						$ZeroDayDNSS = $ZeroDayDNSSS->getActiveSheet();
 						$ZeroDayDNSS->setCellValue('A'.$RowNo, $ZeroDayDNSDetection->domain ?? 'Unknown');
@@ -1500,7 +1648,7 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG65',number_abbr($ZeroDayDNSDetectionsSuspiciousPercent).'%'); // Suspicious Events // ZeroDayDNSSuspiciousEventsCount
 				$mapping = replaceTag($mapping,'#TAG66',number_abbr($ZeroDayDNSDetectionsMaliciousPercent).'%'); // Malicious Events // ZeroDayDNSMaliciousEventsCount
 
-				##// Slide 37/40 - Industry Vertical Analysis
+				##// Slide 37/40 - Industry Vertical Analysis - START //##
 
 				// IVPDL - Industry Vertical Personal Dimension Label
 				// IVIDL - Industry Vertical Industry Dimension Label
@@ -1570,6 +1718,25 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG112',number_abbr(($IVIDLThreatInsightDetectionSum) / $IVIndustryPeerCount)); // Threat Insight Detection - Industry Average - Count
 				$mapping = replaceTag($mapping,'#TAG113',number_format($IVIDLThreatInsightDetectionPercentage, 2).'%'); // Threat Insight Detection - Industry Average - Percentage
 
+				##// Slide 37/40 - Industry Vertical Analysis - END //##
+				
+				##// Slide 51 - Token Calculator //##
+				$mapping = replaceTag($mapping,'#TAG114',number_abbr($SecurityTokenCategories['Total'])); // Total Security Tokens
+				$mapping = replaceTag($mapping,'#TAG115',number_abbr($SecurityTokenCategories['Cloud Asset Protection']['Total'])); // Threat Defense Cloud Asset Protection Tokens
+				$mapping = replaceTag($mapping,'#TAG116',number_abbr($SecurityTokenCategories['Threat Defense for NIOS']['Total'])); // Threat Defense for NIOS Tokens
+				$mapping = replaceTag($mapping,'#TAG117',number_abbr($SecurityTokenCategories['SOC Insights']['Total'])); // Threat Defense SOC Insights Tokens
+				$mapping = replaceTag($mapping,'#TAG118',number_abbr($SecurityTokenCategories['Lookalikes']['Total'])); // Threat Defense Lookalike Tokens
+				$mapping = replaceTag($mapping,'#TAG119',number_abbr($SecurityTokenCategories['Dossier']['Total'])); // Threat Defense Dossier Tokens
+				$mapping = replaceTag($mapping,'#TAG120',number_abbr($ReportingTokenCategories['Total'])); // Total Reporting Tokens
+				$mapping = replaceTag($mapping,'#TAG121',number_abbr($ReportingTokenCategories['Ecosystem'])); // Total Ecosystem Tokens
+				$mapping = replaceTag($mapping,'#TAG122',number_abbr($ReportingTokenCategories['S3'])); // Total S3 Tokens
+
+				// Calculate Estimated Reporting Tokens, where it may not be enabled today
+				$TotalReportingEventsCount = $DNSActivityCount + $SecurityEventsCount;
+				$EstimatedReportingTokens = ceil(($TotalReportingEventsCount / 10000000) * 40);
+				$mapping = replaceTag($mapping,'#TAG123',number_abbr($EstimatedReportingTokens)); // Estimated Reporting Tokens
+				
+				
 				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
@@ -1753,7 +1920,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 17) + 33,
+			'Total' => ($Total * 18) + 34,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
