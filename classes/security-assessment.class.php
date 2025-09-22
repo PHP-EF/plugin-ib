@@ -1721,22 +1721,21 @@ class SecurityAssessment extends ibPortal {
 				##// Slide 37/40 - Industry Vertical Analysis - END //##
 				
 				##// Slide 51 - Token Calculator //##
-				$mapping = replaceTag($mapping,'#TAG114',number_abbr($SecurityTokenCategories['Total'])); // Total Security Tokens
-				$mapping = replaceTag($mapping,'#TAG115',number_abbr($SecurityTokenCategories['Cloud Asset Protection']['Total'])); // Threat Defense Cloud Asset Protection Tokens
-				$mapping = replaceTag($mapping,'#TAG116',number_abbr($SecurityTokenCategories['Threat Defense for NIOS']['Total'])); // Threat Defense for NIOS Tokens
-				$mapping = replaceTag($mapping,'#TAG117',number_abbr($SecurityTokenCategories['SOC Insights']['Total'])); // Threat Defense SOC Insights Tokens
-				$mapping = replaceTag($mapping,'#TAG118',number_abbr($SecurityTokenCategories['Lookalikes']['Total'])); // Threat Defense Lookalike Tokens
-				$mapping = replaceTag($mapping,'#TAG119',number_abbr($SecurityTokenCategories['Dossier']['Total'])); // Threat Defense Dossier Tokens
-				$mapping = replaceTag($mapping,'#TAG120',number_abbr($ReportingTokenCategories['Total'])); // Total Reporting Tokens
-				$mapping = replaceTag($mapping,'#TAG121',number_abbr($ReportingTokenCategories['Ecosystem'])); // Total Ecosystem Tokens
-				$mapping = replaceTag($mapping,'#TAG122',number_abbr($ReportingTokenCategories['S3'])); // Total S3 Tokens
+				$mapping = replaceTag($mapping,'#TAG114',number_abbr($SecurityTokenCategories['Total']*1.2)); // Total Security Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG115',number_abbr($SecurityTokenCategories['Cloud Asset Protection']['Total']*1.2)); // Threat Defense Cloud Asset Protection Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG116',number_abbr($SecurityTokenCategories['Threat Defense for NIOS']['Total']*1.2)); // Threat Defense for NIOS Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG117',number_abbr($SecurityTokenCategories['SOC Insights']['Total']*1.2)); // Threat Defense SOC Insights Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG118',number_abbr($SecurityTokenCategories['Lookalikes']['Total']*1.2)); // Threat Defense Lookalike Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG119',number_abbr($SecurityTokenCategories['Dossier']['Total']*1.2)); // Threat Defense Dossier Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG120',number_abbr($ReportingTokenCategories['Total']*1.2)); // Total Reporting Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG121',number_abbr($ReportingTokenCategories['Ecosystem']*1.2)); // Total Ecosystem Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG122',number_abbr($ReportingTokenCategories['S3']*1.2)); // Total S3 Tokens + 20%
 
-				// Calculate Estimated Reporting Tokens, where it may not be enabled today
+				// Calculate Estimated Reporting Tokens, where it may not be enabled today. This is a based on DNS Activity + Security Activity, 10M / 40 tokens
 				$TotalReportingEventsCount = $DNSActivityCount + $SecurityEventsCount;
 				$EstimatedReportingTokens = ceil(($TotalReportingEventsCount / 10000000) * 40);
-				$mapping = replaceTag($mapping,'#TAG123',number_abbr($EstimatedReportingTokens)); // Estimated Reporting Tokens
-				
-				
+				$mapping = replaceTag($mapping,'#TAG123',number_abbr($EstimatedReportingTokens*1.2)); // Estimated Reporting Tokens + 20%
+
 				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
