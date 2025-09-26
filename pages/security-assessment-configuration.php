@@ -79,6 +79,7 @@
                   <th data-field="TemplateName" data-sortable="true">Name</th>
                   <th data-field="Description" data-sortable="true">Description</th>
                   <th data-field="ThreatActorSlide" data-sortable="true">Threat Actor Slide</th>
+                  <th data-field="SOCInsightsSlide" data-sortable="true">SOC Insights Slide</th>
                   <th data-field="FileName" data-sortable="true">File Name</th>
                   <th data-field="Created" data-sortable="true">Upload Date</th>
                   <th data-formatter="SAtemplateActionFormatter" data-events="actionEvents">Actions</th>
@@ -236,6 +237,11 @@
             <small id="SAtemplateThreatActorSlideHelp" class="form-text text-muted">This is the Threat Actor template slide number.</small>
           </div>
           <div class="form-group">
+            <label for="SAtemplateSOCInsightsSlide">SOC Insights Slide</label>
+            <input type="text" class="form-control info-field" id="SAtemplateSOCInsightsSlide" aria-describedby="SAtemplateSOCInsightsSlideHelp" name="SAtemplateSOCInsightsSlide">
+            <small id="SAtemplateSOCInsightsSlideHelp" class="form-text text-muted">This is the SOC Insights template slide number.</small>
+          </div>
+          <div class="form-group">
             <label for="SAtemplateOrientation" class="col-form-label">Template Orientation</label>
             <select id="SAtemplateOrientation" class="form-select" name="SAtemplateOrientation">
               <option value="Portrait" selected>Portrait</option>
@@ -321,6 +327,11 @@
             <label for="newSATemplateThreatActorSlide">Threat Actor Slide</label>
             <input type="text" class="form-control" id="newSATemplateThreatActorSlide" aria-describedby="newSATemplateThreatActorSlideHelp" name="newSATemplateThreatActorSlide">
             <small id="newSATemplateThreatActorSlideHelp" class="form-text text-muted">This is the Threat Actor template slide number.</small>
+          </div>
+          <div class="form-group">
+            <label for="newSATemplateSOCInsightsSlide">SOC Insights Slide</label>
+            <input type="text" class="form-control" id="newSATemplateSOCInsightsSlide" aria-describedby="newSATemplateSOCInsightsSlideHelp" name="newSATemplateSOCInsightsSlide">
+            <small id="newSATemplateSOCInsightsSlideHelp" class="form-text text-muted">This is the SOC Insights template slide number.</small>
           </div>
           <div class="form-group">
             <label for="newSATemplateSelectedByDefault">Selected by Default</label>
@@ -428,6 +439,7 @@
       $("#SAtemplateDescription").val(row["Description"]);
       $("#SAtemplateFileName").val(row["FileName"]);
       $("#SAtemplateThreatActorSlide").val(row["ThreatActorSlide"]);
+      $("#SAtemplateSOCInsightsSlide").val(row["SOCInsightsSlide"]);
       $("#SAtemplateOrientation").val(row["Orientation"]);
       if (String(row["isDefault"]).toLowerCase() == "true") {
         $("#SAtemplateSelectedByDefault").attr("checked",true);
@@ -646,6 +658,7 @@
       postArr.Orientation = encodeURIComponent($("#newSATemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#newSATemplateThreatActorSlide").val());
+      postArr.SOCInsightsSlide = encodeURIComponent($("#newSATemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#newSATemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -702,6 +715,7 @@
       postArr.Orientation = encodeURIComponent($("#SAtemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#SAtemplateThreatActorSlide").val());
+      postArr.SOCInsightsSlide = encodeURIComponent($("#SAtemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#SAtemplateName").val().toLowerCase().replace(/ /g, "-");
       }

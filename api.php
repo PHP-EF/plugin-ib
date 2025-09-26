@@ -1,5 +1,54 @@
 <?php
 
+// TEST
+$app->get('/plugin/ib/extract', function ($request, $response, $args) {
+	$ibPlugin = new SecurityAssessment();
+	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
+		$ibPlugin->api->setAPIResponseData($ibPlugin->TestExtract());
+	}
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
+$app->get('/plugin/ib/compress', function ($request, $response, $args) {
+	$ibPlugin = new SecurityAssessment();
+	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
+		$ibPlugin->api->setAPIResponseData($ibPlugin->TestCompress());
+	}
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
+$app->get('/plugin/ib/change', function ($request, $response, $args) {
+	$ibPlugin = new SecurityAssessment();
+	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
+		$ibPlugin->api->setAPIResponseData($ibPlugin->TestManipulation());
+	}
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
+$app->get('/plugin/ib/doAll', function ($request, $response, $args) {
+	$ibPlugin = new SecurityAssessment();
+	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
+        $ibPlugin->TestExtract();
+		$ibPlugin->TestManipulation();
+        $ibPlugin->api->setAPIResponseData($ibPlugin->TestCompress());
+	}
+	$response->getBody()->write(jsonE($GLOBALS['api']));
+	return $response
+		->withHeader('Content-Type', 'application/json;charset=UTF-8')
+		->withStatus($GLOBALS['responseCode']);
+});
+
+
+
 // Get Plugin Settings
 $app->get('/plugin/ib/settings', function ($request, $response, $args) {
 	$ibPlugin = new ibPlugin();
@@ -161,10 +210,11 @@ $app->post('/plugin/ib/assessment/security/config', function ($request, $respons
             $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
             $Description = $data['Description'] ?? null;
             $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
+            $SOCInsightsSlide = $data['SOCInsightsSlide'] ?? null;
             $Orientation = $data['Orientation'] ?? null;
             $isDefault = $data['isDefault'] ?? null;
             $TemplateName = $data['TemplateName'];
-            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault);
+            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault);
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -185,7 +235,8 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
         $Description = $data['Description'] ?? null;
         $isDefault = $data['isDefault'] ?? null;
         $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
-        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault);
+        $SOCInsightsSlide = $data['SOCInsightsSlide'] ?? null;
+        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault);
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response

@@ -22,6 +22,7 @@ class TemplateConfig extends ibPlugin {
           TemplateName TEXT,
           Description TEXT,
           ThreatActorSlide INTEGER,
+          SOCInsightsSlide INTEGER,
           Orientation TEXT,
           isDefault BOOLEAN,
           Created DATE,
@@ -60,7 +61,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault) {
+    public function newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault) {
         $FileName = $FileName ? 'security-' . $FileName : null;
         try {
             // Check if filename already exists
@@ -73,10 +74,10 @@ class TemplateConfig extends ibPlugin {
         } catch (PDOException $e) {
 			$this->api->setAPIResponse('Error',$e);
         }
-        $stmt = $this->sql->prepare("INSERT INTO security_assessment_templates (Status, FileName, TemplateName, Description, ThreatActorSlide, Orientation, isDefault, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :ThreatActorSlide, :Orientation, :isDefault, :Created)");
+        $stmt = $this->sql->prepare("INSERT INTO security_assessment_templates (Status, FileName, TemplateName, Description, ThreatActorSlide, SOCInsightsSlide, Orientation, isDefault, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :ThreatActorSlide, :SOCInsightsSlide, :Orientation, :isDefault, :Created)");
         try {
             $CurrentDate = new DateTime();
-            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':ThreatActorSlide' => urldecode($ThreatActorSlide), ':Orientation' => urldecode($Orientation), ':isDefault' => urldecode($isDefault), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
+            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':ThreatActorSlide' => urldecode($ThreatActorSlide), ':SOCInsightsSlide' => urldecode($SOCInsightsSlide), ':Orientation' => urldecode($Orientation), ':isDefault' => urldecode($isDefault), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
             $id = $this->sql->lastInsertId();
             // Mark other templates as inactive
             // if ($Status == 'Active') {
@@ -95,7 +96,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function setSecurityAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$Orientation,$isDefault) {
+    public function setSecurityAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault) {
         $FileName = $FileName ? 'security-' . $FileName : null;
         $templateConfig = $this->getSecurityAssessmentTemplateConfigById($id);
         if ($templateConfig) {
@@ -144,6 +145,10 @@ class TemplateConfig extends ibPlugin {
             if ($ThreatActorSlide !== null) {
                 $prepare[] = 'ThreatActorSlide = :ThreatActorSlide';
                 $execute[':ThreatActorSlide'] = urldecode($ThreatActorSlide);
+            }
+            if ($SOCInsightsSlide !== null) {
+                $prepare[] = 'SOCInsightsSlide = :SOCInsightsSlide';
+                $execute[':SOCInsightsSlide'] = urldecode($SOCInsightsSlide);
             }
             if ($Orientation !== null) {
                 $prepare[] = 'Orientation = :Orientation';

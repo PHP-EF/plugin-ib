@@ -19,6 +19,125 @@ class SecurityAssessment extends ibPortal {
 		$this->TemplateConfig = new TemplateConfig();
 	}
 
+	// public function TestExtract() {
+	// 	extractZip($this->getDir()['Files'].'/templates/security-latest-(portrait).pptx',$this->getDir()['Files'].'/reports/test');
+	// 	// extractZip($this->getDir()['Files'].'/reports/test1.pptx',$this->getDir()['Files'].'/reports/test');
+	// }
+
+	// public function TestManipulation() {
+	// 	// Open PPTX Presentation _rels XML
+	// 	$xml_rels = null;
+	// 	$xml_rels = new DOMDocument('1.0', 'utf-8');
+	// 	$xml_rels->formatOutput = true;
+	// 	$xml_rels->preserveWhiteSpace = false;
+	// 	$xml_rels->load($this->getDir()['Files'].'/reports/test/ppt/_rels/presentation.xml.rels');
+
+	// 	// Open PPTX Presentation XML
+	// 	$xml_pres = new DOMDocument('1.0', 'utf-8');
+	// 	$xml_pres->formatOutput = true;
+	// 	$xml_pres->preserveWhiteSpace = false;
+	// 	$xml_pres->load($this->getDir()['Files'].'/reports/test/ppt/presentation.xml');
+		
+	// 	// Qty of slides to end up with
+	// 	$SOCInsightsSlideCount = 2;
+
+	// 	// New slides to be appended after this slide number
+	// 	$SOCInsightsSlideStart = 17;
+	// 	// Calculate the slide position based on above value
+	// 	$SOCInsightsSlidePosition = $SOCInsightsSlideStart-2;
+		
+	// 	// Tag Numbers Start
+	// 	$SITagStart = 100;
+		
+	// 	// Create Document Fragments for appending new relationships and set Starting Integers
+	// 	$xml_rels_f = $xml_rels->createDocumentFragment();
+	// 	$xml_rels_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
+	// 	$xml_pres_f = $xml_pres->createDocumentFragment();
+	// 	$xml_pres_fstart = 13700;
+
+	// 	// Get Slide Count
+	// 	$SISlidesCount = iterator_count(new FilesystemIterator($this->getDir()['Files'].'/reports/test/ppt/slides'));
+	// 	// Set first slide number
+	// 	$SISlideNumber = $SISlidesCount++;
+
+	// 	// Create new relationship / slide ID
+	// 	$xml_rels_f->appendXML('<Relationship Id="rId150" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
+	// 	$xml_pres_f->appendXML('<p:sldId id="13700" r:id="rId150"/>');
+
+	// 	// Clone Slides
+	// 	copy($this->getDir()['Files'].'/reports/test/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$this->getDir()['Files'].'/reports/test/ppt/slides/slide'.$SISlideNumber.'.xml');
+	// 	copy($this->getDir()['Files'].'/reports/test/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$this->getDir()['Files'].'/reports/test/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+	// 	// Append new relationship / slide ID
+	// 	$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_f);
+	// 	$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_f);
+
+	// 	// Save core XML files
+	// 	$xml_rels->save($this->getDir()['Files'].'/reports/test/ppt/_rels/presentation.xml.rels');
+	// 	$xml_pres->save($this->getDir()['Files'].'/reports/test/ppt/presentation.xml');
+
+	// 	// Load Slide XML _rels
+	// 	$xml_sis = new DOMDocument('1.0', 'utf-8');
+	// 	$xml_sis->formatOutput = true;
+	// 	$xml_sis->preserveWhiteSpace = false;
+	// 	$xml_sis->load($this->getDir()['Files'].'/reports/test/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+	// 	// Remove notes
+	// 	foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+	// 		// Remove notes references to avoid having to create unneccessary notes resources
+	// 		if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
+	// 			$element->remove();
+	// 		}
+	// 		if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+	// 			$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+	// 			$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+	// 			$NewChartNumber = $OldChartNumber + 50;
+	// 			copy($this->getDir()['Files'].'/reports/test/ppt/charts/chart'.$OldChartNumber.'.xml',$this->getDir()['Files'].'/reports/test/ppt/charts/chart'.$NewChartNumber.'.xml');
+	// 			copy($this->getDir()['Files'].'/reports/test/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$this->getDir()['Files'].'/reports/test/ppt/charts/_rels/chart'.$NewChartNumber.'.xml.rels');
+	// 			$element->setAttribute('Target','../charts/chart'.$NewChartNumber.'.xml');
+
+	// 			// Load Chart XML Rels
+	// 			$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+	// 			$xml_chart_rels->formatOutput = true;
+	// 			$xml_chart_rels->preserveWhiteSpace = false;
+	// 			$xml_chart_rels->load($this->getDir()['Files'].'/reports/test/ppt/charts/_rels/chart'.$NewChartNumber.'.xml.rels');
+
+	// 			// Get colors and style relationships
+	// 			// http://schemas.microsoft.com/office/2011/relationships/chartColorStyle
+	// 			// http://schemas.microsoft.com/office/2011/relationships/chartStyle
+	// 			foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+	// 				if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
+	// 					$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
+	// 					$OldColourNumber = str_replace('.xml','',$OldColourNumber);
+	// 					$NewColourNumber = $OldColourNumber + 50;
+	// 					copy($this->getDir()['Files'].'/reports/test/ppt/charts/colors'.$OldColourNumber.'.xml',$this->getDir()['Files'].'/reports/test/ppt/charts/colors'.$NewColourNumber.'.xml');
+	// 					$element_c->setAttribute('Target','../charts/colors'.$NewColourNumber.'.xml');
+	// 				} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
+	// 					$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
+	// 					$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
+	// 					$NewStyleNumber = $OldStyleNumber + 50;
+	// 					copy($this->getDir()['Files'].'/reports/test/ppt/charts/style'.$OldStyleNumber.'.xml',$this->getDir()['Files'].'/reports/test/ppt/charts/style'.$NewStyleNumber.'.xml');
+	// 					$element_c->setAttribute('Target','../charts/style'.$NewStyleNumber.'.xml');
+	// 				} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+	// 					$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+	// 					$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+	// 					$NewEmbeddedNumber = $OldEmbeddedNumber + 50;
+	// 					copy($this->getDir()['Files'].'/reports/test/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$this->getDir()['Files'].'/reports/test/ppt/embeddings/Microsoft_Excel_Worksheet'.$NewEmbeddedNumber.'.xlsx');
+	// 					$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$NewEmbeddedNumber.'.xlsx');
+	// 				}
+	// 			}
+
+	// 			$xml_chart_rels->save($this->getDir()['Files'].'/reports/test/ppt/charts/_rels/chart'.$NewChartNumber.'.xml.rels');
+	// 		}
+	// 	}
+
+	// 	$xml_sis->save($this->getDir()['Files'].'/reports/test/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+	// }
+
+	// public function TestCompress() {
+	// 	compressZip($this->getDir()['Files'].'/reports/test.pptx',$this->getDir()['Files'].'/reports/test');
+	// }
+
 	public function generateSecurityReport($config) {
 		// Pass APIKey & Realm to ThreatActors Class
 		$this->ThreatActors = new ThreatActors();
@@ -1332,6 +1451,124 @@ class SecurityAssessment extends ibPortal {
 				$xml_pres->preserveWhiteSpace = false;
 				$xml_pres->load($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
 
+				// 
+				// Do SOC Insight Stuff Here ....
+				// 
+				// Skip SOC Insight Slides if Slide Number is set to 0
+				if ($SelectedTemplate['SOCInsightsSlide'] != 0) {
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Generating SOC Insights Slides");
+
+					$SOCInsightDetailsQuery = $this->queryCSP('get','/api/v1/insights?status=Active');
+					$SOCInsightDetails = $SOCInsightDetailsQuery->insightList ?? [];
+					$SOCInsightSlideCount = count($SOCInsightDetails);
+
+					// New slides to be appended after this slide number
+					$SOCInsightsSlideStart = $SelectedTemplate['SOCInsightsSlide'];
+					// Calculate the slide position based on above value
+					$SOCInsightsSlidePosition = $SOCInsightsSlideStart-2;
+					
+					// Tag Numbers Start
+					$SITagStart = 100;
+					
+					// Create Document Fragments for appending new relationships and set Starting Integers
+					$xml_rels_soc_f = $xml_rels->createDocumentFragment();
+					$xml_rels_soc_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
+					$xml_pres_soc_f = $xml_pres->createDocumentFragment();
+					$xml_pres_soc_fstart = 13700;
+
+					// Get Slide Count
+					$SISlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
+					// Set first slide number
+					$SISlideNumber = $SISlidesCount++;
+					$SIChartNumber = 50;
+
+					foreach ($SOCInsightDetails as $SID) {
+						if (($SOCInsightSlideCount - 1) > 0) {
+							$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
+							$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
+							$xml_rels_soc_fstart++;
+							$xml_pres_soc_fstart++;
+							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+						} else {
+							$SISlideNumber = $SOCInsightsSlideStart;
+						}
+
+						// Load Slide XML _rels
+						$xml_sis = new DOMDocument('1.0', 'utf-8');
+						$xml_sis->formatOutput = true;
+						$xml_sis->preserveWhiteSpace = false;
+						$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+						// Remove notes
+						foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+							// Remove notes references to avoid having to create unneccessary notes resources
+							if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
+								$element->remove();
+							}
+							if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+								$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+								$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+								$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
+
+								// Load Chart XML Rels
+								$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+								$xml_chart_rels->formatOutput = true;
+								$xml_chart_rels->preserveWhiteSpace = false;
+								$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+
+								// Duplicate colours, styles & embedded excel files
+								foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+									if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
+										$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
+										$OldColourNumber = str_replace('.xml','',$OldColourNumber);
+										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
+										$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
+									} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
+										$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
+										$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
+										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
+										$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
+									} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+										$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+										$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+										copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+										$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+									}
+								}
+
+								$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+								
+								$SIChartNumber++;
+							}
+						}
+
+						// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
+						$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+						// Update Tag Numbers
+						$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+						$SISFile = str_replace('#SITAG00', '#SITAG'.$SITagStart, $SISFile);
+						file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
+						// Increment Tag Number
+						$SITagStart++;
+						// Decrement Slide Count
+						$SOCInsightSlideCount--;
+						// Increment Slide Number
+						$SISlideNumber++;
+					}
+
+					// Append Elements to Core XML Files
+					$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_soc_f);
+					// Append new slides to specific position
+					$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_soc_f);
+
+				} else {
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Skipping SOC Insights Slides");
+				}
+
 				//
 				// Do Threat Actor Stuff Here ....
 				//
@@ -1341,21 +1578,21 @@ class SecurityAssessment extends ibPortal {
 					// New slides to be appended after this slide number
 					$ThreatActorSlideStart = $SelectedTemplate['ThreatActorSlide'];
 					// Calculate the slide position based on above value
-					$ThreatActorSlidePosition = $ThreatActorSlideStart-2;
+					$ThreatActorSlidePosition = ($ThreatActorSlideStart-2);
 		
 					// Tag Numbers Start
-					$TagStart = 100;
+					$TATagStart = 100;
 		
 					// Create Document Fragments and set Starting Integers
-					$xml_rels_f = $xml_rels->createDocumentFragment();
-					$xml_rels_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
-					$xml_pres_f = $xml_pres->createDocumentFragment();
-					$xml_pres_fstart = 14700;
+					$xml_rels_ta_f = $xml_rels->createDocumentFragment();
+					$xml_rels_ta_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+250;
+					$xml_pres_ta_f = $xml_pres->createDocumentFragment();
+					$xml_pres_ta_fstart = 14700;
 
 					// Get Slide Count
-					$SlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
+					$TASlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
 					// Set first slide number
-					$SlideNumber = $SlidesCount++;
+					$TASlideNumber = $TASlidesCount++;
 					// Copy Blank Threat Actor Image
 					copy($this->getDir()['PluginData'].'/images/logo-only.png',$SelectedTemplate['ExtractedDir'].'/ppt/media/logo-only.png');
 					// Build new Threat Actor Slides & Update PPTX Resources
@@ -1364,18 +1601,18 @@ class SecurityAssessment extends ibPortal {
 						foreach  ($ThreatActorInfo as $TAI) {
 							$KnownActor = $this->ThreatActors->getThreatActorConfigByName($TAI['actor_name']);
 							if (($ThreatActorSlideCountIt - 1) > 0) {
-								$xml_rels_f->appendXML('<Relationship Id="rId'.$xml_rels_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SlideNumber.'.xml"/>');
-								$xml_pres_f->appendXML('<p:sldId id="'.$xml_pres_fstart.'" r:id="rId'.$xml_rels_fstart.'"/>');
-								$xml_rels_fstart++;
-								$xml_pres_fstart++;
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$ThreatActorSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml');
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$ThreatActorSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
+								$xml_rels_ta_f->appendXML('<Relationship Id="rId'.$xml_rels_ta_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$TASlideNumber.'.xml"/>');
+								$xml_pres_ta_f->appendXML('<p:sldId id="'.$xml_pres_ta_fstart.'" r:id="rId'.$xml_rels_ta_fstart.'"/>');
+								$xml_rels_ta_fstart++;
+								$xml_pres_ta_fstart++;
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$ThreatActorSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml');
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$ThreatActorSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
 							} else {
-								$SlideNumber = $ThreatActorSlideStart;
+								$TASlideNumber = $ThreatActorSlideStart;
 							}
 							// Update Tag Numbers
-							$TASFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml');
-							$TASFile = str_replace('#TATAG00', '#TATAG'.$TagStart, $TASFile);
+							$TASFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml');
+							$TASFile = str_replace('#TATAG00', '#TATAG'.$TATagStart, $TASFile);
 							// Add Threat Actor Icon
 							switch($SelectedTemplate['Orientation']) {
 								case 'Portrait':
@@ -1433,11 +1670,11 @@ class SecurityAssessment extends ibPortal {
 								//$InfobloxReferenceFound = true;
 							}
 							// Update Slide XML with changes
-							file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml', $TASFile);
+							file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml', $TASFile);
 							$xml_tas = new DOMDocument('1.0', 'utf-8');
 							$xml_tas->formatOutput = true;
 							$xml_tas->preserveWhiteSpace = false;
-							$xml_tas->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
+							$xml_tas->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
 							foreach ($xml_tas->getElementsByTagName('Relationship') as $element) {
 								// Remove notes references to avoid having to create unneccessary notes resources
 								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
@@ -1480,17 +1717,17 @@ class SecurityAssessment extends ibPortal {
 							}
 		
 							$xml_tas->getElementsByTagName('Relationships')->item(0)->appendChild($xml_tas_f);
-							$xml_tas->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
-							$TagStart += 10;
+							$xml_tas->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
+							$TATagStart += 10;
 							// Iterate slide number
-							$SlideNumber++;
+							$TASlideNumber++;
 							$ThreatActorSlideCountIt--;
 						}
 		
 						// Append Elements to Core XML Files
-						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_f);
+						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_ta_f);
 						// Append new slides to specific position
-						$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_f);
+						$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_ta_f);
 
 						//
 						// End of Threat Actors
@@ -1739,7 +1976,7 @@ class SecurityAssessment extends ibPortal {
 				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
-				$TagStart = 100;
+				$TATagStart = 100;
 				if (isset($ThreatActorInfo)) {
 					foreach ($ThreatActorInfo as $TAI) {
 						// Workaround for EU / US Realm Alignment
@@ -1829,18 +2066,17 @@ class SecurityAssessment extends ibPortal {
 						// }
 						// Workaround End
 		
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'01',ucwords($TAI['actor_name'])); // Threat Actor Name
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'02',$TAI['actor_description']); // Threat Actor Description
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'03',$IndicatorCount); // Number of Observed IOCs
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'04',$IndicatorsNotObserved); // Number of Observed IOCs not observed
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'05',$TAI['related_count']); // Number of Related IOCs
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'06',$DaysAhead); // Discovered X Days Ahead
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'07',$FirstSeen->format('d/m/y')); // First Detection Date
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'08',$LastSeen->format('d/m/y')); // Last Detection Date
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'09',$ProtectedFor); // Protected X Days
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'10',$ExampleDomain); // Example Domain
-						$TagStart += 10;
-		
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'01',ucwords($TAI['actor_name'])); // Threat Actor Name
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'02',$TAI['actor_description']); // Threat Actor Description
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'03',$IndicatorCount); // Number of Observed IOCs
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'04',$IndicatorsNotObserved); // Number of Observed IOCs not observed
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'05',$TAI['related_count']); // Number of Related IOCs
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'06',$DaysAhead); // Discovered X Days Ahead
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'07',$FirstSeen->format('d/m/y')); // First Detection Date
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'08',$LastSeen->format('d/m/y')); // Last Detection Date
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'09',$ProtectedFor); // Protected X Days
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'10',$ExampleDomain); // Example Domain
+						$TATagStart += 10;
 					}
 				}
 
@@ -1919,7 +2155,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 18) + 34,
+			'Total' => ($Total * 19) + 34,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
