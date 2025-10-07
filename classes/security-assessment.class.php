@@ -290,6 +290,9 @@ class SecurityAssessment extends ibPortal {
 				$CubeJSRequests['ThreatActors'] = '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}';
 			// }
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
+
+			// Define SOC Insights Cube JS Array
+			$SOCInsightsCubeJSRequests = array();
 	
 			// Extract Powerpoint Template(s) as Zip
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Extracting template(s)");
@@ -488,7 +491,29 @@ class SecurityAssessment extends ibPortal {
 			if (isset($HighInsightsId) AND $HighInsightsId !== false) {$HighInsights = $SOCInsights->result->data[$HighInsightsId]->{'InsightsAggregated.count'};} else {$HighInsights = 0;}
 			if (isset($CriticalInsightsId) AND $CriticalInsightsId !== false) {$CriticalInsights = $SOCInsights->result->data[$CriticalInsightsId]->{'InsightsAggregated.count'};} else {$CriticalInsights = 0;}
 	
+			// SOC Insights Details - Slide 16+
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Details");
+			$SOCInsightDetailsQuery = $this->queryCSP('get','/api/v1/insights?status=Active');
+			$SOCInsightDetails = $SOCInsightDetailsQuery->insightList ?? [];
+			// Create array for blocked/not blocked indicator counts by insightId
+			$SOCInsightsIndicatorsBlockedCounts = [];
 			
+			// Build CubeJS Queries for each insight
+			foreach ($SOCInsightDetails as $SID) {
+				// General Info - Blocked Count, Confidence Level, Description, Feed Source, Insight Status, Insight ID, Most Recent At, Not Blocked Count, Persistent, Persistent Date, Spreading, Spreading Date, Started At, Threat Level, Threat Type, TClass, TFamily
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-general'] = '{"order":{"InsightDetails.mostRecentAt":"desc"},"timeDimensions":[{"dimension":"InsightDetails.eventSummaryHour","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"measures":["InsightDetails.blockedCount","InsightDetails.notBlockedCount","InsightDetails.numEvents","InsightDetails.mostRecentAt"],"dimensions":["InsightDetails.insightId","InsightDetails.tClass","InsightDetails.tFamily","InsightDetails.threatType","InsightDetails.description","InsightDetails.threatLevel","InsightDetails.feedSource","InsightDetails.startedAt","InsightDetails.confidenceLevel","InsightDetails.insightStatus","InsightDetails.persistent","InsightDetails.persistentDate","InsightDetails.spreading","InsightDetails.spreadingDate"],"filters":[{"member":"InsightDetails.insightId","operator":"equals","values":["'.$SID->insightId.'"]}],"timezone":"UTC"}';
+
+				// Total Asset Count / Verified Asset Count / Unverified Asset Count
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetCounts'] = '{"filters":[{"member":"PortunusAggIPSummary_ch.tclass","values":["'.$SID->tClass.'"],"operator":"equals"},{"member":"PortunusAggIPSummary_ch.tfamily","values":["'.$SID->tFamily.'"],"operator":"equals"}],"segments":[],"dimensions":["PortunusAggIPSummary_ch.tfamily","PortunusAggIPSummary_ch.tclass"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary_ch.timestamp","granularity":null}],"measures":["PortunusAggIPSummary_ch.unknownAssetCount","PortunusAggIPSummary_ch.knownAssetCount","PortunusAggIPSummary_ch.totalAssetCount"],"ungrouped":false}';
+
+				// Get Total Blocked/Not Blocked Indicator Counts
+				$IndicatorStart = (new DateTime($StartDimension))->format('Y-m-d\TH:i:s').'.000';
+				$IndicatorEnd = (new DateTime($EndDimension))->format('Y-m-d\TH:i:s').'.000';
+				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass='.$SID->tClass.'&tfamily='.$SID->tFamily.'&insight_type=rpz&from=".$IndicatorStart."&to=".$IndicatorEnd);
+			}
+			// Invoke CubeJS to populate SOC Insight Data
+			$SOCInsightsCubeJSResults = $this->QueryCubeJSMulti($SOCInsightsCubeJSRequests);
+
 			// ** Industry Vertical Start 
 			// ** //
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Industry Vertical Metrics");
@@ -951,7 +976,7 @@ class SecurityAssessment extends ibPortal {
 			}
 			// Fix some weird behaviour with time
 			$ZDDEndDimension = (new DateTime($EndDimension))->modify('+1 hour')->format('Y-m-d\TH:i:s');
-			$ZeroDayDNSDetectionsUri = '/tide-rpz-stats/v1/zero_day_detections?from='.$ZDDStartDimension.'Z&to='.$ZDDEndDimension.'Z';
+			$ZeroDayDNSDetectionsUri = 'tide-rpz-stats/v1/zero_day_detections?from='.$ZDDStartDimension.'Z&to='.$ZDDEndDimension.'Z';
 			$ZeroDayDNSDetections = $this->QueryCSP("get",$ZeroDayDNSDetectionsUri);
 
 			// Work out number percentage of Suspicious and Malicious domains
@@ -1453,13 +1478,11 @@ class SecurityAssessment extends ibPortal {
 
 				// 
 				// Do SOC Insight Stuff Here ....
-				// 
+				//
 				// Skip SOC Insight Slides if Slide Number is set to 0
 				if ($SelectedTemplate['SOCInsightsSlide'] != 0) {
 					$Progress = $this->writeProgress($config['UUID'],$Progress,"Generating SOC Insights Slides");
 
-					$SOCInsightDetailsQuery = $this->queryCSP('get','/api/v1/insights?status=Active');
-					$SOCInsightDetails = $SOCInsightDetailsQuery->insightList ?? [];
 					$SOCInsightSlideCount = count($SOCInsightDetails);
 
 					// New slides to be appended after this slide number
@@ -1500,7 +1523,6 @@ class SecurityAssessment extends ibPortal {
 						$xml_sis->preserveWhiteSpace = false;
 						$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 
-						// Remove notes
 						foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
 							// Remove notes references to avoid having to create unneccessary notes resources
 							if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
@@ -1564,7 +1586,6 @@ class SecurityAssessment extends ibPortal {
 					$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_soc_f);
 					// Append new slides to specific position
 					$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_soc_f);
-
 				} else {
 					$Progress = $this->writeProgress($config['UUID'],$Progress,"Skipping SOC Insights Slides");
 				}
@@ -1973,6 +1994,79 @@ class SecurityAssessment extends ibPortal {
 				$EstimatedReportingTokens = ceil(($TotalReportingEventsCount / 10000000) * 40);
 				$mapping = replaceTag($mapping,'#TAG123',number_abbr($EstimatedReportingTokens*1.2)); // Estimated Reporting Tokens + 20%
 
+				##// Slide 16+ - SOC Insight Details
+				$SITagStart = 100;
+				if (isset($SOCInsightDetails)) {
+					foreach ($SOCInsightDetails as $SID) {
+						$SOCInsightCubeResponseGeneral = $SOCInsightsCubeJSResults[$SID->insightId.'-general']['Body'] ?? [];
+						$SOCInsightCubeResponseAssets = $SOCInsightsCubeJSResults[$SID->insightId.'-assetCounts']['Body'] ?? [];
+						$SOCInsightIndicatorsBlockedCounts = $SOCInsightsIndicatorsBlockedCounts[$SID->insightId] ?? [];
+
+						$MassSpreading = '';
+						$PersistentThreat = '';
+						$TotalEvents = 0;
+						foreach ($SOCInsightCubeResponseGeneral->result->data as $InsightGeneral) {
+							if ($InsightGeneral->{'InsightDetails.spreading'}) {
+								$MassSpreading = 'Mass Spreading';
+							}
+							if ($InsightGeneral->{'InsightDetails.persistent'}) {
+								$PersistentThreat = 'Persistent Threat';
+							}
+							$TotalEvents += $InsightGeneral->{'InsightDetails.numEvents'} ?? 0;
+						}
+
+						$startedAt = new DateTime($SID->startedAt);
+						$mostRecentAt = new DateTime($SID->mostRecentAt);
+						$ActivePeriod = $startedAt->diff($mostRecentAt);
+						$ActivePeriodDays = $ActivePeriod->days ?? 0;
+
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'01',$SID->threatType ?? ''); // SOC Insight Name
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'02',$ActivePeriodDays); // Active Period
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'03',$SID->startedAt ?? ''); // Insight Creation Date
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'04',$SID->mostRecentAt ?? ''); // Last Observed Date
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'05',$SID->threatType ?? ''); // Insight Type
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'06',$SID->tClass ?? ''); // Insight Class
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'07',$SID->tFamily ?? ''); // Insight Family
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'08',$MassSpreading); // Mass Spreading Y/N
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'09',$PersistentThreat); // Persistent Threat Y/N
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'10',$PLACEHOLDER); // Qty Asset Accessing
+						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SID->eventsNotBlockedCount ?? 0); // Events Not Blocked
+						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'12',$SID->eventsBlockedCount ?? 0); // Indicators Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SOCInsightIndicatorsBlockedCounts->notBlocked ?? 0); // Indicators Not Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'12',$SOCInsightIndicatorsBlockedCounts->blocked ?? 0); // Indicators Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'13',$SOCInsightCubeResponseAssets->result->data[0]->{'PortunusAggIPSummary_ch.totalAssetCount'} ?? 0); // Total Assets
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'14',$SOCInsightIndicatorsBlockedCounts->total ?? 0); // Total Indicators
+
+						// ** Indicator Table ** //
+						// ** Item #1 ** //
+						// #SITAGXX15 - Indicator
+						// #SITAGXX16 - Blocked/Not Blocked Label
+						// #SITAGXX17 - Recommendation to Block Label
+						// #SITAGXX18 - Priority Label
+						// #SITAGXX19 - Asset Qty
+						// #SITAGXX20 - Threat Level
+						// #SITAGXX21 - Confidence
+						// #SITAGXX22 - Last Observation
+						// #SITAGXX23 - First Observation
+
+						// ** Item #2 ** //
+						// #SITAGXX24 - Indicator
+						// #SITAGXX25 - Blocked/Not Blocked Label
+						// #SITAGXX26 - Recommendation to Block Label
+						// #SITAGXX27 - Priority Label
+						// #SITAGXX28 - Asset Qty
+						// #SITAGXX29 - Threat Level
+						// #SITAGXX30 - Confidence
+						// #SITAGXX31 - Last Observation
+						// #SITAGXX32 - First Observation
+
+						
+						
+
+						$SITagStart++;
+					}
+				}
+
 				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
@@ -2155,7 +2249,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 19) + 34,
+			'Total' => ($Total * 19) + 35,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
