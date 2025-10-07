@@ -506,10 +506,16 @@ class SecurityAssessment extends ibPortal {
 				// Total Asset Count / Verified Asset Count / Unverified Asset Count
 				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetCounts'] = '{"filters":[{"member":"PortunusAggIPSummary_ch.tclass","values":["'.$SID->tClass.'"],"operator":"equals"},{"member":"PortunusAggIPSummary_ch.tfamily","values":["'.$SID->tFamily.'"],"operator":"equals"}],"segments":[],"dimensions":["PortunusAggIPSummary_ch.tfamily","PortunusAggIPSummary_ch.tclass"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary_ch.timestamp","granularity":null}],"measures":["PortunusAggIPSummary_ch.unknownAssetCount","PortunusAggIPSummary_ch.knownAssetCount","PortunusAggIPSummary_ch.totalAssetCount"],"ungrouped":false}';
 
+				// Get Total Number of Unique Assets Accessing Unblocked Indicators (deviceId Distinct Count)
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetsAccessingDeviceID'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"},{"member":"PortunusAggIPSummary.action","operator":"equals","values":["Not Blocked"]}]}';
+
+				// Get Total Number of Unique Assets Accessing Unblocked Indicators (qip Distinct Count)
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetsAccessingQIP'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.qipDistinctCount"],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"notSet"},{"member":"PortunusAggIPSummary.action","operator":"equals","values":["Not Blocked"]}]}';
+
 				// Get Total Blocked/Not Blocked Indicator Counts
 				$IndicatorStart = (new DateTime($StartDimension))->format('Y-m-d\TH:i:s').'.000';
 				$IndicatorEnd = (new DateTime($EndDimension))->format('Y-m-d\TH:i:s').'.000';
-				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass='.$SID->tClass.'&tfamily='.$SID->tFamily.'&insight_type=rpz&from=".$IndicatorStart."&to=".$IndicatorEnd);
+				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=rpz&from=".$IndicatorStart."&to=".$IndicatorEnd);
 			}
 			// Invoke CubeJS to populate SOC Insight Data
 			$SOCInsightsCubeJSResults = $this->QueryCubeJSMulti($SOCInsightsCubeJSRequests);
@@ -2001,6 +2007,7 @@ class SecurityAssessment extends ibPortal {
 						$SOCInsightCubeResponseGeneral = $SOCInsightsCubeJSResults[$SID->insightId.'-general']['Body'] ?? [];
 						$SOCInsightCubeResponseAssets = $SOCInsightsCubeJSResults[$SID->insightId.'-assetCounts']['Body'] ?? [];
 						$SOCInsightIndicatorsBlockedCounts = $SOCInsightsIndicatorsBlockedCounts[$SID->insightId] ?? [];
+						$SOCInsightAssetAccessingCount = ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingQIP']['Body']->result->data[0]->{'PortunusAggIPSummary.qipDistinctCount'} ?? 0) + ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingDeviceID']['Body']->result->data[0]->{'PortunusAggIPSummary.deviceIdDistinctCount'} ?? 0);
 
 						$MassSpreading = '';
 						$PersistentThreat = '';
@@ -2029,7 +2036,7 @@ class SecurityAssessment extends ibPortal {
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'07',$SID->tFamily ?? ''); // Insight Family
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'08',$MassSpreading); // Mass Spreading Y/N
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'09',$PersistentThreat); // Persistent Threat Y/N
-						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'10',$PLACEHOLDER); // Qty Asset Accessing
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'10',$SOCInsightAssetAccessingCount); // Qty Asset Accessing
 						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SID->eventsNotBlockedCount ?? 0); // Events Not Blocked
 						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'12',$SID->eventsBlockedCount ?? 0); // Indicators Blocked
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SOCInsightIndicatorsBlockedCounts->notBlocked ?? 0); // Indicators Not Blocked
@@ -2059,9 +2066,6 @@ class SecurityAssessment extends ibPortal {
 						// #SITAGXX30 - Confidence
 						// #SITAGXX31 - Last Observation
 						// #SITAGXX32 - First Observation
-
-						
-						
 
 						$SITagStart++;
 					}
