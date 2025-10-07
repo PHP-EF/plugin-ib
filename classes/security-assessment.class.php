@@ -353,6 +353,15 @@ class SecurityAssessment extends ibPortal {
 				)
 			];
 
+			$CriticalalityMapping = [
+				'5' => 'N/A',
+				'4' => 'Critical',
+				'3' => 'High',
+				'2' => 'Medium',
+				'1' => 'Low',
+				'0' => 'Informational'
+			];
+
 			// 10 - Outlier Insight (Assets)
 			// 11 - Outlier Insight (Indicators/Events)
 
@@ -515,7 +524,9 @@ class SecurityAssessment extends ibPortal {
 				// Get Total Blocked/Not Blocked Indicator Counts
 				$IndicatorStart = (new DateTime($StartDimension))->format('Y-m-d\TH:i:s').'.000';
 				$IndicatorEnd = (new DateTime($EndDimension))->format('Y-m-d\TH:i:s').'.000';
-				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=rpz&from=".$IndicatorStart."&to=".$IndicatorEnd);
+				// Should this be insight_type=detections or insight_type=rpz ? How do I determine this?
+				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd);
+				$SOCInsightsIndicatorsDetails[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/details?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd."&limit=1000");
 			}
 			// Invoke CubeJS to populate SOC Insight Data
 			$SOCInsightsCubeJSResults = $this->QueryCubeJSMulti($SOCInsightsCubeJSRequests);
@@ -2007,6 +2018,7 @@ class SecurityAssessment extends ibPortal {
 						$SOCInsightCubeResponseGeneral = $SOCInsightsCubeJSResults[$SID->insightId.'-general']['Body'] ?? [];
 						$SOCInsightCubeResponseAssets = $SOCInsightsCubeJSResults[$SID->insightId.'-assetCounts']['Body'] ?? [];
 						$SOCInsightIndicatorsBlockedCounts = $SOCInsightsIndicatorsBlockedCounts[$SID->insightId] ?? [];
+						$SOCInsightIndicatorsDetails = $SOCInsightsIndicatorsDetails[$SID->insightId]->result ?? [];
 						$SOCInsightAssetAccessingCount = ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingQIP']['Body']->result->data[0]->{'PortunusAggIPSummary.qipDistinctCount'} ?? 0) + ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingDeviceID']['Body']->result->data[0]->{'PortunusAggIPSummary.deviceIdDistinctCount'} ?? 0);
 
 						$MassSpreading = '';
@@ -2045,28 +2057,49 @@ class SecurityAssessment extends ibPortal {
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'14',$SOCInsightIndicatorsBlockedCounts->total ?? 0); // Total Indicators
 
 						// ** Indicator Table ** //
-						// ** Item #1 ** //
-						// #SITAGXX15 - Indicator
-						// #SITAGXX16 - Blocked/Not Blocked Label
-						// #SITAGXX17 - Recommendation to Block Label
-						// #SITAGXX18 - Priority Label
-						// #SITAGXX19 - Asset Qty
-						// #SITAGXX20 - Threat Level
-						// #SITAGXX21 - Confidence
-						// #SITAGXX22 - Last Observation
-						// #SITAGXX23 - First Observation
+						$SOCInsightIndicatorDetailStartTag = 15;
+						foreach ([0,1] as $IndicatorItem) {
+							if (isset($SOCInsightIndicatorsDetails[$IndicatorItem])) {
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.$SOCInsightIndicatorDetailStartTag,$SOCInsightIndicatorsDetails[$IndicatorItem]->indicator ?? ''); // Indicator
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+1),$SOCInsightIndicatorsDetails[$IndicatorItem]->action ?? ''); // Blocked/Not Blocked Label
+								if (isset($SOCInsightIndicatorsDetails[$IndicatorItem]->action)) {
+									if ($SOCInsightIndicatorsDetails[$IndicatorItem]->action == 'Blocked') {
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'Indicator has been added To a Threat Feed and blocked.'); // Blocked Label
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),''); // Priority Label
+									} else {
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'Indicator is not blocked. Recommend to block.'); // Not Blocked Label
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),'High Priority'); // Priority Label
+									}
+								} else {
+									$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'N/A'); // Not Blocked Label
+									$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),'N/A'); // Priority Label
+								}
 
-						// ** Item #2 ** //
-						// #SITAGXX24 - Indicator
-						// #SITAGXX25 - Blocked/Not Blocked Label
-						// #SITAGXX26 - Recommendation to Block Label
-						// #SITAGXX27 - Priority Label
-						// #SITAGXX28 - Asset Qty
-						// #SITAGXX29 - Threat Level
-						// #SITAGXX30 - Confidence
-						// #SITAGXX31 - Last Observation
-						// #SITAGXX32 - First Observation
+								// Map Threat & Confidence Level to Low, Medium, High
+								$ThreatLevel = $CriticalalityMapping[$SOCInsightIndicatorsDetails[$IndicatorItem]->threatLevelMax ?? 5] ?? '';
+								$ConfidenceLevel = $CriticalalityMapping[$SOCInsightIndicatorsDetails[$IndicatorItem]->confidenceLevelMax ?? 5] ?? '';
 
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+4),$SOCInsightIndicatorsDetails[$IndicatorItem]->qipDistinctCount); // Asset Qty
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+5),$ThreatLevel); // Threat Level
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+6),$ConfidenceLevel); // Confidence
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+7),$SOCInsightIndicatorsDetails[$IndicatorItem]->timestampMax ?? ''); // Last Observation
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+8),$SOCInsightIndicatorsDetails[$IndicatorItem]->timestampMin ?? ''); // First Observation
+							} else {
+								// No Indicator Data, clear out the tags
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.$SOCInsightIndicatorDetailStartTag,''); // Indicator
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+1),''); // Blocked/Not Blocked Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),''); // Blocked Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),''); // Priority Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+4),''); // Asset Qty
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+5),''); // Threat Level
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+6),''); // Confidence
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+7),''); // Last Observation
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+8),''); // First Observation
+
+							}
+							$SOCInsightIndicatorDetailStartTag += 9;
+						}
+						
 						$SITagStart++;
 					}
 				}
