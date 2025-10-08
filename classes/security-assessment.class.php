@@ -1646,6 +1646,22 @@ class SecurityAssessment extends ibPortal {
 									}
 								}
 							}
+
+							// Loop Through Indicator & Asset Time Series and add missing dates with 0 count
+							$StartDate = (new DateTime($StartDimension))->format('Y-m-d');
+							$EndDate = (new DateTime($EndDimension))->format('Y-m-d');
+							$CurrentDate = $StartDate;
+
+							while ($CurrentDate <= $EndDate) {
+								if (!isset($IndicatorsTimeSeriesData[$CurrentDate])) {
+									$IndicatorsTimeSeriesData[$CurrentDate] = 0;
+								}
+								if (!isset($ImpactedAssetsTimeSeriesData[$CurrentDate])) {
+									$ImpactedAssetsTimeSeriesData[$CurrentDate] = 0;
+								}
+								// Increment Date by 1 day								
+								$CurrentDate = date('Y-m-d', strtotime($CurrentDate . ' + 1 day'));
+							}
 							
 							// Sort by date
 							ksort($IndicatorsTimeSeriesData);
