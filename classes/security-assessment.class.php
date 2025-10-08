@@ -501,7 +501,7 @@ class SecurityAssessment extends ibPortal {
 			if (isset($CriticalInsightsId) AND $CriticalInsightsId !== false) {$CriticalInsights = $SOCInsights->result->data[$CriticalInsightsId]->{'InsightsAggregated.count'};} else {$CriticalInsights = 0;}
 	
 			// SOC Insights Details - Slide 16+
-			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Details");
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Details (This may take a moment)");
 			$SOCInsightDetailsQuery = $this->queryCSP('get','/api/v1/insights?status=Active');
 			$SOCInsightDetails = $SOCInsightDetailsQuery->insightList ?? [];
 			// Create array for blocked/not blocked indicator counts by insightId
@@ -527,6 +527,10 @@ class SecurityAssessment extends ibPortal {
 				// Should this be insight_type=detections or insight_type=rpz ? How do I determine this?
 				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd);
 				$SOCInsightsIndicatorsDetails[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/details?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd."&limit=1000");
+
+				// Get Impacted Assets & Indicators Time Series
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedAssetsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"dimensions":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"}]}';
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-indicatorsTimeSeries'] = '{"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"measures":["PortunusAggIPSummary.threatIndicatorDistinctCount"],"dimensions":["PortunusAggIPSummary.threat_indicator"],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]}]}';
 			}
 			// Invoke CubeJS to populate SOC Insight Data
 			$SOCInsightsCubeJSResults = $this->QueryCubeJSMulti($SOCInsightsCubeJSRequests);
@@ -1142,13 +1146,15 @@ class SecurityAssessment extends ibPortal {
 			}
 			// End of Token Calculator
 
-
 			// New Loop for support of multiple selected templates
 			// writeProgress result should be Selected Template 27 + 13 x N
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
 				usort($embeddedFiles, 'strnatcmp');
+
+				// Initialise array to hold references to excel files created for charts
+				$SOCInsightsExcelReference = [];
 
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
 	
@@ -1522,7 +1528,10 @@ class SecurityAssessment extends ibPortal {
 					$SISlideNumber = $SISlidesCount++;
 					$SIChartNumber = 50;
 
-					foreach ($SOCInsightDetails as $SID) {
+					foreach ($SOCInsightDetails as $SKEY => $SID) {
+						// Initialise array to hold references to base excel files for SOC Insights slide
+						$SOCInsightsExcelReferenceBase = [];
+
 						if (($SOCInsightSlideCount - 1) > 0) {
 							$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
 							$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
@@ -1575,6 +1584,10 @@ class SecurityAssessment extends ibPortal {
 										$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
 										copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
 										$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+
+										// Store the slide no. and embedded chart files for later use
+										$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
+										$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
 									}
 								}
 
@@ -1591,6 +1604,86 @@ class SecurityAssessment extends ibPortal {
 						$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
 						$SISFile = str_replace('#SITAG00', '#SITAG'.$SITagStart, $SISFile);
 						file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
+
+						// Get Embedded Chart References
+						if ($SKEY == 0) {
+							$SOCInsightEmbeddedChart = $SOCInsightsExcelReferenceBase[0];
+						} else {
+							$SOCInsightEmbeddedChart = $SOCInsightsExcelReference[($SKEY)];
+						}
+
+						// Populate Charts
+						foreach ([0,1] as $ChartIndex) {
+							$SOCInsightEmbeddedChartRef = $SOCInsightEmbeddedChart[$ChartIndex];
+							$SOCInsightEmbeddedChartSS = IOFactory::load($SOCInsightEmbeddedChartRef);
+							$SOCInsightEmbeddedChartS = $SOCInsightEmbeddedChartSS->getActiveSheet();
+
+							$SOCInsightsIndicatorsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-indicatorsTimeSeries']['Body'] ?? [];
+							$SOCInsightsImpactedAssetsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedAssetsTimeSeries']['Body'] ?? [];
+
+							// Summerise total number of indicators by combining all distinct counts across unique timestamp.hour
+							$IndicatorsTimeSeriesData = [];
+							if (is_array($SOCInsightsIndicatorsTimeSeries->result->data) AND count($SOCInsightsIndicatorsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsIndicatorsTimeSeries->result->data as $ISTS) {
+									$IndicatorDate = substr($ISTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+									if (isset($IndicatorsTimeSeriesData[$IndicatorDate])) {
+										$IndicatorsTimeSeriesData[$IndicatorDate] += $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
+									} else {
+										$IndicatorsTimeSeriesData[$IndicatorDate] = $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
+									}
+								}
+							}
+
+							// Summerise total number of impacted assets by combining all distinct counts across unique timestamp.hour
+							$ImpactedAssetsTimeSeriesData = [];
+							if (is_array($SOCInsightsImpactedAssetsTimeSeries->result->data) AND count($SOCInsightsImpactedAssetsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsImpactedAssetsTimeSeries->result->data as $IATS) {
+									$ImpactedAssetDate = substr($IATS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+									if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
+										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+									} else {
+										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+									}
+								}
+							}
+							
+							// Sort by date
+							ksort($IndicatorsTimeSeriesData);
+							ksort($ImpactedAssetsTimeSeriesData);
+
+							switch($ChartIndex) {
+								case 0:
+									$RowNo = 2;
+									if (is_array($ImpactedAssetsTimeSeriesData) AND count($ImpactedAssetsTimeSeriesData) > 0) {
+										foreach ($ImpactedAssetsTimeSeriesData as $Date => $Count) {
+											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+											$RowNo++;
+										}
+									} else {
+										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
+									}
+									break;
+								case 1:
+									$RowNo = 2;
+									if (is_array($IndicatorsTimeSeriesData) AND count($IndicatorsTimeSeriesData) > 0) {
+										foreach ($IndicatorsTimeSeriesData as $Date => $Count) {
+											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+											$RowNo++;
+										}
+									} else {
+										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
+									}
+									break;
+							}
+
+							$SOCInsightEmbeddedChartW = IOFactory::createWriter($SOCInsightEmbeddedChartSS, 'Xlsx');
+							$SOCInsightEmbeddedChartW->save($SOCInsightEmbeddedChartRef);
+						}
+
 						// Increment Tag Number
 						$SITagStart++;
 						// Decrement Slide Count
