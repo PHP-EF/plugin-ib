@@ -409,7 +409,7 @@ class SecurityAssessment extends ibPortal {
 				$SOCInsightsIndicatorsDetails[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/details?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd."&limit=1000");
 
 				// Get Impacted Assets & Indicators Time Series
-				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedAssetsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"dimensions":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"}]}';
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedAssetsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"dimensions":["PortunusAggIPSummary.device_id"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"}]}';
 				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedQIPsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.qipDistinctCount"],"dimensions":["PortunusAggIPSummary.qip"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"notSet"}]}';
 				$SOCInsightsCubeJSRequests[$SID->insightId.'-indicatorsTimeSeries'] = '{"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"measures":["PortunusAggIPSummary.threatIndicatorDistinctCount"],"dimensions":["PortunusAggIPSummary.threat_indicator"],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]}]}';
 			}
@@ -1524,16 +1524,31 @@ class SecurityAssessment extends ibPortal {
 								}
 							}
 
+							// Implement tracking to deduplicate assets that may appear multiple times in a given day
+							// This is currently not the way the UI works, and this needs to be addressed by engineering
+							$ImpactedAssetsCountedByDate = [];
+							$ImpactedQIPsCountedByDate = [];
+
 							// Summerise total number of impacted assets by combining all distinct counts across unique timestamp.hour
 							$ImpactedAssetsTimeSeriesData = [];
 							if (is_array($SOCInsightsImpactedAssetsTimeSeries->result->data) AND count($SOCInsightsImpactedAssetsTimeSeries->result->data) > 0) {
 								foreach ($SOCInsightsImpactedAssetsTimeSeries->result->data as $IATS) {
 									$ImpactedAssetDate = substr($IATS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
-									if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
-										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
-									} else {
-										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+
+									// Deduplication
+									if (!isset($ImpactedAssetsCountedByDate[$ImpactedAssetDate])) {
+										$ImpactedAssetsCountedByDate[$ImpactedAssetDate] = [];
 									}
+									if (!in_array($IATS->{'PortunusAggIPSummary.device_id'}, $ImpactedAssetsCountedByDate[$ImpactedAssetDate])) { // Deduplication
+										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
+											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+										} else {
+											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+										}
+									}
+
+									// Deduplication
+									$ImpactedAssetsCountedByDate[$ImpactedAssetDate][] = $IATS->{'PortunusAggIPSummary.device_id'};
 								}
 							}
 
@@ -1541,11 +1556,21 @@ class SecurityAssessment extends ibPortal {
 							if (is_array($SOCInsightsImpactedQIPsTimeSeries->result->data) AND count($SOCInsightsImpactedQIPsTimeSeries->result->data) > 0) {
 								foreach ($SOCInsightsImpactedQIPsTimeSeries->result->data as $IQTS) {
 									$ImpactedQIPDate = substr($IQTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
-									if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
-										$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
-									} else {
-										$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+
+									// Deduplication
+									if (!isset($ImpactedQIPsCountedByDate[$ImpactedQIPDate])) {
+										$ImpactedQIPsCountedByDate[$ImpactedQIPDate] = [];
 									}
+									if (!in_array($IQTS->{'PortunusAggIPSummary.qip'}, $ImpactedQIPsCountedByDate[$ImpactedQIPDate])) { // Deduplication
+										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
+											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+										} else {
+											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+										}
+									}
+
+									// Deduplication
+									$ImpactedQIPsCountedByDate[$ImpactedQIPDate][] = $IQTS->{'PortunusAggIPSummary.qip'};
 								}
 							}
 
