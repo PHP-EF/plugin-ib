@@ -2046,7 +2046,8 @@ class SecurityAssessment extends ibPortal {
 						}
 
 						$startedAt = new DateTime($SID->startedAt);
-						$mostRecentAt = new DateTime($SID->mostRecentAt);
+						// $mostRecentAt = new DateTime($SID->mostRecentAt);
+						$mostRecentAt = new DateTime();
 						$ActivePeriod = $startedAt->diff($mostRecentAt);
 						$ActivePeriodDays = $ActivePeriod->days ?? 0;
 
