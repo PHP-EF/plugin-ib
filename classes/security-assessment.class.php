@@ -1408,77 +1408,84 @@ class SecurityAssessment extends ibPortal {
 					$SISlideNumber = $SISlidesCount++;
 					$SIChartNumber = 50;
 
-					foreach ($SOCInsightDetails as $SKEY => $SID) {
-						// Initialise array to hold references to base excel files for SOC Insights slide
-						$SOCInsightsExcelReferenceBase = [];
+					// Initialise array to hold references to base excel files for SOC Insights slide
+					$SOCInsightsExcelReferenceBase = [];
 
+					// Flip first $SOCInsightDetails element to end of array to maintain order when inserting after selected slide
+					$FirstElement = array_shift($SOCInsightDetails);
+					array_push($SOCInsightDetails, $FirstElement);
+					
+					foreach ($SOCInsightDetails as $SKEY => $SID) {
 						if (($SOCInsightSlideCount - 1) > 0) {
+							// Reinitalize array to avoid duplicates
+							$SOCInsightsExcelReferenceBase = [];
+
 							$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
 							$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
 							$xml_rels_soc_fstart++;
 							$xml_pres_soc_fstart++;
 							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
 							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+							// Load Slide XML _rels
+							$xml_sis = new DOMDocument('1.0', 'utf-8');
+							$xml_sis->formatOutput = true;
+							$xml_sis->preserveWhiteSpace = false;
+							$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+							foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+								// Remove notes references to avoid having to create unneccessary notes resources
+								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
+									$element->remove();
+								}
+								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+									$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+									$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
+									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+									$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
+
+									// Load Chart XML Rels
+									$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+									$xml_chart_rels->formatOutput = true;
+									$xml_chart_rels->preserveWhiteSpace = false;
+									$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+
+									// Duplicate colours, styles & embedded excel files
+									foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+										if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
+											$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
+											$OldColourNumber = str_replace('.xml','',$OldColourNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
+											$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
+										} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
+											$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
+											$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
+											$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
+										} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+											$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+											$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+											$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+
+											// Store the slide no. and embedded chart files for later use
+											$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
+											$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
+										}
+									}
+
+									$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+									
+									$SIChartNumber++;
+								}
+							}
+
+							// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
+							$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 						} else {
 							$SISlideNumber = $SOCInsightsSlideStart;
 						}
-
-						// Load Slide XML _rels
-						$xml_sis = new DOMDocument('1.0', 'utf-8');
-						$xml_sis->formatOutput = true;
-						$xml_sis->preserveWhiteSpace = false;
-						$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
-
-						foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
-							// Remove notes references to avoid having to create unneccessary notes resources
-							if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
-								$element->remove();
-							}
-							if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
-								$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
-								$OldChartNumber = str_replace('.xml','',$OldChartNumber);
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
-								$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
-
-								// Load Chart XML Rels
-								$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
-								$xml_chart_rels->formatOutput = true;
-								$xml_chart_rels->preserveWhiteSpace = false;
-								$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
-
-								// Duplicate colours, styles & embedded excel files
-								foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
-									if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
-										$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
-										$OldColourNumber = str_replace('.xml','',$OldColourNumber);
-										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
-										$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
-									} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
-										$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
-										$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
-										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
-										$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
-									} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
-										$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
-										$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
-										copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
-										$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
-
-										// Store the slide no. and embedded chart files for later use
-										$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
-										$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
-									}
-								}
-
-								$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
-								
-								$SIChartNumber++;
-							}
-						}
-
-						// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
-						$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 
 						// Update Tag Numbers
 						$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
@@ -1486,7 +1493,8 @@ class SecurityAssessment extends ibPortal {
 						file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
 
 						// Get Embedded Chart References
-						if ($SKEY == 0) {
+						if ($SISlideNumber == $SOCInsightsSlideStart) {
+						// if ($SKEY == 0) {
 							$SOCInsightEmbeddedChart = $SOCInsightsExcelReferenceBase[0];
 						} else {
 							$SOCInsightEmbeddedChart = $SOCInsightsExcelReference[($SKEY)];
@@ -1931,7 +1939,7 @@ class SecurityAssessment extends ibPortal {
 				if ($IVPDLConfirmedThreatsSeenTrend >= 0){$MISarrow='↑';} else {$MISarrow='↓';}
 				$mapping = replaceTag($mapping,'#TAG74',$MISarrow); // Arrow Up/Down
 				$mapping = replaceTag($mapping,'#TAG75',number_format($IVPDLConfirmedThreatsSeenTrend, 2).'%'); // Malicious Indicators - Your Average - Percent Changed
-				$mapping = replaceTag($mapping,'#TAG76',number_abbr(($IVIDLConfirmedThreatsSeenSum) / $IVIndustryPeerCount)); // Malicious Indicators - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG76',number_abbr(($IVIDLConfirmedThreatsSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Malicious Indicators - Industry Average - Count
 				$mapping = replaceTag($mapping,'#TAG77',number_format($IVIDLConfirmedThreatsSeenPercentage, 2).'%'); // Malicious Indicators - Industry Average - Percentage
 
 				// ** Risky Indicators Seen ** //
@@ -1945,7 +1953,7 @@ class SecurityAssessment extends ibPortal {
 				if ($IVPDLUnconfirmedThreatsSeenTrend >= 0){$RISarrow='↑';} else {$RISarrow='↓';}
 				$mapping = replaceTag($mapping,'#TAG85',$RISarrow); // Arrow Up/Down
 				$mapping = replaceTag($mapping,'#TAG86',number_format($IVPDLUnconfirmedThreatsSeenTrend, 2).'%'); // Risky Indicators - Your Average - Percent Changed
-				$mapping = replaceTag($mapping,'#TAG87',number_abbr(($IVIDLUnconfirmedThreatsSeenSum) / $IVIndustryPeerCount)); // Risky Indicators - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG87',number_abbr(($IVIDLUnconfirmedThreatsSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Risky Indicators - Industry Average - Count
 				$mapping = replaceTag($mapping,'#TAG88',number_format($IVIDLUnconfirmedThreatsSeenPercentage, 2).'%'); // Risky Indicators - Industry Average -
 
 				// ** Threat Actor Associated Traffic Seen ** //
@@ -1967,7 +1975,7 @@ class SecurityAssessment extends ibPortal {
 				if ($IVPDLZeroDayDNSTrafficSeenTrend >= 0){$ZDarrow='↑';} else {$ZDarrow='↓';}
 				$mapping = replaceTag($mapping,'#TAG101',$ZDarrow); // Arrow Up/Down
 				$mapping = replaceTag($mapping,'#TAG102',number_format($IVPDLZeroDayDNSTrafficSeenTrend, 2).'%'); // Zero Day DNS Traffic - Your Average - Percent Changed
-				$mapping = replaceTag($mapping,'#TAG103',number_abbr(($IVIDLZeroDayDNSTrafficSeenSum) / $IVIndustryPeerCount)); // Zero Day DNS Traffic - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG103',number_abbr(($IVIDLZeroDayDNSTrafficSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Zero Day DNS Traffic - Industry Average - Count
 
 				// ** Threat Insight Detection ** //
 				$mapping = replaceTag($mapping,'#TAG104',number_abbr($DateDiff)); // Threat Insight Detection - Days
@@ -1979,7 +1987,7 @@ class SecurityAssessment extends ibPortal {
 				if ($IVPDLThreatInsightDetectionTrend >= 0){$TIDarrow='↑';} else {$TIDarrow='↓';}
 				$mapping = replaceTag($mapping,'#TAG110',$TIDarrow); // Arrow Up/Down
 				$mapping = replaceTag($mapping,'#TAG111',number_format($IVPDLThreatInsightDetectionTrend, 2).'%'); // Threat Insight Detection - Your Average - Percent Changed
-				$mapping = replaceTag($mapping,'#TAG112',number_abbr(($IVIDLThreatInsightDetectionSum) / $IVIndustryPeerCount)); // Threat Insight Detection - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG112',number_abbr(($IVIDLThreatInsightDetectionSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Threat Insight Detection - Industry Average - Count
 				$mapping = replaceTag($mapping,'#TAG113',number_format($IVIDLThreatInsightDetectionPercentage, 2).'%'); // Threat Insight Detection - Industry Average - Percentage
 
 				##// Slide 37/40 - Industry Vertical Analysis - END //##
