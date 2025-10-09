@@ -410,6 +410,7 @@ class SecurityAssessment extends ibPortal {
 
 				// Get Impacted Assets & Indicators Time Series
 				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedAssetsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"dimensions":[],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"}]}';
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedQIPsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.qipDistinctCount"],"dimensions":["PortunusAggIPSummary.qip"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"notSet"}]}';
 				$SOCInsightsCubeJSRequests[$SID->insightId.'-indicatorsTimeSeries'] = '{"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"measures":["PortunusAggIPSummary.threatIndicatorDistinctCount"],"dimensions":["PortunusAggIPSummary.threat_indicator"],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]}]}';
 			}
 			// Invoke CubeJS to populate SOC Insight Data
@@ -1508,6 +1509,7 @@ class SecurityAssessment extends ibPortal {
 
 							$SOCInsightsIndicatorsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-indicatorsTimeSeries']['Body'] ?? [];
 							$SOCInsightsImpactedAssetsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedAssetsTimeSeries']['Body'] ?? [];
+							$SOCInsightsImpactedQIPsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedQIPsTimeSeries']['Body'] ?? [];
 
 							// Summerise total number of indicators by combining all distinct counts across unique timestamp.hour
 							$IndicatorsTimeSeriesData = [];
@@ -1531,6 +1533,18 @@ class SecurityAssessment extends ibPortal {
 										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
 									} else {
 										$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+									}
+								}
+							}
+
+							// Combine QIPs Time Series Data with Asset Time Series Data
+							if (is_array($SOCInsightsImpactedQIPsTimeSeries->result->data) AND count($SOCInsightsImpactedQIPsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsImpactedQIPsTimeSeries->result->data as $IQTS) {
+									$ImpactedQIPDate = substr($IQTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+									if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
+										$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+									} else {
+										$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
 									}
 								}
 							}
