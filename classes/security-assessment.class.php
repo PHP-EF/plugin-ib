@@ -63,6 +63,10 @@ class SecurityAssessment extends ibPortal {
 			// Set Time Dimensions
 			$StartDimension = str_replace('Z','',$config['StartDateTime']);
 			$EndDimension = str_replace('Z','',$config['EndDateTime']);
+
+			$StartDimensionTimeObj = new DateTime($StartDimension);
+			$EndDimensionTimeObj = new DateTime($EndDimension);
+			$TimeObjDateDiff = $StartDimensionTimeObj->diff($EndDimensionTimeObj);
 	
 			$HighRiskCategoryList = implode('","',[
 				"Risky Activity",
@@ -866,12 +870,9 @@ class SecurityAssessment extends ibPortal {
 			// Zero Day DNS
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zero Day DNS");
 			// If Start and End date are < 7 days, use 7 days to ensure we get results. If more than 30 days, reduce to 30 days
-			$ZDDStartDate = new DateTime($StartDimension);
-			$ZDDEndDate = new DateTime($EndDimension);
-			$DateDiff = $ZDDStartDate->diff($ZDDEndDate)->days;
-			if ($DateDiff < 7) {
+			if ($TimeObjDateDiff->days < 7) {
 				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-7 days')->format('Y-m-d\TH:i:s');
-			} elseif ($DateDiff > 30) {
+			} elseif ($TimeObjDateDiff->days > 30) {
 				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-30 days')->format('Y-m-d\T').'00:00:00';
 			} else {
 				$ZDDStartDimension = $StartDimension;
@@ -1858,6 +1859,7 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG08',$TotalBandwidthSaved); // Bandwidth Savings
 		
 				##// Slide 6 - Security Indicator Summary
+				$mapping = replaceTag($mapping,'#DAYS',$TimeObjDateDiff->days); // Number of days of collected data
 				$mapping = replaceTag($mapping,'#TAG09',number_abbr($DNSActivityCount)); // DNS Requests
 				$mapping = replaceTag($mapping,'#TAG10',number_abbr($HighEventsCount)); // High-Risk Events
 				$mapping = replaceTag($mapping,'#TAG11',number_abbr($MediumEventsCount)); // Medium-Risk Events
