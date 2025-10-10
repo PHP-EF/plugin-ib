@@ -872,7 +872,7 @@ class SecurityAssessment extends ibPortal {
 			// If Start and End date are < 7 days, use 7 days to ensure we get results. If more than 30 days, reduce to 30 days
 			if ($TimeObjDateDiff->days < 7) {
 				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-7 days')->format('Y-m-d\TH:i:s');
-			} elseif ($TimeObjDateDiff->days > 30) {
+			} elseif ($TimeObjDateDiff->days > 29) {
 				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-30 days')->format('Y-m-d\T').'00:00:00';
 			} else {
 				$ZDDStartDimension = $StartDimension;
