@@ -136,7 +136,7 @@
           <div class="sag-loading-icon">
             <br>
             <div class="alert alert-info genInfo" role="alert">
-              <center>It can take up to 3 minutes to generate the report(s), please be patient.</center>
+              <center>It can take up to 5 minutes to generate the report(s), please be patient.</center>
             </div>
             <hr>
             <div class="progress">
