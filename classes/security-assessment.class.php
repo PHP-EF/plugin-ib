@@ -2,6 +2,7 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
+use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -18,6 +19,7 @@ class SecurityAssessment extends ibPortal {
 		$this->AssessmentReporting = new AssessmentReporting();
 		$this->TemplateConfig = new TemplateConfig();
 	}
+
 	public function generateSecurityReport($config) {
 		// Pass APIKey & Realm to ThreatActors Class
 		$this->ThreatActors = new ThreatActors();
@@ -181,7 +183,14 @@ class SecurityAssessment extends ibPortal {
 			// Extract Powerpoint Template(s) as Zip
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Extracting template(s)");
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
-				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace('.pptx','', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
+
+				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace($SelectedTemplateFileExt,'', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
 				extractZip($this->getDir()['Files'].'/templates/'.$SelectedTemplate['FileName'],$ExtractedDir);
 				$SelectedTemplate['ExtractedDir'] = $ExtractedDir;
 			}
@@ -436,7 +445,7 @@ class SecurityAssessment extends ibPortal {
 			// ** CONFIRMED THREATS SEEN START ** //
 
 			// Find each object under $IVThirtyDays->result->data with dimensionLabel of X
-			$DLConfirmedThreatsSeen = array_filter($IVThirtyDays->result->data, function($item) {
+			$DLConfirmedThreatsSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen';
 			});
 			$DLConfirmedThreatsSeen = array_values($DLConfirmedThreatsSeen);
@@ -447,11 +456,11 @@ class SecurityAssessment extends ibPortal {
 			$IVPDLConfirmedThreatsSeenTrend = $IVTrend->result->data[array_search('confirmed_threats_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
 
 			// Determine Total Number of Malicious Domains vs Malicious IPs
-			$IVPDLMaliciousDomains = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLMaliciousDomains = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-base';
 			});
 			$IVPDLMaliciousDomains = array_values($IVPDLMaliciousDomains);
-			$IVPDLMaliciousIPs = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLMaliciousIPs = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-base-ip';
 			});
 			$IVPDLMaliciousIPs = array_values($IVPDLMaliciousIPs);
@@ -482,7 +491,7 @@ class SecurityAssessment extends ibPortal {
 
 
 			// ** UNCONFIRMED THREATS SEEN START ** //
-			$DLUnconfirmedThreatsSeen = array_filter($IVThirtyDays->result->data, function($item) {
+			$DLUnconfirmedThreatsSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen';
 			});
 			$DLUnconfirmedThreatsSeen = array_values($DLUnconfirmedThreatsSeen);
@@ -492,15 +501,15 @@ class SecurityAssessment extends ibPortal {
 			$IVPDLUnconfirmedThreatsSeenTrend = $IVTrend->result->data[array_search('unconfirmed_threats_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
 
 			// Determine Total Number of High Risk, Med Risk & Low Risk indicators, ensuring it is the first key in the array (key 0)
-			$IVPDLUnconfirmedHighRisk = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLUnconfirmedHighRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-high-risk';
 			});
 			$IVPDLUnconfirmedHighRisk = array_values($IVPDLUnconfirmedHighRisk);
-			$IVPDLUnconfirmedMedRisk = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLUnconfirmedMedRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-med-risk';
 			});
 			$IVPDLUnconfirmedMedRisk = array_values($IVPDLUnconfirmedMedRisk);
-			$IVPDLUnconfirmedLowRisk = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLUnconfirmedLowRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-low-risk';
 			});
 			$IVPDLUnconfirmedLowRisk = array_values($IVPDLUnconfirmedLowRisk);
@@ -534,7 +543,7 @@ class SecurityAssessment extends ibPortal {
 
 
 			// ** THREAT ACTOR ASSOCIATED TRAFFIC SEEN START ** //
-			$DLThreatActorAssociatedTrafficSeen = array_filter($IVThirtyDays->result->data, function($item) {
+			$DLThreatActorAssociatedTrafficSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_actor_associated_traffic_seen';
 			});
 			$DLThreatActorAssociatedTrafficSeen = array_values($DLThreatActorAssociatedTrafficSeen);
@@ -565,7 +574,7 @@ class SecurityAssessment extends ibPortal {
 			// ** THREAT ACTOR ASSOCIATED TRAFFIC SEEN END ** //
 
 			// ** ZERO DAY DNS TRAFFIC SEEN START ** //
-			$DLZeroDayDNSTrafficSeen = array_filter($IVThirtyDays->result->data, function($item) {
+			$DLZeroDayDNSTrafficSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'zero_day_dns_traffic_seen';
 			});
 			$DLZeroDayDNSTrafficSeen = array_values($DLZeroDayDNSTrafficSeen);
@@ -582,7 +591,7 @@ class SecurityAssessment extends ibPortal {
 			// ** ZERO DAY DNS TRAFFIC SEEN END ** //
 
 			// ** THREAT INSIGHT DETECTION START ** //
-			$DLThreatInsightDetection = array_filter($IVThirtyDays->result->data, function($item) {
+			$DLThreatInsightDetection = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection';
 			});
 			$DLThreatInsightDetection = array_values($DLThreatInsightDetection);
@@ -597,12 +606,12 @@ class SecurityAssessment extends ibPortal {
 			$IVIDLThreatInsightDetectionPercentage = $DLThreatInsightDetection[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
 
 			// Determine Total Number of DNST vs. DGA traffic, ensuring it is the first key in the array (key 0)
-			$IVPDLDNSTraffic = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLDNSTraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection' && $item->{'IVThirtyDays.dimensionMetric'} === 'dnst';
 			});
 			$IVPDLDNSTraffic = array_values($IVPDLDNSTraffic);
 
-			$IVPDLDGATraffic = array_filter($IVThirtyDays->result->data, function($item) {
+			$IVPDLDGATraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection' && $item->{'IVThirtyDays.dimensionMetric'} === 'dga';
 			});
 			$IVPDLDGATraffic = array_values($IVPDLDGATraffic);
@@ -629,7 +638,7 @@ class SecurityAssessment extends ibPortal {
 			// ** THREAT INSIGHT DETECTION END ** //
 
 			// Optional Query - Not currently used
-			// $DLTotalDNSTraffic = array_filter($IVThirtyDays->result->data, function($item) {
+			// $DLTotalDNSTraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
 			// 	return $item->{'IVThirtyDays.dimensionLabel'} === 'total_dns_traffic';
 			// });
 
@@ -1034,6 +1043,14 @@ class SecurityAssessment extends ibPortal {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
 				usort($embeddedFiles, 'strnatcmp');
+
+				// Is Macro Enabled?
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
 
 				// Initialise array to hold references to excel files created for charts
 				$SOCInsightsExcelReference = [];
@@ -1830,7 +1847,7 @@ class SecurityAssessment extends ibPortal {
 				$extractor = new BasicExtractor();
 				$mapping = $extractor->extractStringsAndCreateMappingFile(
 					$this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted'
 				);
 
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings");
@@ -2256,13 +2273,13 @@ class SecurityAssessment extends ibPortal {
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx',
-					$SelectedTemplate['ExtractedDir'].'.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted',
+					$SelectedTemplate['ExtractedDir'].$SelectedTemplateFileExt
 				);
 		
 				// Cleanup
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup");
-				unlink($SelectedTemplate['ExtractedDir'].'-extracted.pptx');
+				unlink($SelectedTemplate['ExtractedDir'].'-extracted');
 			}
 			// End of new loop
 
@@ -2368,6 +2385,12 @@ class SecurityAssessment extends ibPortal {
 		$ProgressFile = $this->getDir()['Files'].'/reports/report-'.$id.'.progress';
 		if (file_exists($ProgressFile)) {
 			$myfile = fopen($ProgressFile, "r") or die("0");
+			if (filesize($ProgressFile) == 0) {
+				return array(
+					'Progress' => 0,
+					'Action' => 'Starting..'
+				);
+			}
 			$Current = json_decode(fread($myfile,filesize($ProgressFile)));
 			if (isset($Current) && isset($Current->Count) && isset($Current->Action)) {
 				return array(

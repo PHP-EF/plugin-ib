@@ -1,54 +1,4 @@
 <?php
-
-// TEST
-$app->get('/plugin/ib/extract', function ($request, $response, $args) {
-	$ibPlugin = new SecurityAssessment();
-	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
-		$ibPlugin->api->setAPIResponseData($ibPlugin->TestExtract());
-	}
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
-$app->get('/plugin/ib/compress', function ($request, $response, $args) {
-	$ibPlugin = new SecurityAssessment();
-	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
-		$ibPlugin->api->setAPIResponseData($ibPlugin->TestCompress());
-	}
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
-$app->get('/plugin/ib/change', function ($request, $response, $args) {
-	$ibPlugin = new SecurityAssessment();
-	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
-		$ibPlugin->api->setAPIResponseData($ibPlugin->TestManipulation());
-	}
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
-$app->get('/plugin/ib/doAll', function ($request, $response, $args) {
-	$ibPlugin = new SecurityAssessment();
-	if ($ibPlugin->auth->checkAccess('ADMIN-CONFIG')) {
-        $ibPlugin->TestExtract();
-		$ibPlugin->TestManipulation();
-        $ibPlugin->api->setAPIResponseData($ibPlugin->TestCompress());
-	}
-	$response->getBody()->write(jsonE($GLOBALS['api']));
-	return $response
-		->withHeader('Content-Type', 'application/json;charset=UTF-8')
-		->withStatus($GLOBALS['responseCode']);
-});
-
-
-
 // Get Plugin Settings
 $app->get('/plugin/ib/settings', function ($request, $response, $args) {
 	$ibPlugin = new ibPlugin();
@@ -207,14 +157,17 @@ $app->post('/plugin/ib/assessment/security/config', function ($request, $respons
         $data = $ibPlugin->api->getAPIRequestData($request);
         if (isset($data['TemplateName'])) {
             $Status = $data['Status'] ?? null;
-            $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
+            $macroEnabled = $data['macroEnabled'] ?? false;
+            $pptxFileExt = $macroEnabled ? 'pptm' : 'pptx';
+            $FileName = $data['FileName'] ? $data['FileName'] . '.' . $pptxFileExt : null;
             $Description = $data['Description'] ?? null;
             $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
             $SOCInsightsSlide = $data['SOCInsightsSlide'] ?? null;
             $Orientation = $data['Orientation'] ?? null;
             $isDefault = $data['isDefault'] ?? null;
+            $macroEnabled = $data['macroEnabled'] ?? null;
             $TemplateName = $data['TemplateName'];
-            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault);
+            $ibPlugin->newSecurityAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault,$macroEnabled);
         }
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
@@ -229,14 +182,16 @@ $app->patch('/plugin/ib/assessment/security/config/{id}', function ($request, $r
     if ($ibPlugin->auth->checkAccess($ibPlugin->config->get('Plugins','IB-Tools')['ACL-CONFIG'] ?: 'ACL-CONFIG')) {
         $data = $ibPlugin->api->getAPIRequestData($request);
         $Status = $data['Status'] ?? null;
-        $FileName = $data['FileName'] ? $data['FileName'] . '.pptx' : null;
+        $macroEnabled = $data['macroEnabled'] ?? null;
+        $FileName = $data['FileName'] ? $data['FileName'] . '.' . ($macroEnabled ? 'pptm' : 'pptx') : null;
         $TemplateName = $data['TemplateName'] ?? null;
         $Orientation = $data['Orientation'] ?? null;
         $Description = $data['Description'] ?? null;
         $isDefault = $data['isDefault'] ?? null;
+        $macroEnabled = $data['macroEnabled'] ?? null;
         $ThreatActorSlide = $data['ThreatActorSlide'] ?? null;
         $SOCInsightsSlide = $data['SOCInsightsSlide'] ?? null;
-        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault);
+        $ibPlugin->setSecurityAssessmentTemplateConfig($args['id'],$Status,$FileName,$TemplateName,$Description,$ThreatActorSlide,$SOCInsightsSlide,$Orientation,$isDefault,$macroEnabled);
     }
 	$response->getBody()->write(jsonE($GLOBALS['api']));
 	return $response
@@ -268,17 +223,22 @@ $app->post('/plugin/ib/assessment/security/config/upload', function ($request, $
         if (isset($uploadedFiles['pptx']) && $uploadedFiles['pptx']->getError() == UPLOAD_ERR_OK) {
             if (isset($postData['TemplateName'])) {
                 $pptxFileName = basename($uploadedFiles['pptx']->getClientFilename());
-                $pptxFilePath = $uploadDir . 'security-' . urldecode($postData['TemplateName']) . '.pptx';
+                if ($postData['macroEnabled'] ?? null) {
+                    $pptxFileExt = 'pptm';
+                } else {
+                    $pptxFileExt = 'pptx';
+                }
+                $pptxFilePath = $uploadDir . 'security-' . urldecode($postData['TemplateName']) . '.' . $pptxFileExt;
 
-                if (isValidFileType($pptxFileName, ['pptx'])) {
+                if (isValidFileType($pptxFileName, ['pptx','pptm'])) {
                     // Move the uploaded file to the designated directory
                     $uploadedFiles['pptx']->moveTo($pptxFilePath);
                     $ibPlugin->api->setAPIResponseMessage("Successfully uploaded PPTX file: $pptxFileName");
                 } else {
-                    $ibPlugin->api->setAPIResponse("Errors","Invalid PPTX File: $pptxFileName");
+                    $ibPlugin->api->setAPIResponse("error","Invalid PPTX File: $pptxFileName");
                 }
             } else {
-                $ibPlugin->api->setAPIResponse("Errors","PPTX File Name Missing");
+                $ibPlugin->api->setAPIResponse("error","PPTX File Name Missing");
             }
         }
     }

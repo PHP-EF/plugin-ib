@@ -256,10 +256,17 @@
             </div>
             <small id="SAtemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="SAtemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="SAtemplateMacroEnabled" name="SAtemplateMacroEnabled" value="">  
+            </div>
+            <small id="SAtemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="SAtemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="SAtemplatePPTX" accept=".pptx" aria-describedby="SAtemplatePPTXHelp">
+              <input type="file" class="form-control" id="SAtemplatePPTX" accept=".pptx,.pptm" aria-describedby="SAtemplatePPTXHelp">
               <small id="SAtemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -340,10 +347,17 @@
             </div>
             <small id="newSATemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="newSATemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="newSATemplateMacroEnabled" name="newSATemplateMacroEnabled" value="">  
+            </div>
+            <small id="newSATemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="newSATemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="newSATemplatePPTX" accept=".pptx" aria-describedby="newSATemplatePPTXHelp">
+              <input type="file" class="form-control" id="newSATemplatePPTX" accept=".pptx,.pptm" aria-describedby="newSATemplatePPTXHelp">
               <small id="newSATemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -445,6 +459,11 @@
         $("#SAtemplateSelectedByDefault").attr("checked",true);
       } else {
         $("#SAtemplateSelectedByDefault").attr("checked",false);
+      }
+      if (String(row["macroEnabled"]).toLowerCase() == "true") {
+        $("#SAtemplateMacroEnabled").attr("checked",true);
+      } else {
+        $("#SAtemplateMacroEnabled").attr("checked",false);
       }
       $("#SAtemplateUploadDate").val(row["Created"]);
     }
@@ -657,6 +676,7 @@
       postArr.Description = encodeURIComponent($("#newSATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newSATemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#newSATemplateThreatActorSlide").val());
       postArr.SOCInsightsSlide = encodeURIComponent($("#newSATemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
@@ -714,6 +734,7 @@
       postArr.Description = encodeURIComponent($("#SAtemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#SAtemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#SAtemplateThreatActorSlide").val());
       postArr.SOCInsightsSlide = encodeURIComponent($("#SAtemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
@@ -727,6 +748,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/security/config/upload", // Replace with your PHP API endpoint
