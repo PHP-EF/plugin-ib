@@ -79,6 +79,7 @@
                   <th data-field="TemplateName" data-sortable="true">Name</th>
                   <th data-field="Description" data-sortable="true">Description</th>
                   <th data-field="ThreatActorSlide" data-sortable="true">Threat Actor Slide</th>
+                  <th data-field="SOCInsightsSlide" data-sortable="true">SOC Insights Slide</th>
                   <th data-field="FileName" data-sortable="true">File Name</th>
                   <th data-field="Created" data-sortable="true">Upload Date</th>
                   <th data-formatter="SAtemplateActionFormatter" data-events="actionEvents">Actions</th>
@@ -236,6 +237,11 @@
             <small id="SAtemplateThreatActorSlideHelp" class="form-text text-muted">This is the Threat Actor template slide number.</small>
           </div>
           <div class="form-group">
+            <label for="SAtemplateSOCInsightsSlide">SOC Insights Slide</label>
+            <input type="text" class="form-control info-field" id="SAtemplateSOCInsightsSlide" aria-describedby="SAtemplateSOCInsightsSlideHelp" name="SAtemplateSOCInsightsSlide">
+            <small id="SAtemplateSOCInsightsSlideHelp" class="form-text text-muted">This is the SOC Insights template slide number.</small>
+          </div>
+          <div class="form-group">
             <label for="SAtemplateOrientation" class="col-form-label">Template Orientation</label>
             <select id="SAtemplateOrientation" class="form-select" name="SAtemplateOrientation">
               <option value="Portrait" selected>Portrait</option>
@@ -250,10 +256,17 @@
             </div>
             <small id="SAtemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="SAtemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="SAtemplateMacroEnabled" name="SAtemplateMacroEnabled" value="">  
+            </div>
+            <small id="SAtemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="SAtemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="SAtemplatePPTX" accept=".pptx" aria-describedby="SAtemplatePPTXHelp">
+              <input type="file" class="form-control" id="SAtemplatePPTX" accept=".pptx,.pptm" aria-describedby="SAtemplatePPTXHelp">
               <small id="SAtemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -323,16 +336,28 @@
             <small id="newSATemplateThreatActorSlideHelp" class="form-text text-muted">This is the Threat Actor template slide number.</small>
           </div>
           <div class="form-group">
+            <label for="newSATemplateSOCInsightsSlide">SOC Insights Slide</label>
+            <input type="text" class="form-control" id="newSATemplateSOCInsightsSlide" aria-describedby="newSATemplateSOCInsightsSlideHelp" name="newSATemplateSOCInsightsSlide">
+            <small id="newSATemplateSOCInsightsSlideHelp" class="form-text text-muted">This is the SOC Insights template slide number.</small>
+          </div>
+          <div class="form-group">
             <label for="newSATemplateSelectedByDefault">Selected by Default</label>
             <div class="form-check form-switch">
               <input class="form-check-input info-field" type="checkbox" id="newSATemplateSelectedByDefault" name="newSATemplateSelectedByDefault" value="">  
             </div>
             <small id="newSATemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="newSATemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="newSATemplateMacroEnabled" name="newSATemplateMacroEnabled" value="">  
+            </div>
+            <small id="newSATemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="newSATemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="newSATemplatePPTX" accept=".pptx" aria-describedby="newSATemplatePPTXHelp">
+              <input type="file" class="form-control" id="newSATemplatePPTX" accept=".pptx,.pptm" aria-describedby="newSATemplatePPTXHelp">
               <small id="newSATemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -428,11 +453,17 @@
       $("#SAtemplateDescription").val(row["Description"]);
       $("#SAtemplateFileName").val(row["FileName"]);
       $("#SAtemplateThreatActorSlide").val(row["ThreatActorSlide"]);
+      $("#SAtemplateSOCInsightsSlide").val(row["SOCInsightsSlide"]);
       $("#SAtemplateOrientation").val(row["Orientation"]);
       if (String(row["isDefault"]).toLowerCase() == "true") {
         $("#SAtemplateSelectedByDefault").attr("checked",true);
       } else {
         $("#SAtemplateSelectedByDefault").attr("checked",false);
+      }
+      if (String(row["macroEnabled"]).toLowerCase() == "true") {
+        $("#SAtemplateMacroEnabled").attr("checked",true);
+      } else {
+        $("#SAtemplateMacroEnabled").attr("checked",false);
       }
       $("#SAtemplateUploadDate").val(row["Created"]);
     }
@@ -645,7 +676,9 @@
       postArr.Description = encodeURIComponent($("#newSATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newSATemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#newSATemplateThreatActorSlide").val());
+      postArr.SOCInsightsSlide = encodeURIComponent($("#newSATemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#newSATemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -701,7 +734,9 @@
       postArr.Description = encodeURIComponent($("#SAtemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#SAtemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#SAtemplateThreatActorSlide").val());
+      postArr.SOCInsightsSlide = encodeURIComponent($("#SAtemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
         postArr.FileName = $("#SAtemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -713,6 +748,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/security/config/upload", // Replace with your PHP API endpoint

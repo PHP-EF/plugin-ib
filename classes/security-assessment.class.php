@@ -2,6 +2,7 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
+use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -64,6 +65,10 @@ class SecurityAssessment extends ibPortal {
 			// Set Time Dimensions
 			$StartDimension = str_replace('Z','',$config['StartDateTime']);
 			$EndDimension = str_replace('Z','',$config['EndDateTime']);
+
+			$StartDimensionTimeObj = new DateTime($StartDimension);
+			$EndDimensionTimeObj = new DateTime($EndDimension);
+			$TimeObjDateDiff = $StartDimensionTimeObj->diff($EndDimensionTimeObj);
 	
 			$HighRiskCategoryList = implode('","',[
 				"Risky Activity",
@@ -129,16 +134,19 @@ class SecurityAssessment extends ibPortal {
 				'SOCInsights' => '{"measures":["InsightsAggregated.count","InsightsAggregated.mostRecentAt","InsightsAggregated.startedAtMin"],"dimensions":["InsightsAggregated.priorityText"],"filters":[{"member":"InsightsAggregated.insightStatus","operator":"equals","values":["Active"]}],"timezone":"UTC"}',
 				'SecurityEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"contains","values":["2","3"]}],"limit":"1","ungrouped":false}',
 				'DataExfilEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["4"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["TI-DNST"]}],"ungrouped":false}',
+				// May need a review based on recent findings of missing data?
 				'ZeroDayDNSEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2","3"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["Zero Day DNS"]}],"ungrouped":false}',
 				'SuspiciousEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["Suspicious"]}],"ungrouped":false}',
 				'HighRiskWebsites' => '{"timeDimensions":[{"dimension":"PortunusAggWebContentDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"measures":["PortunusAggWebContentDiscovery.count","PortunusAggWebContentDiscovery.deviceCount"],"dimensions":["PortunusAggWebContentDiscovery.domain_category"],"order":{"PortunusAggWebContentDiscovery.count":"desc"},"filters":[{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"equals","values":["'.$HighRiskCategoryList.'"]}]}',
 				'DOHEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["DoHService"]}],"ungrouped":false}',
 				'NODEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["NewlyObservedDomains"]}],"ungrouped":false}',
 				'DGAEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"or":[{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["suspicious_rdga","suspicious_dga","DGA"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["DGA","MalwareC2DGA"]}]},{"member":"PortunusAggInsight.type","operator":"equals","values":["2","3"]}],"ungrouped":false}',
-				'UniqueApplications' => '{"measures":["PortunusAggAppDiscovery.requests"],"dimensions":["PortunusAggAppDiscovery.app_name","PortunusAggAppDiscovery.app_approval"],"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggAppDiscovery.app_name","operator":"set"},{"member":"PortunusAggAppDiscovery.app_name","operator":"notEquals","values":[""]}],"order":{}}',
+				'AppDiscoveryApplications' => '{"measures":["PortunusAggAppDiscovery.requests","PortunusAggAppDiscovery.deviceCount"],"dimensions":["PortunusAggAppDiscovery.app_name","PortunusAggAppDiscovery.app_category","PortunusAggAppDiscovery.app_vendor","PortunusAggAppDiscovery.app_approval"],"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggAppDiscovery.app_name","operator":"set"},{"member":"PortunusAggAppDiscovery.app_name","operator":"notEquals","values":[""]}],"order":{}}',
+				'AppDiscoveryTotals' => '{"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"dimensions":[],"ungrouped":false,"measures":["PortunusAggAppDiscovery.requests","PortunusAggAppDiscovery.deviceCount"]}',
+				'WebContentTotals' => '{"ungrouped":false,"measures":["PortunusAggWebContentDiscovery.deviceCount","PortunusAggWebContentDiscovery.requests"],"segments":[],"dimensions":[],"filters":[{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"notEquals","values":[null]}],"timeDimensions":[{"dimension":"PortunusAggWebContentDiscovery.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
+				'WebContentSecurityEvents' => '{"measures":["PortunusAggWebcontent.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggWebcontent.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggWebcontent.type","operator":"equals","values":["3"]},{"member":"PortunusAggWebcontent.category","operator":"notEquals","values":[null]}],"limit":"1","ungrouped":false}',
 				'ThreatActivityEvents' => '{"measures":["PortunusAggInsight.threatCount"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.severity","operator":"equals","values":["High","Medium","Low"]},{"member":"PortunusAggInsight.threat_indicator","operator":"notEquals","values":[""]}],"limit":"1","ungrouped":false}',
 				'DNSFirewallEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"and":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"or":[{"member":"PortunusAggInsight.severity","operator":"equals","values":["High","Medium","Low"]},{"and":[{"member":"PortunusAggInsight.severity","operator":"equals","values":["Info"]},{"member":"PortunusAggInsight.policy_action","operator":"equals","values":["Block","Log"]}]}]},{"member":"PortunusAggInsight.confidence","operator":"equals","values":["High","Medium","Low"]}]}],"limit":"1","ungrouped":false}',
-				'WebContentEvents' => '{"measures":["PortunusAggWebcontent.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggWebcontent.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggWebcontent.type","operator":"equals","values":["3"]},{"member":"PortunusAggWebcontent.category","operator":"notEquals","values":[null]}],"limit":"1","ungrouped":false}',
 				// This is the number of "impacted devices", whilst the next one is all devices
 				// 'Devices' => '{"measures":["PortunusAggInsight.deviceCount"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"contains","values":["2","3"]},{"member":"PortunusAggInsight.severity","operator":"contains","values":["High","Medium","Low"]}],"limit":"1","ungrouped":false}',
 				'Devices' => '{"measures":["PortunusAggInsight.deviceCount"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["1"]}],"limit":"1","ungrouped":false}',
@@ -150,6 +158,16 @@ class SecurityAssessment extends ibPortal {
 				//'ThreatActors' => '{"segments":[],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false,"order":{"PortunusAggIPSummary.timestampMax":"desc"},"measures":["PortunusAggIPSummary.count"],"dimensions":["PortunusAggIPSummary.threat_indicator","PortunusAggIPSummary.actor_id"],"limit":1000,"filters":[{"and":[{"operator":"set","member":"PortunusAggIPSummary.threat_indicator"},{"operator":"set","member":"PortunusAggIPSummary.actor_id"}]}]}'
 				// Removed due to workaround below
 				//'ThreatActors' => '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}'
+				'FirstToDetect' => '{"measures":["TIDERPZStatsDetails.domainCount","TIDERPZStatsDetails.minutesAheadOfIndustryAvg"],"timeDimensions":[{"dimension":"TIDERPZStatsDetails.lastSeenForCustomer","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["TIDERPZStatsDetails.threatClass"],"filters":[],"timezone":"UTC","segments":[]}',
+				'BandwidthSavings' => '{"measures":["PortunusAggThreat_ch.bandwidthTotal"],"timeDimensions":[{"dimension":"PortunusAggThreat_ch.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["PortunusAggThreat_ch.tclass"],"filters":[{"member":"PortunusAggThreat_ch.action","operator":"equals","values":["Block"]}],"timezone":"UTC","segments":[]}',
+				'BandwidthSavingsPercentage' => '{"measures":["PortunusAggThreat_ch.bandwidthSavedPercentage"],"timeDimensions":[{"dimension":"PortunusAggThreat_ch.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["PortunusAggThreat_ch.action"],"filters":[{"member":"PortunusAggThreat_ch.action","operator":"equals","values":["Block"]}],"timezone":"UTC","segments":[]}',
+				'MaliciousTDS' => '{"measures":["PortunusAggThreat_ch.requests","PortunusAggThreat_ch.timestampMax","PortunusAggThreat_ch.totalAssetCount","PortunusAggThreat_ch.threatCount"],"dimensions":["PortunusAggThreat_ch.severity"],"filters":[{"member":"PortunusAggThreat_ch.severity","operator":"notEquals","values":["Info"]},{"member":"PortunusAggThreat_ch.tclass","operator":"equals","values":["Malicious"]},{"member":"PortunusAggThreat_ch.tproperty","operator":"equals","values":["TDS"]}],"segments":["PortunusAggThreat_ch.threat_classes"],"timeDimensions":[{"dimension":"PortunusAggThreat_ch.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"limit":39,"offset":0,"total":true,"order":{"PortunusAggThreat_ch.timestampMax":"asc"}}',
+				'IVThirtyDays' => '{"dimensions":["IVThirtyDays.dimensionLabel","IVThirtyDays.dimensionMetric","IVThirtyDays.industryName","IVThirtyDays.accountDimensionMetricSum","IVThirtyDays.industryDimensionMetricSum","IVThirtyDays.allAccountsDimensionMetricSum","IVThirtyDays.accountDimensionSum","IVThirtyDays.industryDimensionSum","IVThirtyDays.allAccountsDimensionSum","IVThirtyDays.accountPercentage","IVThirtyDays.industryPercentage","IVThirtyDays.overallPercentage"]}',
+				'IVPeerAndOverallCount' => '{"measures":["IndustryVerticalPeerAndOverallCount.industryCount","IndustryVerticalPeerAndOverallCount.totalCount"]}',
+				'IVThreatActors' => '{"dimensions":["IVThreatActors.accountThirtyDays","IVThreatActors.industryThirtyDays","IVThreatActors.allAccountThirtyDays"]}',
+				'IVTrend' => '{"dimensions":["IVTrend.dimensionLabel","IVTrend.trendPercentage"]}',
+				'SecurityTokens' => '{"ungrouped":false,"segments":[],"measures":["TokenUtilSecurityDaily.tokens","TokenUtilSecurityDaily.count"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null,"dimension":"TokenUtilSecurityDaily.timestamp"}],"dimensions":["TokenUtilSecurityDaily.account_id","TokenUtilSecurityDaily.category","TokenUtilSecurityDaily.type","TokenUtilSecurityDaily.timestamp","TokenUtilSecurityDaily.sub_type"]}',
+				'ReportingTokens' => '{"ungrouped":false,"segments":[],"measures":["TokenUtilReportingDaily.tokens","TokenUtilReportingDaily.count"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null,"dimension":"TokenUtilReportingDaily.timestamp"}],"dimensions":["TokenUtilReportingDaily.account_id","TokenUtilReportingDaily.category","TokenUtilReportingDaily.timestamp"]}'
 			);
 			// Workaround for EU / US Realm Alignment
 			// if ($config['Realm'] == 'EU') {
@@ -158,11 +176,21 @@ class SecurityAssessment extends ibPortal {
 				$CubeJSRequests['ThreatActors'] = '{"measures":[],"segments":[],"dimensions":["ThreatActors.storageid","ThreatActors.ikbactorid","ThreatActors.domain","ThreatActors.ikbfirstsubmittedts","ThreatActors.vtfirstdetectedts","ThreatActors.firstdetectedts","ThreatActors.lastdetectedts"],"timeDimensions":[{"dimension":"ThreatActors.lastdetectedts","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"ungrouped":false}';
 			// }
 			$CubeJSResults = $this->QueryCubeJSMulti($CubeJSRequests);
+
+			// Define SOC Insights Cube JS Array
+			$SOCInsightsCubeJSRequests = array();
 	
 			// Extract Powerpoint Template(s) as Zip
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Extracting template(s)");
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
-				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace('.pptx','', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
+
+				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace($SelectedTemplateFileExt,'', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
 				extractZip($this->getDir()['Files'].'/templates/'.$SelectedTemplate['FileName'],$ExtractedDir);
 				$SelectedTemplate['ExtractedDir'] = $ExtractedDir;
 			}
@@ -170,23 +198,84 @@ class SecurityAssessment extends ibPortal {
 			// Define the embedded sheets with their corresponding file numbers
 			// This needs to match across all active templates at this moment
 			$EmbeddedSheets = [
-				'TopDetectedProperties' => 4,
-				'ContentFiltration' => 5,
-				'DNSActivity' => 6,
-				'DNSFirewallActivity' => 7,
-				'InsightDistribution' => 8,
-				'Lookalikes' => 9
+				'BandwidthSavings' => 0,
+				'TopDetectedProperties' => 5,
+				'ContentFiltration' => 6,
+				'DNSActivity' => 7,
+				'DNSFirewallActivity' => 8,
+				'InsightDistribution' => 9,
+				// 10/11 - Outlier Insight
+				'AppDiscovery' => 12,
+				'WebContentDiscovery' => 13,
+				'Lookalikes' => 14,
+				'ZeroDayDNS' => array(
+					'Landscape' => 15,
+					'Portrait' => 15
+				),
+				'IVRiskyIndicatorsAccount' => array(
+					'Landscape' => 16,
+					'Portrait' => 16
+				),
+				'IVRiskyIndicatorsIndustry' => array(
+					'Landscape' => 17,
+					'Portrait' => 17
+				),
+				'IVThreatActorsAccount' => array(
+					'Landscape' => 20,
+					'Portrait' => 18
+				),
+				'IVThreatActorsIndustry' => array(
+					'Landscape' => 21,
+					'Portrait' => 19
+				),
+				'IVMaliciousIndicatorsAccount' => array(
+					'Landscape' => 18,
+					'Portrait' => 20
+				),
+				'IVMaliciousIndicatorsIndustry' => array(
+					'Landscape' => 19,
+					'Portrait' => 21
+				),
+				'IVThreatInsightAccount' => array(
+					'Landscape' => 22,
+					'Portrait' => 22
+				),
+				'IVThreatInsightIndustry' => array(
+					'Landscape' => 23,
+					'Portrait' => 23
+				)
 			];
 
+			$CriticalalityMapping = [
+				'5' => 'N/A',
+				'4' => 'Critical',
+				'3' => 'High',
+				'2' => 'Medium',
+				'1' => 'Low',
+				'0' => 'Informational'
+			];
+
+			// 10 - Outlier Insight (Assets)
+			// 11 - Outlier Insight (Indicators/Events)
+
 			// Function to get the full path of the file based on the sheet name
-			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets) {
+			function getEmbeddedSheetFilePath($sheetName, $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $orientation) {
 				if (isset($EmbeddedSheets[$sheetName])) {
 					$fileIndex = $EmbeddedSheets[$sheetName];
+					if (is_array($fileIndex)) {
+						// Check for orientation
+						if (isset($fileIndex[$orientation])) {
+							$fileIndex = $fileIndex[$orientation];
+						}
+					} else {
+						$fileIndex = $fileIndex;
+					}
 					if (isset($embeddedFiles[$fileIndex])) {
 						return $embeddedDirectory . $embeddedFiles[$fileIndex];
 					}
 				}
 			}
+
 
 			// ********************** //
 			// ** Reusable Metrics ** //
@@ -226,7 +315,55 @@ class SecurityAssessment extends ibPortal {
 			} else {
 				$DNSActivityCount = 0;
 			}
-	
+
+			// Bandwidth Savings - Used on Slides 5 & 7
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Bandwidth Savings");
+			$BandwidthSavings = $CubeJSResults['BandwidthSavings']['Body'];
+			$TotalBandwidthBytes = 0;
+			if (isset($BandwidthSavings->result->data) && is_array($BandwidthSavings->result->data)) {
+				foreach ($BandwidthSavings->result->data as $Entry) {
+					$TotalBandwidthBytes += $Entry->{'PortunusAggThreat_ch.bandwidthTotal'};
+				}
+			}
+			$TotalBandwidthSaved = $this->formatBytes($TotalBandwidthBytes);
+			$TotalBandwidthSavedTop5Classes = array_slice($BandwidthSavings->result->data, 0, 5);
+
+			// Bandwidth Savings Percentage - Used on Slide 7
+			$BandwidthSavingsPercentage = $CubeJSResults['BandwidthSavingsPercentage']['Body'];
+			if (isset($BandwidthSavingsPercentage->result->data[0])) {
+				$BandwidthSavedPercentage = round($BandwidthSavingsPercentage->result->data[0]->{'PortunusAggThreat_ch.bandwidthSavedPercentage'},2);
+			} else {
+				$BandwidthSavedPercentage = 0;
+			}
+
+			// Malicious TDS Domains - Used on Slide 6
+			$MaliciousTDSCounts = [
+				'Requests' => 0,
+				'Domains' => 0,
+			];
+			$MaliciousTDS = $CubeJSResults['MaliciousTDS']['Body'];
+			if (isset($MaliciousTDS->result->data) && is_array($MaliciousTDS->result->data)) {
+				foreach ($MaliciousTDS->result->data as $Entry) {
+					$MaliciousTDSCounts['Requests'] += $Entry->{'PortunusAggThreat_ch.requests'};
+					$MaliciousTDSCounts['Domains'] += $Entry->{'PortunusAggThreat_ch.threatCount'};
+				}
+			}
+
+			// First to Detect - Used on Slide 5
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building First to Detect");
+			$FirstToDetect = $CubeJSResults['FirstToDetect']['Body'];
+			$FirstToDetectData = [];
+			if (isset($FirstToDetect->result->data) && is_array($FirstToDetect->result->data)) {
+				foreach ($FirstToDetect->result->data as $Entry) {
+					$Class = $Entry->{'TIDERPZStatsDetails.threatClass'};
+					$FirstToDetectData[$Class] = [
+						'DomainCount' => $Entry->{'TIDERPZStatsDetails.domainCount'},
+						'MinutesAheadOfIndustryAvg' => $Entry->{'TIDERPZStatsDetails.minutesAheadOfIndustryAvg'}
+					];
+				}
+			}
+			$FirstToDetectTotalDomains = array_sum(array_column($FirstToDetectData, 'DomainCount'));
+
 			// Lookalike Domains - Used on Slides 5, 6 & 24
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Getting Lookalike Domain Counts");
 			$LookalikeDomainCounts = $this->QueryCSP("get","api/atcfw/v1/lookalike_domain_counts");
@@ -256,6 +393,257 @@ class SecurityAssessment extends ibPortal {
 			if (isset($HighInsightsId) AND $HighInsightsId !== false) {$HighInsights = $SOCInsights->result->data[$HighInsightsId]->{'InsightsAggregated.count'};} else {$HighInsights = 0;}
 			if (isset($CriticalInsightsId) AND $CriticalInsightsId !== false) {$CriticalInsights = $SOCInsights->result->data[$CriticalInsightsId]->{'InsightsAggregated.count'};} else {$CriticalInsights = 0;}
 	
+			// SOC Insights Details - Slide 16+
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Details (This may take a moment)");
+			$SOCInsightDetailsQuery = $this->queryCSP('get','/api/v1/insights?status=Active');
+			$SOCInsightDetails = $SOCInsightDetailsQuery->insightList ?? [];
+			// Create array for blocked/not blocked indicator counts by insightId
+			$SOCInsightsIndicatorsBlockedCounts = [];
+			
+			// Build CubeJS Queries for each insight
+			foreach ($SOCInsightDetails as $SID) {
+				// General Info - Blocked Count, Confidence Level, Description, Feed Source, Insight Status, Insight ID, Most Recent At, Not Blocked Count, Persistent, Persistent Date, Spreading, Spreading Date, Started At, Threat Level, Threat Type, TClass, TFamily
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-general'] = '{"order":{"InsightDetails.mostRecentAt":"desc"},"timeDimensions":[{"dimension":"InsightDetails.eventSummaryHour","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"measures":["InsightDetails.blockedCount","InsightDetails.notBlockedCount","InsightDetails.numEvents","InsightDetails.mostRecentAt"],"dimensions":["InsightDetails.insightId","InsightDetails.tClass","InsightDetails.tFamily","InsightDetails.threatType","InsightDetails.description","InsightDetails.threatLevel","InsightDetails.feedSource","InsightDetails.startedAt","InsightDetails.confidenceLevel","InsightDetails.insightStatus","InsightDetails.persistent","InsightDetails.persistentDate","InsightDetails.spreading","InsightDetails.spreadingDate"],"filters":[{"member":"InsightDetails.insightId","operator":"equals","values":["'.$SID->insightId.'"]}],"timezone":"UTC"}';
+
+				// Total Asset Count / Verified Asset Count / Unverified Asset Count
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetCounts'] = '{"filters":[{"member":"PortunusAggIPSummary_ch.tclass","values":["'.$SID->tClass.'"],"operator":"equals"},{"member":"PortunusAggIPSummary_ch.tfamily","values":["'.$SID->tFamily.'"],"operator":"equals"}],"segments":[],"dimensions":["PortunusAggIPSummary_ch.tfamily","PortunusAggIPSummary_ch.tclass"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary_ch.timestamp","granularity":null}],"measures":["PortunusAggIPSummary_ch.unknownAssetCount","PortunusAggIPSummary_ch.knownAssetCount","PortunusAggIPSummary_ch.totalAssetCount"],"ungrouped":false}';
+
+				// Get Total Number of Unique Assets Accessing Unblocked Indicators (deviceId Distinct Count)
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetsAccessingDeviceID'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"},{"member":"PortunusAggIPSummary.action","operator":"equals","values":["Not Blocked"]}]}';
+
+				// Get Total Number of Unique Assets Accessing Unblocked Indicators (qip Distinct Count)
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-assetsAccessingQIP'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.qipDistinctCount"],"timeDimensions":[{"dimension":"PortunusAggIPSummary.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"notSet"},{"member":"PortunusAggIPSummary.action","operator":"equals","values":["Not Blocked"]}]}';
+
+				// Get Total Blocked/Not Blocked Indicator Counts
+				$IndicatorStart = (new DateTime($StartDimension))->format('Y-m-d\TH:i:s').'.000';
+				$IndicatorEnd = (new DateTime($EndDimension))->format('Y-m-d\TH:i:s').'.000';
+				// Should this be insight_type=detections or insight_type=rpz ? How do I determine this?
+				$SOCInsightsIndicatorsBlockedCounts[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/counts?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd);
+				$SOCInsightsIndicatorsDetails[$SID->insightId] = $this->queryCSP("get","api/ris/v1/insights/indicators/details?tclass=".$SID->tClass."&tfamily=".$SID->tFamily."&insight_type=detections&from=".$IndicatorStart."&to=".$IndicatorEnd."&limit=1000");
+
+				// Get Impacted Assets & Indicators Time Series
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedAssetsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.deviceIdDistinctCount"],"dimensions":["PortunusAggIPSummary.device_id"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"set"}]}';
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-impactedQIPsTimeSeries'] = '{"order":{"PortunusAggIPSummary.timestamp":"desc"},"measures":["PortunusAggIPSummary.qipDistinctCount"],"dimensions":["PortunusAggIPSummary.qip"],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]},{"member":"PortunusAggIPSummary.device_id","operator":"notSet"}]}';
+				$SOCInsightsCubeJSRequests[$SID->insightId.'-indicatorsTimeSeries'] = '{"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"dimension":"PortunusAggIPSummary.timestamp","granularity":"hour"}],"measures":["PortunusAggIPSummary.threatIndicatorDistinctCount"],"dimensions":["PortunusAggIPSummary.threat_indicator"],"filters":[{"member":"PortunusAggIPSummary.tclass","operator":"equals","values":["'.$SID->tClass.'"]},{"member":"PortunusAggIPSummary.tfamily","operator":"equals","values":["'.$SID->tFamily.'"]}]}';
+			}
+			// Invoke CubeJS to populate SOC Insight Data
+			$SOCInsightsCubeJSResults = $this->QueryCubeJSMulti($SOCInsightsCubeJSRequests);
+
+			// ** Industry Vertical Start 
+			// ** //
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Industry Vertical Metrics");
+			$IVThirtyDays = $CubeJSResults['IVThirtyDays']['Body'];
+			$IVPeerAndOverallCount = $CubeJSResults['IVPeerAndOverallCount']['Body'];
+			$IVThreatActors = $CubeJSResults['IVThreatActors']['Body'];
+			$IVTrend = $CubeJSResults['IVTrend']['Body'];
+
+
+			// ** INDUSTRY VERTICAL NAME & PEER COUNT ** //
+			$IVIndustryName = $IVThirtyDays->result->data[0]->{'IVThirtyDays.industryName'} ?? 'Unknown';
+			$IVIndustryPeerCount = $IVPeerAndOverallCount->result->data[0]->{'IndustryVerticalPeerAndOverallCount.industryCount'} ?? 0;
+
+			// ** CONFIRMED THREATS SEEN START ** //
+
+			// Find each object under $IVThirtyDays->result->data with dimensionLabel of X
+			$DLConfirmedThreatsSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen';
+			});
+			$DLConfirmedThreatsSeen = array_values($DLConfirmedThreatsSeen);
+
+			// Determine Customer Totals/Averages & Trend
+			$IVPDLConfirmedThreatsSeenSum = $DLConfirmedThreatsSeen[0]->{'IVThirtyDays.accountDimensionSum'} ?? 0;
+			$IVPDLConfirmedThreatsSeenPercentage = $DLConfirmedThreatsSeen[0]->{'IVThirtyDays.accountPercentage'} ?? 0;
+			$IVPDLConfirmedThreatsSeenTrend = $IVTrend->result->data[array_search('confirmed_threats_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
+
+			// Determine Total Number of Malicious Domains vs Malicious IPs
+			$IVPDLMaliciousDomains = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-base';
+			});
+			$IVPDLMaliciousDomains = array_values($IVPDLMaliciousDomains);
+			$IVPDLMaliciousIPs = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'confirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-base-ip';
+			});
+			$IVPDLMaliciousIPs = array_values($IVPDLMaliciousIPs);
+			// Work out percentage of Malicious Domains vs.	 Malicious IPs (Account)
+			if ($IVPDLConfirmedThreatsSeenSum > 0) {
+				$IVPDLMaliciousDomainsPercentage = round((($IVPDLMaliciousDomains[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLConfirmedThreatsSeenSum) * 100, 2);
+				$IVPDLMaliciousIPsPercentage = round((($IVPDLMaliciousIPs[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLConfirmedThreatsSeenSum) * 100, 2);
+			} else {
+				$IVPDLMaliciousDomainsPercentage = 0;
+				$IVPDLMaliciousIPsPercentage = 0;
+			}
+
+			// Determine Industry Totals/Averages
+			$IVIDLConfirmedThreatsSeenSum = $DLConfirmedThreatsSeen[0]->{'IVThirtyDays.industryDimensionSum'} ?? 0;
+			// Find IndustryVerticalPeerAndOverallCount.industryCount
+			$IVIDLConfirmedThreatsSeenPercentage = $DLConfirmedThreatsSeen[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
+			// Work out percentage of Malicious Domains vs.	 Malicious IPs (Industry)
+			$IVIDLTotalMaliciousIndicators = ($DLConfirmedThreatsSeen[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0);
+			if ($IVIDLTotalMaliciousIndicators > 0) {
+				$IVIDLMaliciousDomainsPercentage = round((($IVPDLMaliciousDomains[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLTotalMaliciousIndicators) * 100, 2);
+				$IVIDLMaliciousIPsPercentage = round((($IVPDLMaliciousIPs[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLTotalMaliciousIndicators) * 100, 2);
+			} else {
+				$IVIDLMaliciousDomainsPercentage = 0;
+				$IVIDLMaliciousIPsPercentage = 0;
+			}
+
+			// ** CONFIRMED THREATS SEEN END ** //
+
+
+			// ** UNCONFIRMED THREATS SEEN START ** //
+			$DLUnconfirmedThreatsSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen';
+			});
+			$DLUnconfirmedThreatsSeen = array_values($DLUnconfirmedThreatsSeen);
+			// Determine Customer Totals/Averages & Trend
+			$IVPDLUnconfirmedThreatsSeenSum = $DLUnconfirmedThreatsSeen[0]->{'IVThirtyDays.accountDimensionSum'} ?? 0;
+			$IVPDLUnconfirmedThreatsSeenPercentage = $DLUnconfirmedThreatsSeen[0]->{'IVThirtyDays.accountPercentage'} ?? 0;
+			$IVPDLUnconfirmedThreatsSeenTrend = $IVTrend->result->data[array_search('unconfirmed_threats_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
+
+			// Determine Total Number of High Risk, Med Risk & Low Risk indicators, ensuring it is the first key in the array (key 0)
+			$IVPDLUnconfirmedHighRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-high-risk';
+			});
+			$IVPDLUnconfirmedHighRisk = array_values($IVPDLUnconfirmedHighRisk);
+			$IVPDLUnconfirmedMedRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-med-risk';
+			});
+			$IVPDLUnconfirmedMedRisk = array_values($IVPDLUnconfirmedMedRisk);
+			$IVPDLUnconfirmedLowRisk = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'unconfirmed_threats_seen' && $item->{'IVThirtyDays.dimensionMetric'} === 'infoblox-low-risk';
+			});
+			$IVPDLUnconfirmedLowRisk = array_values($IVPDLUnconfirmedLowRisk);
+
+			// Work out percentage of High Risk, Med Risk & Low Risk indicators (Account)
+			if ($IVPDLUnconfirmedThreatsSeenSum > 0) {
+				$IVPDLUnconfirmedHighRiskPercentage = round((($IVPDLUnconfirmedHighRisk[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLUnconfirmedThreatsSeenSum) * 100, 2);
+				$IVPDLUnconfirmedMedRiskPercentage = round((($IVPDLUnconfirmedMedRisk[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLUnconfirmedThreatsSeenSum) * 100, 2);
+				$IVPDLUnconfirmedLowRiskPercentage = round((($IVPDLUnconfirmedLowRisk[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLUnconfirmedThreatsSeenSum) * 100, 2);
+			} else {
+				$IVPDLUnconfirmedHighRiskPercentage = 0;
+				$IVPDLUnconfirmedMedRiskPercentage = 0;
+				$IVPDLUnconfirmedLowRiskPercentage = 0;
+			}
+
+			// Determine Industry Totals/Averages
+			$IVIDLUnconfirmedThreatsSeenSum = $DLUnconfirmedThreatsSeen[0]->{'IVThirtyDays.industryDimensionSum'} ?? 0;
+			$IVIDLUnconfirmedThreatsSeenPercentage = $DLUnconfirmedThreatsSeen[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
+
+			// Work out percentage of High Risk, Med Risk & Low Risk indicators (Industry)
+			if ($IVIDLUnconfirmedThreatsSeenSum > 0) {
+				$IVIDLUnconfirmedHighRiskPercentage = round((($IVPDLUnconfirmedHighRisk[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLUnconfirmedThreatsSeenSum) * 100, 2);
+				$IVIDLUnconfirmedMedRiskPercentage = round((($IVPDLUnconfirmedMedRisk[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLUnconfirmedThreatsSeenSum) * 100, 2);
+				$IVIDLUnconfirmedLowRiskPercentage = round((($IVPDLUnconfirmedLowRisk[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLUnconfirmedThreatsSeenSum) * 100, 2);
+			} else {
+				$IVIDLUnconfirmedHighRiskPercentage = 0;
+				$IVIDLUnconfirmedMedRiskPercentage = 0;
+				$IVIDLUnconfirmedLowRiskPercentage = 0;
+			}
+			// ** UNCONFIRMED THREATS SEEN END ** //
+
+
+			// ** THREAT ACTOR ASSOCIATED TRAFFIC SEEN START ** //
+			$DLThreatActorAssociatedTrafficSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_actor_associated_traffic_seen';
+			});
+			$DLThreatActorAssociatedTrafficSeen = array_values($DLThreatActorAssociatedTrafficSeen);
+			// Determine Customer Totals/Averages & Trend
+			$IVPDLThreatActorAssociatedTrafficSeenSum = $DLThreatActorAssociatedTrafficSeen[0]->{'IVThirtyDays.accountDimensionSum'} ?? 0;
+			$IVPDLThreatActorAssociatedTrafficSeenPercentage = $DLThreatActorAssociatedTrafficSeen[0]->{'IVThirtyDays.accountPercentage'} ?? 0;
+			$IVPDLThreatActorAssociatedTrafficSeenTrend = $IVTrend->result->data[array_search('threat_actor_associated_traffic_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
+
+			// Determine Industry Totals/Averages
+			$IVIDLThreatActorAssociatedTrafficSeenSum = $DLThreatActorAssociatedTrafficSeen[0]->{'IVThirtyDays.industryDimensionSum'} ?? 0;
+			$IVIDLThreatActorAssociatedTrafficSeenPercentage = $DLThreatActorAssociatedTrafficSeen[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
+
+			// Identify number of Threat Actors from $IVThreatActors
+			if (isset($IVThreatActors->result->data[0])) {
+				$IVThreatActorsMetrics = [
+					'account' => $IVThreatActors->result->data[0]->{'IVThreatActors.accountThirtyDays'} ?? 0,
+					'industry' => ($IVThreatActors->result->data[0]->{'IVThreatActors.industryThirtyDays'} ?? 0) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1),
+					'all' => $IVThreatActors->result->data[0]->{'IVThreatActors.allAccountThirtyDays'} ?? 0
+				];
+			} else {
+				$IVThreatActorsMetrics = [
+					'accounts' => 0,
+					'industry' => 0,
+					'all' => 0
+				];
+			}
+
+			// ** THREAT ACTOR ASSOCIATED TRAFFIC SEEN END ** //
+
+			// ** ZERO DAY DNS TRAFFIC SEEN START ** //
+			$DLZeroDayDNSTrafficSeen = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'zero_day_dns_traffic_seen';
+			});
+			$DLZeroDayDNSTrafficSeen = array_values($DLZeroDayDNSTrafficSeen);
+
+			// Determine Customer Totals/Averages & Trend
+			$IVPDLZeroDayDNSTrafficSeenSum = $DLZeroDayDNSTrafficSeen[0]->{'IVThirtyDays.accountDimensionSum'} ?? 0;
+			$IVPDLZeroDayDNSTrafficSeenPercentage = $DLZeroDayDNSTrafficSeen[0]->{'IVThirtyDays.accountPercentage'} ?? 0;
+			$IVPDLZeroDayDNSTrafficSeenTrend = $IVTrend->result->data[array_search('zero_day_dns_traffic_seen', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
+
+			// Determine Industry Totals/Averages
+			$IVIDLZeroDayDNSTrafficSeenSum = $DLZeroDayDNSTrafficSeen[0]->{'IVThirtyDays.industryDimensionSum'} ?? 0;
+			$IVIDLZeroDayDNSTrafficSeenPercentage = $DLZeroDayDNSTrafficSeen[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
+
+			// ** ZERO DAY DNS TRAFFIC SEEN END ** //
+
+			// ** THREAT INSIGHT DETECTION START ** //
+			$DLThreatInsightDetection = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection';
+			});
+			$DLThreatInsightDetection = array_values($DLThreatInsightDetection);
+
+			// Determine Customer Totals/Averages & Trend
+			$IVPDLThreatInsightDetectionSum = $DLThreatInsightDetection[0]->{'IVThirtyDays.accountDimensionSum'} ?? 0;
+			$IVPDLThreatInsightDetectionPercentage = $DLThreatInsightDetection[0]->{'IVThirtyDays.accountPercentage'} ?? 0;
+			$IVPDLThreatInsightDetectionTrend = $IVTrend->result->data[array_search('threat_insight_detection', array_column($IVTrend->result->data, 'IVTrend.dimensionLabel'))]->{'IVTrend.trendPercentage'} ?? 0;
+
+			// Determine Industry Totals/Averages
+			$IVIDLThreatInsightDetectionSum = $DLThreatInsightDetection[0]->{'IVThirtyDays.industryDimensionSum'} ?? 0;
+			$IVIDLThreatInsightDetectionPercentage = $DLThreatInsightDetection[0]->{'IVThirtyDays.industryPercentage'} ?? 0;
+
+			// Determine Total Number of DNST vs. DGA traffic, ensuring it is the first key in the array (key 0)
+			$IVPDLDNSTraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection' && $item->{'IVThirtyDays.dimensionMetric'} === 'dnst';
+			});
+			$IVPDLDNSTraffic = array_values($IVPDLDNSTraffic);
+
+			$IVPDLDGATraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+				return $item->{'IVThirtyDays.dimensionLabel'} === 'threat_insight_detection' && $item->{'IVThirtyDays.dimensionMetric'} === 'dga';
+			});
+			$IVPDLDGATraffic = array_values($IVPDLDGATraffic);
+
+			// Work out the percentage of DNST vs. DGA traffic (Account)
+			if ($IVPDLThreatInsightDetectionSum > 0) {
+				$IVPDLDNSTTrafficPercentage = round((($IVPDLDNSTraffic[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLThreatInsightDetectionSum) * 100, 2);
+				$IVPDLDGATrafficPercentage = round((($IVPDLDGATraffic[0]->{'IVThirtyDays.accountDimensionMetricSum'} ?? 0) / $IVPDLThreatInsightDetectionSum) * 100, 2);
+			} else {
+				$IVPDLDNSTTrafficPercentage = 0;
+				$IVPDLDGATrafficPercentage = 0;
+			}
+
+			// Work out the percentage of DNST vs. DGA traffic (Industry)
+			$IVIDLTotalThreatInsightDetection = ($DLThreatInsightDetection[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0);
+			if ($IVIDLThreatInsightDetectionSum > 0) {
+				$IVIDLDNSTTrafficPercentage = round((($IVPDLDNSTraffic[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLThreatInsightDetectionSum) * 100, 2);
+				$IVIDLDGATrafficPercentage = round((($IVPDLDGATraffic[0]->{'IVThirtyDays.industryDimensionMetricSum'} ?? 0) / $IVIDLThreatInsightDetectionSum) * 100, 2);
+			} else {
+				$IVIDLDNSTTrafficPercentage = 0;
+				$IVIDLDGATrafficPercentage = 0;
+			}
+
+			// ** THREAT INSIGHT DETECTION END ** //
+
+			// Optional Query - Not currently used
+			// $DLTotalDNSTraffic = array_filter($IVThirtyDays->result->data ?? [], function($item) {
+			// 	return $item->{'IVThirtyDays.dimensionLabel'} === 'total_dns_traffic';
+			// });
+
+			// ** Industry Vertical End ** //
+
 			// Security Activity
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Security Activity");
 			$SecurityEvents = $CubeJSResults['SecurityEvents']['Body'];
@@ -330,15 +718,59 @@ class SecurityAssessment extends ibPortal {
 				$DGAEventsCount = 0;
 			}
 	
-			// Unique Applications
+			// App Discovery - Unique Applications
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building list of Unique Applications");
-			$UniqueApplications = $CubeJSResults['UniqueApplications']['Body'];
-			if (isset($UniqueApplications->result->data)) {
-				$UniqueApplicationsCount = count($UniqueApplications->result->data);
+			$AppDiscoveryApplications = $CubeJSResults['AppDiscoveryApplications']['Body'];
+			if (isset($AppDiscoveryApplications->result->data)) {
+				$AppDiscoveryApplicationsCount = count($AppDiscoveryApplications->result->data);
 			} else {
-				$UniqueApplicationsCount = 0;
+				$AppDiscoveryApplicationsCount = 0;
 			}
-	
+
+			// App Discovery - Total Requests / Devices
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Collecting totals from application discovery");
+			$AppDiscoveryTotals = $CubeJSResults['AppDiscoveryTotals']['Body'];
+			if (isset($AppDiscoveryTotals->result->data[0])) {
+				$AppDiscoveryTotalRequestsCount = $AppDiscoveryTotals->result->data[0]->{'PortunusAggAppDiscovery.requests'};
+				$AppDiscoveryTotalDevicesCount = $AppDiscoveryTotals->result->data[0]->{'PortunusAggAppDiscovery.deviceCount'};
+			} else {
+				$AppDiscoveryTotalRequestsCount = 0;
+				$AppDiscoveryTotalDevicesCount = 0;
+			}
+
+			// Web Content - Total Requests / Devices
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Request Count");
+			$WebContentTotals = $CubeJSResults['WebContentTotals']['Body'];
+			if (isset($WebContentTotals->result->data[0])) {
+				$WebContentTotalRequestsCount = $WebContentTotals->result->data[0]->{'PortunusAggWebContentDiscovery.requests'};
+				$WebContentTotalDevicesCount = $WebContentTotals->result->data[0]->{'PortunusAggWebContentDiscovery.deviceCount'};
+			} else {
+				$WebContentTotalRequestsCount = 0;
+				$WebContentTotalDevicesCount = 0;
+			}
+
+			// Web Content - Total Security Events
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Security Event Count");
+			$WebContentSecurityEvents = $CubeJSResults['WebContentSecurityEvents']['Body'];
+			if (isset($WebContentSecurityEvents->result->data[0])) {
+				$WebContentSecurityEventsCount = $WebContentSecurityEvents->result->data[0]->{'PortunusAggWebcontent.requests'};
+			} else {
+				$WebContentSecurityEventsCount = 0;
+			}
+
+			// Web Content - Content Categories
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Categories");
+			$WebContentCategoriesResult = $this->queryCSP("get","api/atcfw/v1/content_categories");
+			$WebContentCategories = [];
+			if (isset($WebContentCategoriesResult->results) && is_array($WebContentCategoriesResult->results)) {
+				foreach ($WebContentCategoriesResult->results as $Category) {
+					$WebContentCategories[$Category->category_name] = [
+						'Code' => $Category->category_code,
+						'Group' => $Category->functional_group
+					];
+				}
+			}
+
 			// Threat Actors Metrics
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Actor Metrics");
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Getting Threat Actor Information (This may take a moment)");
@@ -393,15 +825,6 @@ class SecurityAssessment extends ibPortal {
 				$DNSFirewallEventsCount = 0;
 			}
 	
-			// Web Content
-			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Events");
-			$WebContentEvents = $CubeJSResults['WebContentEvents']['Body'];
-			if (isset($WebContentEvents->result->data[0])) {
-				$WebContentEventsCount = $WebContentEvents->result->data[0]->{'PortunusAggWebcontent.requests'};
-			} else {
-				$WebContentEventsCount = 0;
-			}
-	
 			// Device Count
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Device Count");
 			$Devices = $CubeJSResults['Devices']['Body'];
@@ -453,18 +876,192 @@ class SecurityAssessment extends ibPortal {
 			$LookalikeThreatCountUri = urlencode('/api/atclad/v1/lookalike_threat_counts?_filter=detected_at>="'.$StartDimension.'" and detected_at<="'.$EndDimension.'"');
 			$LookalikeThreatCounts = $this->QueryCSP("get",$LookalikeThreatCountUri);
 
+			// Zero Day DNS
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zero Day DNS");
+			// If Start and End date are < 7 days, use 7 days to ensure we get results. If more than 30 days, reduce to 30 days
+			if ($TimeObjDateDiff->days < 7) {
+				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-7 days')->format('Y-m-d\TH:i:s');
+			} elseif ($TimeObjDateDiff->days > 29) {
+				$ZDDStartDimension = (new DateTime($EndDimension))->modify('-30 days')->format('Y-m-d\T').'00:00:00';
+			} else {
+				$ZDDStartDimension = $StartDimension;
+			}
+			// Fix some weird behaviour with time
+			$ZDDEndDimension = (new DateTime($EndDimension))->modify('+1 hour')->format('Y-m-d\TH:i:s');
+			$ZeroDayDNSDetectionsUri = 'tide-rpz-stats/v1/zero_day_detections?from='.$ZDDStartDimension.'Z&to='.$ZDDEndDimension.'Z';
+			$ZeroDayDNSDetections = $this->QueryCSP("get",$ZeroDayDNSDetectionsUri);
+
+			// Work out number percentage of Suspicious and Malicious domains
+			// If the property is not null and not Policy_ParkedDomain or Policy_NewlyObservedDomains then it is included in suspicious, unless it includes Phishing or Malware, then it's considered malicious 
+			$ZeroDayDNSDetectionsTotalCount = 0;
+			$ZeroDayDNSDetectionsSuspiciousCount = 0;
+			$ZeroDayDNSDetectionsMaliciousCount = 0;
+			if (isset($ZeroDayDNSDetections->detections) AND is_array($ZeroDayDNSDetections->detections)) {
+				foreach ($ZeroDayDNSDetections->detections as $detection) {
+					if (isset($detection->property) AND !in_array($detection->property, ['Policy_ParkedDomain','Policy_NewlyObservedDomains'])) {
+						$ZeroDayDNSDetectionsSuspiciousCount++;
+						if (stripos($detection->property,'Phishing') !== false OR stripos($detection->property,'Malware') !== false) {
+							$ZeroDayDNSDetectionsMaliciousCount++;
+						}
+					}
+					$ZeroDayDNSDetectionsTotalCount += $detection->count ?? 0; // Default to 0 if count is not set
+				}
+			}
+			if ($ZeroDayDNSDetectionsTotalCount > 0) {
+				$ZeroDayDNSDetectionsSuspiciousPercent = ($ZeroDayDNSDetectionsSuspiciousCount / $ZeroDayDNSDetectionsTotalCount) * 100;
+				$ZeroDayDNSDetectionsMaliciousPercent = ($ZeroDayDNSDetectionsMaliciousCount / $ZeroDayDNSDetectionsTotalCount) * 100;
+			} else {
+				$ZeroDayDNSDetectionsSuspiciousPercent = 0;
+				$ZeroDayDNSDetectionsMaliciousPercent = 0;
+			}
+
+			// Token Calculator
+			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Token Usage");
+			$SecurityTokenCategories = [
+				'SOC Insights' => [
+					'Verified Assets' => 0,
+					'Unverified Assets' => 0,
+					'Total'	=> 0
+				],
+				'Lookalikes' => [
+					'Domains' => 0,
+					'Total'	=> 0
+				],
+				'Cloud Asset Protection' => [
+					'Verified Assets' => 0,
+					'Unverified Assets' => 0,
+					'Total'	=> 0
+				],
+				'Dossier' => [
+					'Queries' => 0,
+					'Total'	=> 0
+				],
+				'Threat Defense for NIOS' => [
+					'X5' => 0,
+					'X6' => 0,
+					'Total'	=> 0
+				],
+				'Total' => 0
+			];
+			$ReportingTokenCategories = [
+				'30-day Active Search' => 0,
+				'Ecosystem'	=> 0,
+				'S3' => 0,
+				'Total' => 0
+			];
+
+			$SecurityTokenUsage = $CubeJSResults['SecurityTokens']['Body']->result->data ?? [];
+			$SecurityTokenDailyUsage = [];
+			if (isset($SecurityTokenUsage)) {
+				foreach ($SecurityTokenUsage as $STU) {
+					// Group categories by timestamp, then identify the date with peak usage. The peak usage should then be used to populate $SecurityTokenCategories, including the respective totals
+					$timestamp = $STU->{'TokenUtilSecurityDaily.timestamp'};
+					$date = date('Y-m-d', strtotime($timestamp));
+					if (!isset($SecurityTokenDailyUsage[$date])) {
+						$SecurityTokenDailyUsage[$date] = [];
+					}
+					$SecurityTokenDailyUsage[$date][] = $STU;
+
+				}
+				// Now we have an array of daily usage, identify the peak day
+				$SecurityPeakDate = null;
+				$SecurityPeakTotal = 0;
+				foreach ($SecurityTokenDailyUsage as $date => $usages) {
+					$DailyTotal = array_sum(array_column($usages, 'TokenUtilSecurityDaily.tokens'));
+					if ($DailyTotal > $SecurityPeakTotal) {
+						$SecurityPeakTotal = $DailyTotal;
+						$SecurityPeakDate = $date;
+					}
+				}
+				// Now populate $SecurityTokenCategories based on the peak day usages
+				if ($SecurityPeakDate !== null) {
+					foreach ($SecurityTokenDailyUsage[$SecurityPeakDate] as $STU) {
+						$category = $STU->{'TokenUtilSecurityDaily.category'};
+						$type = $STU->{'TokenUtilSecurityDaily.type'};
+						$count = $STU->{'TokenUtilSecurityDaily.tokens'};
+						if (isset($SecurityTokenCategories[$category])) {
+							if (in_array($category, ['SOC Insights', 'Cloud Asset Protection']) && in_array($type, ['Verified Assets', 'Unverified Assets'])) {
+								$SecurityTokenCategories[$category][$type] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Lookalikes' && $type === 'Domains') {
+								$SecurityTokenCategories[$category]['Domains'] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Dossier' && $type === 'Queries') {
+								$SecurityTokenCategories[$category]['Queries'] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							} elseif ($category === 'Threat Defense for NIOS' && in_array($type, ['X5', 'X6'])) {
+								$SecurityTokenCategories[$category][$type] += $count;
+								$SecurityTokenCategories[$category]['Total'] += $count;
+							}
+							$SecurityTokenCategories['Total'] += $count;
+						}
+					}
+				}
+			}
+
+			$ReportingTokenUsage = $CubeJSResults['ReportingTokens']['Body']->result->data ?? [];
+			$ReportingTokenDailyUsage = [];
+			if (isset($ReportingTokenUsage)) {
+				foreach ($ReportingTokenUsage as $RTU) {
+					// Group categories by timestamp, then identify the date with peak usage. The peak usage should then be used to populate $ReportingTokenCategories, including the respective totals
+					$timestamp = $RTU->{'TokenUtilReportingDaily.timestamp'};
+					$date = date('Y-m-d', strtotime($timestamp));
+					if (!isset($ReportingTokenDailyUsage[$date])) {
+						$ReportingTokenDailyUsage[$date] = [];
+					}
+					$ReportingTokenDailyUsage[$date][] = $RTU;
+				}
+				// Now we have an array of daily usage, identify the peak day
+				$ReportingPeakDate = null;
+				$ReportingPeakTotal = 0;
+				foreach ($ReportingTokenDailyUsage as $date => $usages) {
+					$DailyTotal = array_sum(array_column($usages, 'TokenUtilReportingDaily.tokens'));
+					if ($DailyTotal > $ReportingPeakTotal) {
+						$ReportingPeakTotal = $DailyTotal;
+						$ReportingPeakDate = $date;
+					}
+				}
+				// Now populate $ReportingTokenCategories based on the peak day usages. If the category is '30-day Active Search', exclude it from the total
+				if ($ReportingPeakDate !== null) {
+					foreach ($ReportingTokenDailyUsage[$ReportingPeakDate] as $RTU) {
+						$category = $RTU->{'TokenUtilReportingDaily.category'};
+						$count = $RTU->{'TokenUtilReportingDaily.tokens'};
+						if (isset($ReportingTokenCategories[$category])) {
+							$ReportingTokenCategories[$category] += $count;
+							if ($category !== '30-day Active Search') {
+								$ReportingTokenCategories['Total'] += $count;
+							}
+						}
+					}
+				}
+			}
+			// End of Token Calculator
+
 			// New Loop for support of multiple selected templates
 			// writeProgress result should be Selected Template 27 + 13 x N
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
+				usort($embeddedFiles, 'strnatcmp');
+
+				// Is Macro Enabled?
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
+
+				// Initialise array to hold references to excel files created for charts
+				$SOCInsightsExcelReference = [];
+
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
 	
 				// Top detected properties
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Threat Properties");
 				$TopDetectedProperties = $CubeJSResults['TopDetectedProperties']['Body'];
 				if (isset($TopDetectedProperties->result->data)) {
-					$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedTopDetectedProperties = getEmbeddedSheetFilePath('TopDetectedProperties', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$TopDetectedPropertiesSS = IOFactory::load($EmbeddedTopDetectedProperties);
 					$RowNo = 2;
 					foreach ($TopDetectedProperties->result->data as $TopDetectedProperty) {
@@ -483,7 +1080,7 @@ class SecurityAssessment extends ibPortal {
 				// Re-use High-Risk Websites data
 				$ContentFiltration = $CubeJSResults['HighRiskWebsites']['Body'];
 				if (isset($ContentFiltration->result->data)) {
-					$EmbeddedContentFiltration = getEmbeddedSheetFilePath('ContentFiltration', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedContentFiltration = getEmbeddedSheetFilePath('ContentFiltration', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$ContentFiltrationSS = IOFactory::load($EmbeddedContentFiltration);
 					$RowNo = 2;
 					// Slice Array to limit size to 10
@@ -505,7 +1102,7 @@ class SecurityAssessment extends ibPortal {
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Activity");
 				$DNSActivityDaily = $CubeJSResults['DNSActivityDaily']['Body'];
 				if (isset($DNSActivityDaily->result->data)) {
-					$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedDNSActivityDaily = getEmbeddedSheetFilePath('DNSActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$DNSActivityDailySS = IOFactory::load($EmbeddedDNSActivityDaily);
 					$RowNo = 2;
 
@@ -532,7 +1129,7 @@ class SecurityAssessment extends ibPortal {
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Firewall Activity");
 				$DNSFirewallActivityDaily = $CubeJSResults['DNSFirewallActivityDaily']['Body'];
 				if (isset($DNSFirewallActivityDaily->result->data)) {
-					$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedDNSFirewallActivityDaily = getEmbeddedSheetFilePath('DNSFirewallActivity', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$DNSFirewallActivityDailySS = IOFactory::load($EmbeddedDNSFirewallActivityDaily);
 					$RowNo = 2;
 
@@ -559,7 +1156,7 @@ class SecurityAssessment extends ibPortal {
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building SOC Insight Threat Types");
 				$InsightDistribution = $CubeJSResults['InsightDistribution']['Body'];
 				if (isset($InsightDistribution->result->data)) {
-					$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedInsightDistribution = getEmbeddedSheetFilePath('InsightDistribution', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$InsightDistributionSS = IOFactory::load($EmbeddedInsightDistribution);
 					$RowNo = 2;
 					foreach ($InsightDistribution->result->data as $InsightThreatType) {
@@ -575,7 +1172,7 @@ class SecurityAssessment extends ibPortal {
 				// Threat Types (Lookalikes) - Sheet 4
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Lookalikes");
 				if (isset($LookalikeThreatCounts->results)) {
-					$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets);
+					$EmbeddedLookalikes = getEmbeddedSheetFilePath('Lookalikes', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$LookalikeThreatCountsSS = IOFactory::load($EmbeddedLookalikes);
 					$LookalikeThreatCountsS = $LookalikeThreatCountsSS->getActiveSheet();
 					$RowNo = 2;
@@ -603,6 +1200,191 @@ class SecurityAssessment extends ibPortal {
 					$LookalikeThreatCountsW->save($EmbeddedLookalikes);
 				}
 
+				// Bandwidth Savings - Slide 7
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Bandwidth Savings Page");
+				$EmbeddedBandwidthSavings = getEmbeddedSheetFilePath('BandwidthSavings', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$BandwidthSavingsSS = IOFactory::load($EmbeddedBandwidthSavings);
+				$RowNo = 2;
+				if (isset($TotalBandwidthSavedTop5Classes) AND is_array($TotalBandwidthSavedTop5Classes)) {
+					foreach ($TotalBandwidthSavedTop5Classes as $BandwidthClass) {
+						$BandwidthSavingsS = $BandwidthSavingsSS->getActiveSheet();
+						$BandwidthSavingsS->setCellValue('A'.$RowNo, $BandwidthClass->{'PortunusAggThreat_ch.tclass'});
+						// Work out percentage from $TotalBandwidthBytes
+						if ($TotalBandwidthBytes > 0) {
+							$BandwidthClassPercentage = ($BandwidthClass->{'PortunusAggThreat_ch.bandwidthTotal'} / $TotalBandwidthBytes) * 100;
+						} else {
+							$BandwidthClassPercentage = 0;
+						}
+						$BandwidthSavingsS->setCellValue('B'.$RowNo, $BandwidthClassPercentage);
+						$RowNo++;
+					}
+				}
+				$BandwidthSavingsW = IOFactory::createWriter($BandwidthSavingsSS, 'Xlsx');
+				$BandwidthSavingsW->save($EmbeddedBandwidthSavings);
+
+				// Application Detection - Slide 19
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Application Detection Page");
+				$AppDiscoveryApplications->result->data = array_slice($AppDiscoveryApplications->result->data, 0, 10);
+				$EmbeddedAppDiscovery = getEmbeddedSheetFilePath('AppDiscovery', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$AppDiscoverySS = IOFactory::load($EmbeddedAppDiscovery);
+				$RowNo = 2;
+				// Name, Category, Request Count, Status, Devices, Manufacturer
+				if (isset($AppDiscoveryApplications->result->data)) {
+					foreach ($AppDiscoveryApplications->result->data as $AppDiscovery) {
+						$AppDiscoveryS = $AppDiscoverySS->getActiveSheet();
+						$AppDiscoveryS->setCellValue('A'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.app_name'});
+						$AppDiscoveryS->setCellValue('B'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.app_category'});
+						$AppDiscoveryS->setCellValue('C'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.requests'});
+						$AppDiscoveryS->setCellValue('D'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.app_approval'});
+						$AppDiscoveryS->setCellValue('E'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.deviceCount'});
+						$AppDiscoveryS->setCellValue('F'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.app_vendor'});
+						$RowNo++;
+					}
+					$AppDiscoveryW = IOFactory::createWriter($AppDiscoverySS, 'Xlsx');
+					$AppDiscoveryW->save($EmbeddedAppDiscovery);
+				}
+
+				// Web Content Discovery - Slide 20
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Discovery Page");
+				$HighRiskWebsites->result->data = array_slice($HighRiskWebsites->result->data, 0, 10);
+				$EmbeddedWebContentDiscovery = getEmbeddedSheetFilePath('WebContentDiscovery', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$WebContentDiscoverySS = IOFactory::load($EmbeddedWebContentDiscovery);
+				$RowNo = 2;
+				// Sub Category, Category, Request Count, Device Count
+				if (isset($HighRiskWebsites->result->data)) {
+					foreach ($HighRiskWebsites->result->data as $WebContentDiscovery) {
+
+						// Determine Parent Category from Sub Category
+						if (isset($WebContentCategories[$WebContentDiscovery->{'PortunusAggWebContentDiscovery.domain_category'}])) {
+							$WebContentDiscoveryDomainCategory = $WebContentCategories[$WebContentDiscovery->{'PortunusAggWebContentDiscovery.domain_category'}]['Group'];
+						} else {
+							$WebContentDiscoveryDomainCategory = 'Uncategorized';
+						}
+
+						$WebContentDiscoveryS = $WebContentDiscoverySS->getActiveSheet();
+						$WebContentDiscoveryS->setCellValue('A'.$RowNo, $WebContentDiscovery->{'PortunusAggWebContentDiscovery.domain_category'}); // Sub Category
+						$WebContentDiscoveryS->setCellValue('B'.$RowNo, $WebContentDiscoveryDomainCategory); // Category
+						$WebContentDiscoveryS->setCellValue('C'.$RowNo, $WebContentDiscovery->{'PortunusAggWebContentDiscovery.count'});
+						$WebContentDiscoveryS->setCellValue('D'.$RowNo, $WebContentDiscovery->{'PortunusAggWebContentDiscovery.deviceCount'});
+						$RowNo++;
+					}
+					$WebContentDiscoveryW = IOFactory::createWriter($WebContentDiscoverySS, 'Xlsx');
+					$WebContentDiscoveryW->save($EmbeddedWebContentDiscovery);
+				}
+
+				// Zero Day DNS - Slide 35 / 38
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zero Day DNS Page");
+				$EmbeddedZeroDayDNS = getEmbeddedSheetFilePath('ZeroDayDNS', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$ZeroDayDNSSS = IOFactory::load($EmbeddedZeroDayDNS);
+				// Get first 5 detections from $ZeroDayDNSDetections->detections
+				$RowNo = 2;
+				if (isset($ZeroDayDNSDetections->detections) AND is_array($ZeroDayDNSDetections->detections)) {
+					$ZeroDayDNSDetectionsSliced = array_slice($ZeroDayDNSDetections->detections, 0, 5);
+					foreach ($ZeroDayDNSDetectionsSliced as $ZeroDayDNSDetection) {
+						$ZeroDayDNSS = $ZeroDayDNSSS->getActiveSheet();
+						$ZeroDayDNSS->setCellValue('A'.$RowNo, $ZeroDayDNSDetection->domain ?? 'Unknown');
+						$ZeroDayDNSS->setCellValue('B'.$RowNo, $ZeroDayDNSDetection->count ?? 0);
+						$RowNo++;
+					}
+				}
+				$ZeroDayDNSW = IOFactory::createWriter($ZeroDayDNSSS, 'Xlsx');
+				$ZeroDayDNSW->save($EmbeddedZeroDayDNS);
+
+				// ** Industry Vertical (Slide 37/39 On Template) ** //
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Industry Vertical Page");
+
+				// Malicious Indicators Seen - Account
+				$EmbeddedIVMaliciousIndicatorsAccount = getEmbeddedSheetFilePath('IVMaliciousIndicatorsAccount', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVMaliciousIndicatorsAccountSS = IOFactory::load($EmbeddedIVMaliciousIndicatorsAccount);
+				$IVMaliciousIndicatorsAccountS = $IVMaliciousIndicatorsAccountSS->getActiveSheet();
+				$IVMaliciousIndicatorsAccountS->setCellValue('A2', 'Base Feed');
+				$IVMaliciousIndicatorsAccountS->setCellValue('A3', 'Base IP Feed');
+				$IVMaliciousIndicatorsAccountS->setCellValue('B2', $IVPDLMaliciousDomainsPercentage ?? 0);
+				$IVMaliciousIndicatorsAccountS->setCellValue('B3', $IVPDLMaliciousIPsPercentage ?? 0);
+				$IVMaliciousIndicatorsAccountW = IOFactory::createWriter($IVMaliciousIndicatorsAccountSS, 'Xlsx');
+				$IVMaliciousIndicatorsAccountW->save($EmbeddedIVMaliciousIndicatorsAccount);
+
+				// Malicious Indicators Seen - Industry
+				$EmbeddedIVMaliciousIndicatorsIndustry = getEmbeddedSheetFilePath('IVMaliciousIndicatorsIndustry', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVMaliciousIndicatorsIndustrySS = IOFactory::load($EmbeddedIVMaliciousIndicatorsIndustry);
+				$IVMaliciousIndicatorsIndustryS = $IVMaliciousIndicatorsIndustrySS->getActiveSheet();
+				$IVMaliciousIndicatorsIndustryS->setCellValue('A2', 'Base Feed');
+				$IVMaliciousIndicatorsIndustryS->setCellValue('A3', 'Base IP Feed');
+				$IVMaliciousIndicatorsIndustryS->setCellValue('B2', $IVIDLMaliciousDomainsPercentage ?? 0);
+				$IVMaliciousIndicatorsIndustryS->setCellValue('B3', $IVIDLMaliciousIPsPercentage ?? 0);
+				$IVMaliciousIndicatorsIndustryW = IOFactory::createWriter($IVMaliciousIndicatorsIndustrySS, 'Xlsx');
+				$IVMaliciousIndicatorsIndustryW->save($EmbeddedIVMaliciousIndicatorsIndustry);
+
+				// Risky Indicators Seen - Account
+				$EmbeddedIVRiskyIndicatorsAccount = getEmbeddedSheetFilePath('IVRiskyIndicatorsAccount', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVRiskyIndicatorsAccountSS = IOFactory::load($EmbeddedIVRiskyIndicatorsAccount);
+				$IVRiskyIndicatorsAccountS = $IVRiskyIndicatorsAccountSS->getActiveSheet();
+				$IVRiskyIndicatorsAccountS->setCellValue('A2', 'Low Risk Feed');
+				$IVRiskyIndicatorsAccountS->setCellValue('A3', 'Medium Risk Feed');
+				$IVRiskyIndicatorsAccountS->setCellValue('A4', 'High Risk Feed');
+				$IVRiskyIndicatorsAccountS->setCellValue('B2', $IVPDLUnconfirmedLowRiskPercentage ?? 0);
+				$IVRiskyIndicatorsAccountS->setCellValue('B3', $IVIDLUnconfirmedMedRiskPercentage ?? 0);
+				$IVRiskyIndicatorsAccountS->setCellValue('B4', $IVPDLUnconfirmedHighRiskPercentage ?? 0);
+				$IVRiskyIndicatorsAccountW = IOFactory::createWriter($IVRiskyIndicatorsAccountSS, 'Xlsx');
+				$IVRiskyIndicatorsAccountW->save($EmbeddedIVRiskyIndicatorsAccount);
+
+				// Risky Indicators Seen - Industry
+				$EmbeddedIVRiskyIndicatorsIndustry = getEmbeddedSheetFilePath('IVRiskyIndicatorsIndustry', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVRiskyIndicatorsIndustrySS = IOFactory::load($EmbeddedIVRiskyIndicatorsIndustry);
+				$IVRiskyIndicatorsIndustryS = $IVRiskyIndicatorsIndustrySS->getActiveSheet();
+				$IVRiskyIndicatorsIndustryS->setCellValue('A2', 'Low Risk Feed');
+				$IVRiskyIndicatorsIndustryS->setCellValue('A3', 'Medium Risk Feed');
+				$IVRiskyIndicatorsIndustryS->setCellValue('A4', 'High Risk Feed');
+				$IVRiskyIndicatorsIndustryS->setCellValue('B2', $IVIDLUnconfirmedLowRiskPercentage ?? 0);
+				$IVRiskyIndicatorsIndustryS->setCellValue('B3', $IVIDLUnconfirmedMedRiskPercentage ?? 0);
+				$IVRiskyIndicatorsIndustryS->setCellValue('B4', $IVIDLUnconfirmedHighRiskPercentage ?? 0);
+				$IVRiskyIndicatorsIndustryW = IOFactory::createWriter($IVRiskyIndicatorsIndustrySS, 'Xlsx');
+				$IVRiskyIndicatorsIndustryW->save($EmbeddedIVRiskyIndicatorsIndustry);
+
+				// Threat Actor Associated Traffic Seen - Account
+				$EmbeddedIVThreatActorAccount = getEmbeddedSheetFilePath('IVThreatActorsAccount', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVThreatActorAccountSS = IOFactory::load($EmbeddedIVThreatActorAccount);
+				$IVThreatActorAccountS = $IVThreatActorAccountSS->getActiveSheet();
+				$IVThreatActorAccountS->setCellValue('A2', 'Associated');
+				$IVThreatActorAccountS->setCellValue('A3', 'Unassociated');
+				$IVThreatActorAccountS->setCellValue('B2', round($IVPDLThreatActorAssociatedTrafficSeenPercentage, 2));
+				$IVThreatActorAccountS->setCellValue('B3', round(100 - $IVPDLThreatActorAssociatedTrafficSeenPercentage, 2));
+				$IVThreatActorAccountW = IOFactory::createWriter($IVThreatActorAccountSS, 'Xlsx');
+				$IVThreatActorAccountW->save($EmbeddedIVThreatActorAccount);
+
+				// Threat Actor Associated Traffic Seen - Industry
+				$EmbeddedIVThreatActorIndustry = getEmbeddedSheetFilePath('IVThreatActorsIndustry', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVThreatActorIndustrySS = IOFactory::load($EmbeddedIVThreatActorIndustry);
+				$IVThreatActorIndustryS = $IVThreatActorIndustrySS->getActiveSheet();
+				$IVThreatActorIndustryS->setCellValue('A2', 'Associated');
+				$IVThreatActorIndustryS->setCellValue('A3', 'Unassociated');
+				$IVThreatActorIndustryS->setCellValue('B2', round($IVIDLThreatActorAssociatedTrafficSeenPercentage, 2));
+				$IVThreatActorIndustryS->setCellValue('B3', round(100 - $IVIDLThreatActorAssociatedTrafficSeenPercentage, 2));
+				$IVThreatActorIndustryW = IOFactory::createWriter($IVThreatActorIndustrySS, 'Xlsx');
+				$IVThreatActorIndustryW->save($EmbeddedIVThreatActorIndustry);
+
+				// Threat Insight Detection - Account
+				$EmbeddedIVThreatInsightAccount = getEmbeddedSheetFilePath('IVThreatInsightAccount', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVThreatInsightAccountSS = IOFactory::load($EmbeddedIVThreatInsightAccount);
+				$IVThreatInsightAccountS = $IVThreatInsightAccountSS->getActiveSheet();
+				$IVThreatInsightAccountS->setCellValue('A2', 'DNST');
+				$IVThreatInsightAccountS->setCellValue('A3', 'DGA');
+				$IVThreatInsightAccountS->setCellValue('B2', $IVPDLDNSTTrafficPercentage ?? 0);
+				$IVThreatInsightAccountS->setCellValue('B3', $IVPDLDGATrafficPercentage ?? 0);
+				$IVThreatInsightAccountW = IOFactory::createWriter($IVThreatInsightAccountSS, 'Xlsx');
+				$IVThreatInsightAccountW->save($EmbeddedIVThreatInsightAccount);
+
+				// Threat Insight Detection - Industry
+				$EmbeddedIVThreatInsightIndustry = getEmbeddedSheetFilePath('IVThreatInsightIndustry', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
+				$IVThreatInsightIndustrySS = IOFactory::load($EmbeddedIVThreatInsightIndustry);
+				$IVThreatInsightIndustryS = $IVThreatInsightIndustrySS->getActiveSheet();
+				$IVThreatInsightIndustryS->setCellValue('A2', 'DNST');
+				$IVThreatInsightIndustryS->setCellValue('A3', 'DGA');
+				$IVThreatInsightIndustryS->setCellValue('B2', $IVIDLDNSTTrafficPercentage ?? 0);
+				$IVThreatInsightIndustryS->setCellValue('B3', $IVIDLDGATrafficPercentage ?? 0);
+				$IVThreatInsightIndustryW = IOFactory::createWriter($IVThreatInsightIndustrySS, 'Xlsx');
+				$IVThreatInsightIndustryW->save($EmbeddedIVThreatInsightIndustry);
+
 				// Open PPTX Presentation _rels XML
 				$xml_rels = null;
 				$xml_rels = new DOMDocument('1.0', 'utf-8');
@@ -616,6 +1398,269 @@ class SecurityAssessment extends ibPortal {
 				$xml_pres->preserveWhiteSpace = false;
 				$xml_pres->load($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
 
+				// 
+				// Do SOC Insight Stuff Here ....
+				//
+				// Skip SOC Insight Slides if Slide Number is set to 0
+				if ($SelectedTemplate['SOCInsightsSlide'] != 0) {
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Generating SOC Insights Slides");
+
+					$SOCInsightSlideCount = count($SOCInsightDetails);
+
+					// New slides to be appended after this slide number
+					$SOCInsightsSlideStart = $SelectedTemplate['SOCInsightsSlide'];
+					// Calculate the slide position based on above value
+					$SOCInsightsSlidePosition = $SOCInsightsSlideStart-2;
+					
+					// Tag Numbers Start
+					$SITagStart = 100;
+					
+					// Create Document Fragments for appending new relationships and set Starting Integers
+					$xml_rels_soc_f = $xml_rels->createDocumentFragment();
+					$xml_rels_soc_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
+					$xml_pres_soc_f = $xml_pres->createDocumentFragment();
+					$xml_pres_soc_fstart = 13700;
+
+					// Get Slide Count
+					$SISlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
+					// Set first slide number
+					$SISlideNumber = $SISlidesCount++;
+					$SIChartNumber = 50;
+
+					// Initialise array to hold references to base excel files for SOC Insights slide
+					$SOCInsightsExcelReferenceBase = [];
+
+					// Flip first $SOCInsightDetails element to end of array to maintain order when inserting after selected slide
+					$FirstElement = array_shift($SOCInsightDetails);
+					array_push($SOCInsightDetails, $FirstElement);
+					
+					foreach ($SOCInsightDetails as $SKEY => $SID) {
+						if (($SOCInsightSlideCount - 1) > 0) {
+							// Reinitalize array to avoid duplicates
+							$SOCInsightsExcelReferenceBase = [];
+
+							$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
+							$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
+							$xml_rels_soc_fstart++;
+							$xml_pres_soc_fstart++;
+							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+							// Load Slide XML _rels
+							$xml_sis = new DOMDocument('1.0', 'utf-8');
+							$xml_sis->formatOutput = true;
+							$xml_sis->preserveWhiteSpace = false;
+							$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+							foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+								// Remove notes references to avoid having to create unneccessary notes resources
+								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
+									$element->remove();
+								}
+								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+									$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+									$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
+									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+									$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
+
+									// Load Chart XML Rels
+									$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+									$xml_chart_rels->formatOutput = true;
+									$xml_chart_rels->preserveWhiteSpace = false;
+									$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+
+									// Duplicate colours, styles & embedded excel files
+									foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+										if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
+											$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
+											$OldColourNumber = str_replace('.xml','',$OldColourNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
+											$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
+										} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
+											$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
+											$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
+											$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
+										} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+											$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+											$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+											copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+											$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+
+											// Store the slide no. and embedded chart files for later use
+											$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
+											$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
+										}
+									}
+
+									$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+									
+									$SIChartNumber++;
+								}
+							}
+
+							// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
+							$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+						} else {
+							$SISlideNumber = $SOCInsightsSlideStart;
+						}
+
+						// Update Tag Numbers
+						$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+						$SISFile = str_replace('#SITAG00', '#SITAG'.$SITagStart, $SISFile);
+						file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
+
+						// Get Embedded Chart References
+						if ($SISlideNumber == $SOCInsightsSlideStart) {
+						// if ($SKEY == 0) {
+							$SOCInsightEmbeddedChart = $SOCInsightsExcelReferenceBase[0];
+						} else {
+							$SOCInsightEmbeddedChart = $SOCInsightsExcelReference[($SKEY)];
+						}
+
+						// Populate Charts
+						foreach ([0,1] as $ChartIndex) {
+							$SOCInsightEmbeddedChartRef = $SOCInsightEmbeddedChart[$ChartIndex];
+							$SOCInsightEmbeddedChartSS = IOFactory::load($SOCInsightEmbeddedChartRef);
+							$SOCInsightEmbeddedChartS = $SOCInsightEmbeddedChartSS->getActiveSheet();
+
+							$SOCInsightsIndicatorsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-indicatorsTimeSeries']['Body'] ?? [];
+							$SOCInsightsImpactedAssetsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedAssetsTimeSeries']['Body'] ?? [];
+							$SOCInsightsImpactedQIPsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedQIPsTimeSeries']['Body'] ?? [];
+
+							// Summerise total number of indicators by combining all distinct counts across unique timestamp.hour
+							$IndicatorsTimeSeriesData = [];
+							if (is_array($SOCInsightsIndicatorsTimeSeries->result->data) AND count($SOCInsightsIndicatorsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsIndicatorsTimeSeries->result->data as $ISTS) {
+									$IndicatorDate = substr($ISTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+									if (isset($IndicatorsTimeSeriesData[$IndicatorDate])) {
+										$IndicatorsTimeSeriesData[$IndicatorDate] += $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
+									} else {
+										$IndicatorsTimeSeriesData[$IndicatorDate] = $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
+									}
+								}
+							}
+
+							// Implement tracking to deduplicate assets that may appear multiple times in a given day
+							// This is currently not the way the UI works, and this needs to be addressed by engineering
+							$ImpactedAssetsCountedByDate = [];
+							$ImpactedQIPsCountedByDate = [];
+
+							// Summerise total number of impacted assets by combining all distinct counts across unique timestamp.hour
+							$ImpactedAssetsTimeSeriesData = [];
+							if (is_array($SOCInsightsImpactedAssetsTimeSeries->result->data) AND count($SOCInsightsImpactedAssetsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsImpactedAssetsTimeSeries->result->data as $IATS) {
+									$ImpactedAssetDate = substr($IATS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+
+									// Deduplication
+									if (!isset($ImpactedAssetsCountedByDate[$ImpactedAssetDate])) {
+										$ImpactedAssetsCountedByDate[$ImpactedAssetDate] = [];
+									}
+									if (!in_array($IATS->{'PortunusAggIPSummary.device_id'}, $ImpactedAssetsCountedByDate[$ImpactedAssetDate])) { // Deduplication
+										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
+											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+										} else {
+											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+										}
+									}
+
+									// Deduplication
+									$ImpactedAssetsCountedByDate[$ImpactedAssetDate][] = $IATS->{'PortunusAggIPSummary.device_id'};
+								}
+							}
+
+							// Combine QIPs Time Series Data with Asset Time Series Data
+							if (is_array($SOCInsightsImpactedQIPsTimeSeries->result->data) AND count($SOCInsightsImpactedQIPsTimeSeries->result->data) > 0) {
+								foreach ($SOCInsightsImpactedQIPsTimeSeries->result->data as $IQTS) {
+									$ImpactedQIPDate = substr($IQTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+
+									// Deduplication
+									if (!isset($ImpactedQIPsCountedByDate[$ImpactedQIPDate])) {
+										$ImpactedQIPsCountedByDate[$ImpactedQIPDate] = [];
+									}
+									if (!in_array($IQTS->{'PortunusAggIPSummary.qip'}, $ImpactedQIPsCountedByDate[$ImpactedQIPDate])) { // Deduplication
+										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
+											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+										} else {
+											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+										}
+									}
+
+									// Deduplication
+									$ImpactedQIPsCountedByDate[$ImpactedQIPDate][] = $IQTS->{'PortunusAggIPSummary.qip'};
+								}
+							}
+
+							// Loop Through Indicator & Asset Time Series and add missing dates with 0 count
+							$StartDate = (new DateTime($StartDimension))->format('Y-m-d');
+							$EndDate = (new DateTime($EndDimension))->format('Y-m-d');
+							$CurrentDate = $StartDate;
+
+							while ($CurrentDate <= $EndDate) {
+								if (!isset($IndicatorsTimeSeriesData[$CurrentDate])) {
+									$IndicatorsTimeSeriesData[$CurrentDate] = 0;
+								}
+								if (!isset($ImpactedAssetsTimeSeriesData[$CurrentDate])) {
+									$ImpactedAssetsTimeSeriesData[$CurrentDate] = 0;
+								}
+								// Increment Date by 1 day								
+								$CurrentDate = date('Y-m-d', strtotime($CurrentDate . ' + 1 day'));
+							}
+							
+							// Sort by date
+							ksort($IndicatorsTimeSeriesData);
+							ksort($ImpactedAssetsTimeSeriesData);
+
+							switch($ChartIndex) {
+								case 0:
+									$RowNo = 2;
+									if (is_array($ImpactedAssetsTimeSeriesData) AND count($ImpactedAssetsTimeSeriesData) > 0) {
+										foreach ($ImpactedAssetsTimeSeriesData as $Date => $Count) {
+											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+											$RowNo++;
+										}
+									} else {
+										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
+									}
+									break;
+								case 1:
+									$RowNo = 2;
+									if (is_array($IndicatorsTimeSeriesData) AND count($IndicatorsTimeSeriesData) > 0) {
+										foreach ($IndicatorsTimeSeriesData as $Date => $Count) {
+											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+											$RowNo++;
+										}
+									} else {
+										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
+									}
+									break;
+							}
+
+							$SOCInsightEmbeddedChartW = IOFactory::createWriter($SOCInsightEmbeddedChartSS, 'Xlsx');
+							$SOCInsightEmbeddedChartW->save($SOCInsightEmbeddedChartRef);
+						}
+
+						// Increment Tag Number
+						$SITagStart++;
+						// Decrement Slide Count
+						$SOCInsightSlideCount--;
+						// Increment Slide Number
+						$SISlideNumber++;
+					}
+
+					// Append Elements to Core XML Files
+					$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_soc_f);
+					// Append new slides to specific position
+					$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_soc_f);
+				} else {
+					$Progress = $this->writeProgress($config['UUID'],$Progress,"Skipping SOC Insights Slides");
+				}
+
 				//
 				// Do Threat Actor Stuff Here ....
 				//
@@ -625,21 +1670,21 @@ class SecurityAssessment extends ibPortal {
 					// New slides to be appended after this slide number
 					$ThreatActorSlideStart = $SelectedTemplate['ThreatActorSlide'];
 					// Calculate the slide position based on above value
-					$ThreatActorSlidePosition = $ThreatActorSlideStart-2;
+					$ThreatActorSlidePosition = ($ThreatActorSlideStart-2);
 		
 					// Tag Numbers Start
-					$TagStart = 100;
+					$TATagStart = 100;
 		
 					// Create Document Fragments and set Starting Integers
-					$xml_rels_f = $xml_rels->createDocumentFragment();
-					$xml_rels_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+50;
-					$xml_pres_f = $xml_pres->createDocumentFragment();
-					$xml_pres_fstart = 14700;
+					$xml_rels_ta_f = $xml_rels->createDocumentFragment();
+					$xml_rels_ta_fstart = ($xml_rels->getElementsByTagName('Relationship')->length)+250;
+					$xml_pres_ta_f = $xml_pres->createDocumentFragment();
+					$xml_pres_ta_fstart = 14700;
 
 					// Get Slide Count
-					$SlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
+					$TASlidesCount = iterator_count(new FilesystemIterator($SelectedTemplate['ExtractedDir'].'/ppt/slides'));
 					// Set first slide number
-					$SlideNumber = $SlidesCount++;
+					$TASlideNumber = $TASlidesCount++;
 					// Copy Blank Threat Actor Image
 					copy($this->getDir()['PluginData'].'/images/logo-only.png',$SelectedTemplate['ExtractedDir'].'/ppt/media/logo-only.png');
 					// Build new Threat Actor Slides & Update PPTX Resources
@@ -648,18 +1693,18 @@ class SecurityAssessment extends ibPortal {
 						foreach  ($ThreatActorInfo as $TAI) {
 							$KnownActor = $this->ThreatActors->getThreatActorConfigByName($TAI['actor_name']);
 							if (($ThreatActorSlideCountIt - 1) > 0) {
-								$xml_rels_f->appendXML('<Relationship Id="rId'.$xml_rels_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SlideNumber.'.xml"/>');
-								$xml_pres_f->appendXML('<p:sldId id="'.$xml_pres_fstart.'" r:id="rId'.$xml_rels_fstart.'"/>');
-								$xml_rels_fstart++;
-								$xml_pres_fstart++;
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$ThreatActorSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml');
-								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$ThreatActorSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
+								$xml_rels_ta_f->appendXML('<Relationship Id="rId'.$xml_rels_ta_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$TASlideNumber.'.xml"/>');
+								$xml_pres_ta_f->appendXML('<p:sldId id="'.$xml_pres_ta_fstart.'" r:id="rId'.$xml_rels_ta_fstart.'"/>');
+								$xml_rels_ta_fstart++;
+								$xml_pres_ta_fstart++;
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$ThreatActorSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml');
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$ThreatActorSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
 							} else {
-								$SlideNumber = $ThreatActorSlideStart;
+								$TASlideNumber = $ThreatActorSlideStart;
 							}
 							// Update Tag Numbers
-							$TASFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml');
-							$TASFile = str_replace('#TATAG00', '#TATAG'.$TagStart, $TASFile);
+							$TASFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml');
+							$TASFile = str_replace('#TATAG00', '#TATAG'.$TATagStart, $TASFile);
 							// Add Threat Actor Icon
 							switch($SelectedTemplate['Orientation']) {
 								case 'Portrait':
@@ -717,11 +1762,11 @@ class SecurityAssessment extends ibPortal {
 								//$InfobloxReferenceFound = true;
 							}
 							// Update Slide XML with changes
-							file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SlideNumber.'.xml', $TASFile);
+							file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$TASlideNumber.'.xml', $TASFile);
 							$xml_tas = new DOMDocument('1.0', 'utf-8');
 							$xml_tas->formatOutput = true;
 							$xml_tas->preserveWhiteSpace = false;
-							$xml_tas->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
+							$xml_tas->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
 							foreach ($xml_tas->getElementsByTagName('Relationship') as $element) {
 								// Remove notes references to avoid having to create unneccessary notes resources
 								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
@@ -764,17 +1809,17 @@ class SecurityAssessment extends ibPortal {
 							}
 		
 							$xml_tas->getElementsByTagName('Relationships')->item(0)->appendChild($xml_tas_f);
-							$xml_tas->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SlideNumber.'.xml.rels');
-							$TagStart += 10;
+							$xml_tas->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$TASlideNumber.'.xml.rels');
+							$TATagStart += 10;
 							// Iterate slide number
-							$SlideNumber++;
+							$TASlideNumber++;
 							$ThreatActorSlideCountIt--;
 						}
 		
 						// Append Elements to Core XML Files
-						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_f);
+						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_ta_f);
 						// Append new slides to specific position
-						$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_f);
+						$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_ta_f);
 
 						//
 						// End of Threat Actors
@@ -802,13 +1847,13 @@ class SecurityAssessment extends ibPortal {
 				$extractor = new BasicExtractor();
 				$mapping = $extractor->extractStringsAndCreateMappingFile(
 					$this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted'
 				);
 
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings");
 				##// Slide 2 / 45 - Title Page & Contact Page
 				// Get & Inject Customer Name, Contact Name & Email
-				$mapping = replaceTag($mapping,'#TAG01',$CurrentAccount->name);
+				$mapping = replaceTag($mapping,'#CUSTOMER',$CurrentAccount->name);
 				$mapping = replaceTag($mapping,'#DATE',date("jS F Y"));
 				$StartDate = new DateTime($StartDimension);
 				$EndDate = new DateTime($EndDimension);
@@ -816,98 +1861,309 @@ class SecurityAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#NAME',$UserInfo->result->name);
 				$mapping = replaceTag($mapping,'#EMAIL',$UserInfo->result->email);
 		
+				$PLACEHOLDER = 0; // Placeholder for future metrics
+
 				##// Slide 5 - Executive Summary
-				$mapping = replaceTag($mapping,'#TAG02',number_abbr($HighEventsCount)); // High-Risk Events
-				$mapping = replaceTag($mapping,'#TAG03',number_abbr($HighRiskWebsiteCount)); // High-Risk Websites
-				$mapping = replaceTag($mapping,'#TAG04',number_abbr($DataExfilEventsCount)); // Data Exfil / Tunneling
-				$mapping = replaceTag($mapping,'#TAG05',number_abbr($LookalikeThreatCount)); // Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG06',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
-				$mapping = replaceTag($mapping,'#TAG07',number_abbr($SuspiciousEventsCount)); // Suspicious Domains
+				$mapping = replaceTag($mapping,'#TAG01',number_abbr($HighEventsCount)); // High-Risk Events
+				$mapping = replaceTag($mapping,'#TAG02',number_abbr($HighRiskWebsiteCount)); // High-Risk Websites
+				$mapping = replaceTag($mapping,'#TAG03',number_abbr($DataExfilEventsCount)); // Data Exfil / Tunneling
+				$mapping = replaceTag($mapping,'#TAG04',number_abbr($LookalikeThreatCount)); // Lookalike Domains
+				$mapping = replaceTag($mapping,'#TAG05',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
+
+				// ** TODO ** //
+				$mapping = replaceTag($mapping,'#TAG06',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
+				$mapping = replaceTag($mapping,'#TAG07',number_abbr($FirstToDetectTotalDomains)); // First to Detect (Domain Count)
+				$mapping = replaceTag($mapping,'#TAG08',$TotalBandwidthSaved); // Bandwidth Savings
 		
 				##// Slide 6 - Security Indicator Summary
-				$mapping = replaceTag($mapping,'#TAG08',number_abbr($DNSActivityCount)); // DNS Requests
-				$mapping = replaceTag($mapping,'#TAG09',number_abbr($HighEventsCount)); // High-Risk Events
-				$mapping = replaceTag($mapping,'#TAG10',number_abbr($MediumEventsCount)); // Medium-Risk Events
-				$mapping = replaceTag($mapping,'#TAG11',number_abbr($TotalInsights)); // Insights
-				$mapping = replaceTag($mapping,'#TAG12',number_abbr($LookalikeThreatCount)); // Custom Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG13',number_abbr($DOHEventsCount)); // DoH
-				$mapping = replaceTag($mapping,'#TAG14',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
-				$mapping = replaceTag($mapping,'#TAG15',number_abbr($SuspiciousEventsCount)); // Suspicious Domains
-		
-				$mapping = replaceTag($mapping,'#TAG16',number_abbr($NODEventsCount)); // Newly Observed Domains
-				$mapping = replaceTag($mapping,'#TAG17',number_abbr($DGAEventsCount)); // Domain Generated Algorithms
-				$mapping = replaceTag($mapping,'#TAG18',number_abbr($DataExfilEventsCount)); // DNS Tunnelling
-				$mapping = replaceTag($mapping,'#TAG19',number_abbr($UniqueApplicationsCount)); // Unique Applications
-				$mapping = replaceTag($mapping,'#TAG20',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
-				$mapping = replaceTag($mapping,'#TAG21',number_abbr($ThreatActorsCountMetric)); // Threat Actors
+				$mapping = replaceTag($mapping,'#DAYS',$TimeObjDateDiff->days); // Number of days of collected data
+				$mapping = replaceTag($mapping,'#TAG09',number_abbr($DNSActivityCount)); // DNS Requests
+				$mapping = replaceTag($mapping,'#TAG10',number_abbr($HighEventsCount)); // High-Risk Events
+				$mapping = replaceTag($mapping,'#TAG11',number_abbr($MediumEventsCount)); // Medium-Risk Events
+				$mapping = replaceTag($mapping,'#TAG12',number_abbr($TotalInsights)); // Insights
+				$mapping = replaceTag($mapping,'#TAG13',number_abbr($LookalikeThreatCount)); // Custom Lookalike Domains
+				$mapping = replaceTag($mapping,'#TAG14',number_abbr($DOHEventsCount)); // DoH
+				$mapping = replaceTag($mapping,'#TAG15',number_abbr($ZeroDayDNSEventsCount)); // Zero Day DNS
 
-				$mapping = replaceTag($mapping,'#TAG22',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
+				// ** TODO ** //
+				$mapping = replaceTag($mapping,'#TAG16',number_abbr($SuspiciousEventsCount)); // Suspicious Domains ???? HIGH RISK ??
+		
+				$mapping = replaceTag($mapping,'#TAG17',number_abbr($NODEventsCount)); // Newly Observed Domains
+				$mapping = replaceTag($mapping,'#TAG18',number_abbr($DGAEventsCount)); // Domain Generated Algorithms
+				$mapping = replaceTag($mapping,'#TAG19',number_abbr($DataExfilEventsCount)); // DNS Tunnelling
+				$mapping = replaceTag($mapping,'#TAG20',number_abbr($AppDiscoveryApplicationsCount)); // Unique Applications
+				$mapping = replaceTag($mapping,'#TAG21',number_abbr($HighRiskWebCategoryCount)); // High-Risk Web Categories
+				$mapping = replaceTag($mapping,'#TAG22',number_abbr($ThreatActorsCountMetric)); // Threat Actors
+				$mapping = replaceTag($mapping,'#TAG23',number_abbr($FirstToDetectTotalDomains)); // First to Detect (Domain Count)
+				$mapping = replaceTag($mapping,'#TAG24',number_abbr($MaliciousTDSCounts['Domains'])); // Malicious TDS Events
+
+				// Only present on landscape template
+				$mapping = replaceTag($mapping,'#TAG25',number_abbr($DNSFirewallActivityDailyAverage)); // Avg Events Per Day
+
+				##// Slide 7 - Bandwidth Savings
+				$mapping = replaceTag($mapping,'#TAG26',$TotalBandwidthSaved); // Total Savings (MB/GB/TB)
+				$mapping = replaceTag($mapping,'#TAG27',$BandwidthSavedPercentage); // Percentage Overall %
 	
-				##// Slide 7 - Additional Threat Intel Insights
+				##// Slide 8 - Additional Threat Intel Insights
 				// ** CURRENTLY DONE MANUALLY BY ITI ** //
 		
-				##// Slide 9 - Traffic Usage Analysis
+				##// Slide 11 - Traffic Usage Analysis
 				// Total DNS Activity
-				$mapping = replaceTag($mapping,'#TAG33',number_abbr($DNSActivityCount));
+				$mapping = replaceTag($mapping,'#TAG28',number_abbr($DNSActivityCount));
 				// DNS Firewall Activity
-				$mapping = replaceTag($mapping,'#TAG34',number_abbr($HML)); // Total
-				$mapping = replaceTag($mapping,'#TAG35',number_abbr($HighEventsCount)); // High Int
-				$mapping = replaceTag($mapping,'#TAG36',number_format($HighPerc,2).'%'); // High Percent
-				$mapping = replaceTag($mapping,'#TAG37',number_abbr($MediumEventsCount)); // Medium Int
-				$mapping = replaceTag($mapping,'#TAG38',number_format($MediumPerc,2).'%'); // Medium Percent
-				$mapping = replaceTag($mapping,'#TAG39',number_abbr($LowEventsCount)); // Low Int
-				$mapping = replaceTag($mapping,'#TAG40',number_format($LowPerc,2).'%'); // Low Percent
+				$mapping = replaceTag($mapping,'#TAG29',number_abbr($HML)); // Total
+				$mapping = replaceTag($mapping,'#TAG30',number_abbr($HighEventsCount)); // High Int
+				$mapping = replaceTag($mapping,'#TAG31',number_format($HighPerc,2).'%'); // High Percent
+				$mapping = replaceTag($mapping,'#TAG32',number_abbr($MediumEventsCount)); // Medium Int
+				$mapping = replaceTag($mapping,'#TAG33',number_format($MediumPerc,2).'%'); // Medium Percent
+				$mapping = replaceTag($mapping,'#TAG34',number_abbr($LowEventsCount)); // Low Int
+				$mapping = replaceTag($mapping,'#TAG35',number_format($LowPerc,2).'%'); // Low Percent
 				// Threat Activity
-				$mapping = replaceTag($mapping,'#TAG41',number_abbr($ThreatActivityEventsCount));
+				$mapping = replaceTag($mapping,'#TAG36',number_abbr($ThreatActivityEventsCount));
 				// Data Exfiltration Incidents
-				$mapping = replaceTag($mapping,'#TAG42',number_abbr($DataExfilEventsCount));
+				$mapping = replaceTag($mapping,'#TAG37',number_abbr($DataExfilEventsCount));
 		
-				##// Slide 11 - Traffic Analysis - DNS Activity
-				$mapping = replaceTag($mapping,'#TAG43',number_abbr($DNSActivityDailyAverage));
-				##// Slide 12 - Traffic Analysis - DNS Firewall Activity
-				$mapping = replaceTag($mapping,'#TAG44',number_abbr($DNSFirewallActivityDailyAverage));
+				##// Slide 12 - Traffic Analysis - DNS Activity
+				$mapping = replaceTag($mapping,'#TAG38',number_abbr($DNSActivityDailyAverage));
+				##// Slide 13 - Traffic Analysis - DNS Firewall Activity
+				$mapping = replaceTag($mapping,'#TAG39',number_abbr($DNSFirewallActivityDailyAverage));
 	
 				##// Slide 15 - Key Insights
 				// Insight Severity
-				$mapping = replaceTag($mapping,'#TAG45',number_abbr($TotalInsights)); // Total Open Insights
-				$mapping = replaceTag($mapping,'#TAG46',number_abbr($CriticalInsights)); // Critical Priority Insights
-				$mapping = replaceTag($mapping,'#TAG47',number_abbr($HighInsights)); // High Priority Insights
-				$mapping = replaceTag($mapping,'#TAG48',number_abbr($MediumInsights)); // Medium Priority Insights
-				$mapping = replaceTag($mapping,'#TAG49',number_abbr($LowInsights)); // Low Priority Insights
-				$mapping = replaceTag($mapping,'#TAG50',number_abbr($InfoInsights)); // Low Priority Insights
+				$mapping = replaceTag($mapping,'#TAG40',number_abbr($TotalInsights)); // Total Open Insights
+				$mapping = replaceTag($mapping,'#TAG41',number_abbr($CriticalInsights)); // Critical Priority Insights
+				$mapping = replaceTag($mapping,'#TAG42',number_abbr($HighInsights)); // High Priority Insights
+				$mapping = replaceTag($mapping,'#TAG43',number_abbr($MediumInsights)); // Medium Priority Insights
+				$mapping = replaceTag($mapping,'#TAG44',number_abbr($LowInsights)); // Low Priority Insights
+				$mapping = replaceTag($mapping,'#TAG45',number_abbr($InfoInsights)); // Info Priority Insights
 				// Event To Insight Aggregation
-				$mapping = replaceTag($mapping,'#TAG51',number_abbr($SecurityEventsCount)); // Events
-				$mapping = replaceTag($mapping,'#TAG52',number_abbr($TotalInsights)); // Key Insights
+				$mapping = replaceTag($mapping,'#TAG46',number_abbr($SecurityEventsCount)); // Events
+				$mapping = replaceTag($mapping,'#TAG47',number_abbr($TotalInsights)); // Key Insights
 		
+				##// Slide 19 - Application Detection
+				$mapping = replaceTag($mapping,'#TAG48',number_abbr($AppDiscoveryTotalRequestsCount)); // Total Requests
+				$mapping = replaceTag($mapping,'#TAG49',number_abbr($AppDiscoveryTotalDevicesCount)); // Total Devices
+
+				##// Slide 19 - Web Content Discovery
+				$mapping = replaceTag($mapping,'#TAG50',number_abbr($WebContentTotalRequestsCount)); // Total Requests
+				$mapping = replaceTag($mapping,'#TAG51',number_abbr($WebContentTotalDevicesCount)); // Total Devices
+
 				##// Slide 24 - Lookalike Domains
-				$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeTotalCount)); // Total Lookalikes
+				$mapping = replaceTag($mapping,'#TAG52',number_abbr($LookalikeTotalCount)); // Total Lookalikes
 				// if ($LookalikeTotalPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG39',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG40',number_abbr($LookalikeTotalPercentage)); // Total Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG53',number_abbr($LookalikeCustomCount)); // Total Lookalikes from Custom Watched Domains
 				// if ($LookalikeCustomPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG42',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG43',number_abbr($LookalikeCustomPercentage)); // Custom Percentage Increase
-				$mapping = replaceTag($mapping,'#TAG55',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
+				$mapping = replaceTag($mapping,'#TAG54',number_abbr($LookalikeThreatCount)); // Threats from Custom Watched Domains
 				// if ($LookalikeThreatPercentage >= 0){$arrow='↑';} else {$arrow='↓';}
 				// $mapping = replaceTag($mapping,'#TAG45',$arrow); // Arrow Up/Down
 				// $mapping = replaceTag($mapping,'#TAG46',number_abbr($LookalikeThreatPercentage)); // Threats Percentage Increase
 		
-				##// Slide 28 - Security Activities
-				$mapping = replaceTag($mapping,'#TAG56',number_abbr($SecurityEventsCount)); // Security Events
-				$mapping = replaceTag($mapping,'#TAG57',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
-				$mapping = replaceTag($mapping,'#TAG58',number_abbr($WebContentEventsCount)); // Web Content
-				$mapping = replaceTag($mapping,'#TAG59',number_abbr($DeviceCount)); // Devices
-				$mapping = replaceTag($mapping,'#TAG60',number_abbr($UserCount)); // Users
-				$mapping = replaceTag($mapping,'#TAG61',number_abbr($TotalInsights)); // Insights
-				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatInsightCount)); // Threat Insight
-				$mapping = replaceTag($mapping,'#TAG63',number_abbr($ThreatViewCount)); // Threat View
-				$mapping = replaceTag($mapping,'#TAG64',number_abbr($SourcesCount)); // Sources
-		
-				##// Slide 32 -> Onwards - Threat Actors
+				##// Slide 29/31 - Security Activities
+				$mapping = replaceTag($mapping,'#TAG55',number_abbr($SecurityEventsCount)); // Security Events
+				$mapping = replaceTag($mapping,'#TAG56',number_abbr($DNSFirewallEventsCount)); // DNS Firewall
+				$mapping = replaceTag($mapping,'#TAG57',number_abbr($WebContentSecurityEventsCount)); // Web Content
+				$mapping = replaceTag($mapping,'#TAG58',number_abbr($DeviceCount)); // Devices
+				$mapping = replaceTag($mapping,'#TAG59',number_abbr($UserCount)); // Users
+				$mapping = replaceTag($mapping,'#TAG60',number_abbr($TotalInsights)); // Insights
+				$mapping = replaceTag($mapping,'#TAG61',number_abbr($ThreatInsightCount)); // Threat Insight
+				$mapping = replaceTag($mapping,'#TAG62',number_abbr($ThreatViewCount)); // Threat View
+				$mapping = replaceTag($mapping,'#TAG63',number_abbr($SourcesCount)); // Sources
+
+				##// Slide 35/38 - Zero Day DNS
+				$mapping = replaceTag($mapping,'#TAG64',number_abbr($ZeroDayDNSDetectionsTotalCount)); // Zero Day DNS Events // ZeroDayDNSEventsCount
+				$mapping = replaceTag($mapping,'#TAG65',number_abbr($ZeroDayDNSDetectionsSuspiciousPercent).'%'); // Suspicious Events // ZeroDayDNSSuspiciousEventsCount
+				$mapping = replaceTag($mapping,'#TAG66',number_abbr($ZeroDayDNSDetectionsMaliciousPercent).'%'); // Malicious Events // ZeroDayDNSMaliciousEventsCount
+
+				##// Slide 37/40 - Industry Vertical Analysis - START //##
+
+				// IVPDL - Industry Vertical Personal Dimension Label
+				// IVIDL - Industry Vertical Industry Dimension Label
+
+				// DateDiff Override
+				$DateDiff = 30;
+
+				// ** Malicious Indicators Seen ** //
+				$mapping = replaceTag($mapping,'#TAG67',$IVIndustryName); // Industry Name
+				$mapping = replaceTag($mapping,'#TAG68',number_abbr($DateDiff)); // Malicious Indicators - Days
+				$mapping = replaceTag($mapping,'#TAG69',number_abbr($IVPDLConfirmedThreatsSeenSum)); // Malicious Indicators - Your Average - Count (Or Absolute?)
+				$mapping = replaceTag($mapping,'#TAG70',$IVPDLMaliciousDomainsPercentage.'%'); // Malicious Indicators - Percentage Malicious Domains
+				$mapping = replaceTag($mapping,'#TAG71',$IVPDLMaliciousIPsPercentage.'%'); // Malicious Indicators - Percentage Malicious IPs
+				$mapping = replaceTag($mapping,'#TAG72',number_abbr($IVPDLConfirmedThreatsSeenSum)); // Malicious Indicators - Your Average - Count (Or Absolute?)
+				$mapping = replaceTag($mapping,'#TAG73',round($IVPDLConfirmedThreatsSeenPercentage, 2).'%'); // Malicious Indicators - Your Average - Percentage (Or Absolute?)
+				if ($IVPDLConfirmedThreatsSeenTrend >= 0){$MISarrow='↑';} else {$MISarrow='↓';}
+				$mapping = replaceTag($mapping,'#TAG74',$MISarrow); // Arrow Up/Down
+				$mapping = replaceTag($mapping,'#TAG75',number_format($IVPDLConfirmedThreatsSeenTrend, 2).'%'); // Malicious Indicators - Your Average - Percent Changed
+				$mapping = replaceTag($mapping,'#TAG76',number_abbr(($IVIDLConfirmedThreatsSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Malicious Indicators - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG77',number_format($IVIDLConfirmedThreatsSeenPercentage, 2).'%'); // Malicious Indicators - Industry Average - Percentage
+
+				// ** Risky Indicators Seen ** //
+				$mapping = replaceTag($mapping,'#TAG78',number_abbr($DateDiff)); // Risky Indicators - Days
+				$mapping = replaceTag($mapping,'#TAG79',number_abbr($IVPDLUnconfirmedThreatsSeenSum)); // Risky Indicators - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG80',round($IVPDLUnconfirmedHighRiskPercentage, 2).'%'); // Risky Indicators - Percentage High Risk
+				$mapping = replaceTag($mapping,'#TAG81',round($IVPDLUnconfirmedMedRiskPercentage, 2).'%'); // Risky Indicators - Percentage Medium Risk
+				$mapping = replaceTag($mapping,'#TAG82',round($IVPDLUnconfirmedLowRiskPercentage, 2).'%'); // Risky Indicators - Percentage Low Risk
+				$mapping = replaceTag($mapping,'#TAG83',number_abbr($IVPDLUnconfirmedThreatsSeenSum)); // Risky Indicators - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG84',round($IVPDLUnconfirmedThreatsSeenPercentage, 2).'%'); // Risky Indicators - Your Average - Percentage
+				if ($IVPDLUnconfirmedThreatsSeenTrend >= 0){$RISarrow='↑';} else {$RISarrow='↓';}
+				$mapping = replaceTag($mapping,'#TAG85',$RISarrow); // Arrow Up/Down
+				$mapping = replaceTag($mapping,'#TAG86',number_format($IVPDLUnconfirmedThreatsSeenTrend, 2).'%'); // Risky Indicators - Your Average - Percent Changed
+				$mapping = replaceTag($mapping,'#TAG87',number_abbr(($IVIDLUnconfirmedThreatsSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Risky Indicators - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG88',number_format($IVIDLUnconfirmedThreatsSeenPercentage, 2).'%'); // Risky Indicators - Industry Average -
+
+				// ** Threat Actor Associated Traffic Seen ** //
+				$mapping = replaceTag($mapping,'#TAG89',number_abbr($DateDiff)); // Threat Actor Associated Traffic - Days
+				$mapping = replaceTag($mapping,'#TAG90',number_abbr($IVThreatActorsMetrics['account'])); // Threat Actor Associated Traffic - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG91',round($IVPDLThreatActorAssociatedTrafficSeenPercentage, 2).'%'); // Threat Actor Associated Traffic - Your Average
+				$mapping = replaceTag($mapping,'#TAG92',number_abbr($IVThreatActorsMetrics['account'])); // Threat Actor Associated Traffic - Your Average - Count
+				if ($IVPDLThreatActorAssociatedTrafficSeenTrend >= 0){$TAarrow='↑';} else {$TAarrow='↓';}
+				$mapping = replaceTag($mapping,'#TAG93',$TAarrow); // Arrow Up/Down
+				$mapping = replaceTag($mapping,'#TAG94',number_format($IVPDLThreatActorAssociatedTrafficSeenTrend, 2).'%'); // Threat Actor Associated Traffic - Your Average - Percent Changed
+				$mapping = replaceTag($mapping,'#TAG95',round($IVPDLThreatActorAssociatedTrafficSeenPercentage, 2).'%'); // Threat Actor Associated Traffic - Your Average
+				$mapping = replaceTag($mapping,'#TAG96',number_abbr($IVThreatActorsMetrics['industry'])); // Threat Actor Associated Traffic - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG97',number_format($IVIDLThreatActorAssociatedTrafficSeenPercentage, 2).'%'); // Threat Actor Associated Traffic - Industry Average
+
+				// ** Zero Day DNS Traffic Seen ** //
+				$mapping = replaceTag($mapping,'#TAG98',number_abbr($DateDiff)); // Zero Day DNS Traffic - Days
+				$mapping = replaceTag($mapping,'#TAG99',number_abbr($IVPDLZeroDayDNSTrafficSeenSum)); // Zero Day DNS Traffic - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG100',number_abbr($IVPDLZeroDayDNSTrafficSeenSum)); // Zero Day DNS Traffic - Your Average - Count
+				if ($IVPDLZeroDayDNSTrafficSeenTrend >= 0){$ZDarrow='↑';} else {$ZDarrow='↓';}
+				$mapping = replaceTag($mapping,'#TAG101',$ZDarrow); // Arrow Up/Down
+				$mapping = replaceTag($mapping,'#TAG102',number_format($IVPDLZeroDayDNSTrafficSeenTrend, 2).'%'); // Zero Day DNS Traffic - Your Average - Percent Changed
+				$mapping = replaceTag($mapping,'#TAG103',number_abbr(($IVIDLZeroDayDNSTrafficSeenSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Zero Day DNS Traffic - Industry Average - Count
+
+				// ** Threat Insight Detection ** //
+				$mapping = replaceTag($mapping,'#TAG104',number_abbr($DateDiff)); // Threat Insight Detection - Days
+				$mapping = replaceTag($mapping,'#TAG105',number_abbr($IVPDLThreatInsightDetectionSum)); // Threat Insight Detection - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG106',round($IVPDLDNSTTrafficPercentage, 2).'%'); // Threat Insight Detection - Your Average - DNST Count
+				$mapping = replaceTag($mapping,'#TAG107',round($IVPDLDGATrafficPercentage, 2).'%'); // Threat Insight Detection - Your Average - DGA Count
+				$mapping = replaceTag($mapping,'#TAG108',number_abbr($IVPDLThreatInsightDetectionSum)); // Threat Insight Detection - Your Average - Count
+				$mapping = replaceTag($mapping,'#TAG109',round($IVPDLThreatInsightDetectionPercentage, 2).'%'); // Threat Insight Detection - Your Average - Percentage
+				if ($IVPDLThreatInsightDetectionTrend >= 0){$TIDarrow='↑';} else {$TIDarrow='↓';}
+				$mapping = replaceTag($mapping,'#TAG110',$TIDarrow); // Arrow Up/Down
+				$mapping = replaceTag($mapping,'#TAG111',number_format($IVPDLThreatInsightDetectionTrend, 2).'%'); // Threat Insight Detection - Your Average - Percent Changed
+				$mapping = replaceTag($mapping,'#TAG112',number_abbr(($IVIDLThreatInsightDetectionSum) / ($IVIndustryPeerCount > 0 ? $IVIndustryPeerCount : 1))); // Threat Insight Detection - Industry Average - Count
+				$mapping = replaceTag($mapping,'#TAG113',number_format($IVIDLThreatInsightDetectionPercentage, 2).'%'); // Threat Insight Detection - Industry Average - Percentage
+
+				##// Slide 37/40 - Industry Vertical Analysis - END //##
+				
+				##// Slide 51 - Token Calculator //##
+				$mapping = replaceTag($mapping,'#TAG114',number_abbr($SecurityTokenCategories['Total']*1.2)); // Total Security Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG115',number_abbr($SecurityTokenCategories['Cloud Asset Protection']['Total']*1.2)); // Threat Defense Cloud Asset Protection Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG116',number_abbr($SecurityTokenCategories['Threat Defense for NIOS']['Total']*1.2)); // Threat Defense for NIOS Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG117',number_abbr($SecurityTokenCategories['SOC Insights']['Total']*1.2)); // Threat Defense SOC Insights Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG118',number_abbr($SecurityTokenCategories['Lookalikes']['Total']*1.2)); // Threat Defense Lookalike Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG119',number_abbr($SecurityTokenCategories['Dossier']['Total']*1.2)); // Threat Defense Dossier Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG120',number_abbr($ReportingTokenCategories['Total']*1.2)); // Total Reporting Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG121',number_abbr($ReportingTokenCategories['Ecosystem']*1.2)); // Total Ecosystem Tokens + 20%
+				$mapping = replaceTag($mapping,'#TAG122',number_abbr($ReportingTokenCategories['S3']*1.2)); // Total S3 Tokens + 20%
+
+				// Calculate Estimated Reporting Tokens, where it may not be enabled today. This is a based on DNS Activity + Security Activity, 10M / 40 tokens
+				$TotalReportingEventsCount = $DNSActivityCount + $SecurityEventsCount;
+				$EstimatedReportingTokens = ceil(($TotalReportingEventsCount / 10000000) * 40);
+				$mapping = replaceTag($mapping,'#TAG123',number_abbr($EstimatedReportingTokens*1.2)); // Estimated Reporting Tokens + 20%
+
+				##// Slide 16+ - SOC Insight Details
+				$SITagStart = 100;
+				if (isset($SOCInsightDetails)) {
+					foreach ($SOCInsightDetails as $SID) {
+						$SOCInsightCubeResponseGeneral = $SOCInsightsCubeJSResults[$SID->insightId.'-general']['Body'] ?? [];
+						$SOCInsightCubeResponseAssets = $SOCInsightsCubeJSResults[$SID->insightId.'-assetCounts']['Body'] ?? [];
+						$SOCInsightIndicatorsBlockedCounts = $SOCInsightsIndicatorsBlockedCounts[$SID->insightId] ?? [];
+						$SOCInsightIndicatorsDetails = $SOCInsightsIndicatorsDetails[$SID->insightId]->result ?? [];
+						$SOCInsightAssetAccessingCount = ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingQIP']['Body']->result->data[0]->{'PortunusAggIPSummary.qipDistinctCount'} ?? 0) + ($SOCInsightsCubeJSResults[$SID->insightId.'-assetsAccessingDeviceID']['Body']->result->data[0]->{'PortunusAggIPSummary.deviceIdDistinctCount'} ?? 0);
+
+						$MassSpreading = '';
+						$PersistentThreat = '';
+						$TotalEvents = 0;
+						foreach ($SOCInsightCubeResponseGeneral->result->data as $InsightGeneral) {
+							if ($InsightGeneral->{'InsightDetails.spreading'}) {
+								$MassSpreading = 'Mass Spreading';
+							}
+							if ($InsightGeneral->{'InsightDetails.persistent'}) {
+								$PersistentThreat = 'Persistent Threat';
+							}
+							$TotalEvents += $InsightGeneral->{'InsightDetails.numEvents'} ?? 0;
+						}
+
+						$startedAt = new DateTime($SID->startedAt);
+						// $mostRecentAt = new DateTime($SID->mostRecentAt);
+						$mostRecentAt = new DateTime();
+						$ActivePeriod = $startedAt->diff($mostRecentAt);
+						$ActivePeriodDays = $ActivePeriod->days ?? 0;
+
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'01',$SID->threatType ?? ''); // SOC Insight Name
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'02',$ActivePeriodDays); // Active Period
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'03',$SID->startedAt ?? ''); // Insight Creation Date
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'04',$SID->mostRecentAt ?? ''); // Last Observed Date
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'05',$SID->threatType ?? ''); // Insight Type
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'06',$SID->tClass ?? ''); // Insight Class
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'07',$SID->tFamily ?? ''); // Insight Family
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'08',$MassSpreading); // Mass Spreading Y/N
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'09',$PersistentThreat); // Persistent Threat Y/N
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'10',$SOCInsightAssetAccessingCount); // Qty Asset Accessing
+						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SID->eventsNotBlockedCount ?? 0); // Events Not Blocked
+						// $mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'12',$SID->eventsBlockedCount ?? 0); // Indicators Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'11',$SOCInsightIndicatorsBlockedCounts->notBlocked ?? 0); // Indicators Not Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'12',$SOCInsightIndicatorsBlockedCounts->blocked ?? 0); // Indicators Blocked
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'13',$SOCInsightCubeResponseAssets->result->data[0]->{'PortunusAggIPSummary_ch.totalAssetCount'} ?? 0); // Total Assets
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'14',$SOCInsightIndicatorsBlockedCounts->total ?? 0); // Total Indicators
+
+						// ** Indicator Table ** //
+						$SOCInsightIndicatorDetailStartTag = 15;
+						foreach ([0,1] as $IndicatorItem) {
+							if (isset($SOCInsightIndicatorsDetails[$IndicatorItem])) {
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.$SOCInsightIndicatorDetailStartTag,$SOCInsightIndicatorsDetails[$IndicatorItem]->indicator ?? ''); // Indicator
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+1),$SOCInsightIndicatorsDetails[$IndicatorItem]->action ?? ''); // Blocked/Not Blocked Label
+								if (isset($SOCInsightIndicatorsDetails[$IndicatorItem]->action)) {
+									if ($SOCInsightIndicatorsDetails[$IndicatorItem]->action == 'Blocked') {
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'Indicator has been added To a Threat Feed and blocked.'); // Blocked Label
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),''); // Priority Label
+									} else {
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'Indicator is not blocked. Recommend to block.'); // Not Blocked Label
+										$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),'High Priority'); // Priority Label
+									}
+								} else {
+									$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),'N/A'); // Not Blocked Label
+									$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),'N/A'); // Priority Label
+								}
+
+								// Map Threat & Confidence Level to Low, Medium, High
+								$ThreatLevel = $CriticalalityMapping[$SOCInsightIndicatorsDetails[$IndicatorItem]->threatLevelMax ?? 5] ?? '';
+								$ConfidenceLevel = $CriticalalityMapping[$SOCInsightIndicatorsDetails[$IndicatorItem]->confidenceLevelMax ?? 5] ?? '';
+
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+4),$SOCInsightIndicatorsDetails[$IndicatorItem]->qipDistinctCount); // Asset Qty
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+5),$ThreatLevel); // Threat Level
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+6),$ConfidenceLevel); // Confidence
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+7),$SOCInsightIndicatorsDetails[$IndicatorItem]->timestampMax ?? ''); // Last Observation
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+8),$SOCInsightIndicatorsDetails[$IndicatorItem]->timestampMin ?? ''); // First Observation
+							} else {
+								// No Indicator Data, clear out the tags
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.$SOCInsightIndicatorDetailStartTag,''); // Indicator
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+1),''); // Blocked/Not Blocked Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+2),''); // Blocked Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+3),''); // Priority Label
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+4),''); // Asset Qty
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+5),''); // Threat Level
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+6),''); // Confidence
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+7),''); // Last Observation
+								$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.($SOCInsightIndicatorDetailStartTag+8),''); // First Observation
+
+							}
+							$SOCInsightIndicatorDetailStartTag += 9;
+						}
+						
+						$SITagStart++;
+					}
+				}
+
+				##// Slide 32/34 - Threat Actors
 				// This is where the Threat Actor Tag replacement occurs
 				// Set Tag Start Number
-				$TagStart = 100;
+				$TATagStart = 100;
 				if (isset($ThreatActorInfo)) {
 					foreach ($ThreatActorInfo as $TAI) {
 						// Workaround for EU / US Realm Alignment
@@ -997,18 +2253,17 @@ class SecurityAssessment extends ibPortal {
 						// }
 						// Workaround End
 		
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'01',ucwords($TAI['actor_name'])); // Threat Actor Name
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'02',$TAI['actor_description']); // Threat Actor Description
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'03',$IndicatorCount); // Number of Observed IOCs
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'04',$IndicatorsNotObserved); // Number of Observed IOCs not observed
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'05',$TAI['related_count']); // Number of Related IOCs
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'06',$DaysAhead); // Discovered X Days Ahead
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'07',$FirstSeen->format('d/m/y')); // First Detection Date
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'08',$LastSeen->format('d/m/y')); // Last Detection Date
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'09',$ProtectedFor); // Protected X Days
-						$mapping = replaceTag($mapping,'#TATAG'.$TagStart.'10',$ExampleDomain); // Example Domain
-						$TagStart += 10;
-		
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'01',ucwords($TAI['actor_name'])); // Threat Actor Name
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'02',$TAI['actor_description']); // Threat Actor Description
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'03',$IndicatorCount); // Number of Observed IOCs
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'04',$IndicatorsNotObserved); // Number of Observed IOCs not observed
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'05',$TAI['related_count']); // Number of Related IOCs
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'06',$DaysAhead); // Discovered X Days Ahead
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'07',$FirstSeen->format('d/m/y')); // First Detection Date
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'08',$LastSeen->format('d/m/y')); // Last Detection Date
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'09',$ProtectedFor); // Protected X Days
+						$mapping = replaceTag($mapping,'#TATAG'.$TATagStart.'10',$ExampleDomain); // Example Domain
+						$TATagStart += 10;
 					}
 				}
 
@@ -1018,13 +2273,13 @@ class SecurityAssessment extends ibPortal {
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx',
-					$SelectedTemplate['ExtractedDir'].'.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted',
+					$SelectedTemplate['ExtractedDir'].$SelectedTemplateFileExt
 				);
 		
 				// Cleanup
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup");
-				unlink($SelectedTemplate['ExtractedDir'].'-extracted.pptx');
+				unlink($SelectedTemplate['ExtractedDir'].'-extracted');
 			}
 			// End of new loop
 
@@ -1063,7 +2318,7 @@ class SecurityAssessment extends ibPortal {
 				'security_events_tunnelling' => $DataExfilEventsCount,
 				'security_insights' => $TotalInsights,
 				'security_threat_actors' => $ThreatActorsCountMetric,
-				'web_unique_applications' => $UniqueApplicationsCount,
+				'web_unique_applications' => $AppDiscoveryApplicationsCount,
 				'web_high_risk_categories' => $HighRiskWebCategoryCount,
 				'lookalikes_custom_domains' => $LookalikeThreatCount
 			]);
@@ -1087,7 +2342,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 13) + 27,
+			'Total' => ($Total * 19) + 35,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
@@ -1130,6 +2385,12 @@ class SecurityAssessment extends ibPortal {
 		$ProgressFile = $this->getDir()['Files'].'/reports/report-'.$id.'.progress';
 		if (file_exists($ProgressFile)) {
 			$myfile = fopen($ProgressFile, "r") or die("0");
+			if (filesize($ProgressFile) == 0) {
+				return array(
+					'Progress' => 0,
+					'Action' => 'Starting..'
+				);
+			}
 			$Current = json_decode(fread($myfile,filesize($ProgressFile)));
 			if (isset($Current) && isset($Current->Count) && isset($Current->Action)) {
 				return array(

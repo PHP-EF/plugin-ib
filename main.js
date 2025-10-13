@@ -10,6 +10,13 @@ flatpickr("#reportingStartAndEndDate", {
   dateFormat: "Y-m-d H:i"
 });
 
+flatpickr("#anonReportingStartAndEndDate", {
+  mode: "range",
+  maxDate: today,
+  enableTime: true,
+  dateFormat: "Y-m-d H:i"
+});
+
 function apiKeyBtn(elem) {
   if ($(elem).hasClass('fa-save')) {
     saveAPIKey($(elem).prev().val());

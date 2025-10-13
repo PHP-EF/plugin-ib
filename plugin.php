@@ -9,7 +9,7 @@ $GLOBALS['plugins']['IB-Tools'] = [ // Plugin Name
 	'author' => 'TehMuffinMoo', // Who wrote the plugin
 	'category' => 'Infoblox Tools', // One to Two Word Description
 	'link' => 'https://github.com/php-ef/plugin-ib', // Link to plugin info
-	'version' => '1.3.3', // SemVer of plugin
+	'version' => '1.3.5', // SemVer of plugin
 	'image' => 'logo.png', // 1:1 non transparent image for plugin
 	'settings' => true, // does plugin need a settings modal?
 	'api' => '/api/plugin/ib/settings', // api route for settings page
@@ -72,6 +72,20 @@ class ibPlugin extends phpef {
 		} else {
 			return $days . 'd ' . $remainingHours . 'h';
 		}
+	}
+
+	function formatBytes($bytes, $precision = 2) {
+		$units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+		if ($bytes < 0) {
+			return 'Invalid size';
+		}
+
+		$power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+		$power = min($power, count($units) - 1);
+
+		$formatted = $bytes / pow(1024, $power);
+		return round($formatted, $precision) . $units[$power];
 	}
 		
 }

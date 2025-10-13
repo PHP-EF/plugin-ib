@@ -233,4 +233,105 @@ class AssessmentReporting extends ibPlugin {
 		$stmt->execute($values);
 		return $this->sql->lastInsertId();
 	}
+
+	public function getAnonymisedMetricsSecurity($granularity,$filters,$start = null,$end = null) {
+		$execute = [];
+		$Select = $this->reporting->sqlSelectByGranularity($granularity,'date_end','anonymised_metrics_security',$start,$end);
+		if ($granularity == 'custom') {
+			if ($start != null && $end != null) {
+				$StartDateTime = (new DateTime($start))->format('Y-m-d H:i:s');
+				$EndDateTime = (new DateTime($end))->format('Y-m-d H:i:s');
+				$execute[':start'] = $StartDateTime;
+				$execute[':end'] = $EndDateTime;
+			}
+		}
+		if (isset($Select)) {
+			try {
+				$stmt = $this->sql->prepare($Select);
+				$stmt->execute($execute);
+				return $stmt->fetchAll(PDO::FETCH_ASSOC);
+			} catch (PDOException $e) {
+				return array(
+					'Status' => 'Error',
+					'Message' => $e
+				);
+			}
+		} else {
+			return array(
+				'Status' => 'Error',
+				'Message' => 'Invalid Granularity'
+			);
+		}
+	}
+
+
+	function getAnonymisedMetricsSecurityAverages($granularity, $startDateTime, $endDateTime) {
+	    $results = $this->getAnonymisedMetricsSecurity($granularity, [], $startDateTime, $endDateTime);
+	    $sums = [];
+	    $recordCount = 0;
+
+		if ($granularity != 'custom') {
+			switch ($granularity) {
+				case 'today':
+					$startDateTime = date('Y-m-d 00:00:00');
+					$endDateTime = date('Y-m-d 23:59:59');
+					break;
+				case 'thisWeek':
+					$startDateTime = date('Y-m-d 00:00:00', strtotime('monday this week'));
+					$endDateTime = date('Y-m-d 23:59:59', strtotime('sunday this week'));
+					break;
+				case 'thisMonth':
+					$startDateTime = date('Y-m-01 00:00:00');
+					$endDateTime = date('Y-m-t 23:59:59');
+					break;
+				case 'thisYear':
+					$startDateTime = date('Y-01-01 00:00:00');
+					$endDateTime = date('Y-12-31 23:59:59');
+					break;
+				case 'last30Days':
+					$startDateTime = date('Y-m-d 00:00:00', strtotime('-30 days'));
+					$endDateTime = date('Y-m-d 23:59:59');
+					break;
+				case 'lastMonth':
+					$startDateTime = date('Y-m-01 00:00:00', strtotime('first day of last month'));
+					$endDateTime = date('Y-m-t 23:59:59', strtotime('last day of last month'));
+					break;
+				case 'lastYear':
+					$startDateTime = date('Y-01-01 00:00:00', strtotime('first day of last year'));
+					$endDateTime = date('Y-12-31 23:59:59', strtotime('last day of last year'));
+					break;
+				default:
+					return array(
+						'Status' => 'Error',
+						'Message' => 'Invalid Granularity'
+					);
+			}
+		}
+
+	    foreach ($results as $row) {
+	        $recordStart = max(strtotime($row['date_start']), strtotime($startDateTime));
+	        $recordEnd = min(strtotime($row['date_end']), strtotime($endDateTime));
+	        $overlapHours = max(0, ($recordEnd - $recordStart) / 3600);
+
+	        if ($overlapHours <= 0) continue;
+
+			$recordCount++;
+
+	        foreach ($row as $key => $value) {
+	            if (in_array($key, ['id', 'date_start', 'date_end'])) continue;
+	            if (!isset($sums[$key])) $sums[$key] = 0;
+	            $sums[$key] += $value * $overlapHours;
+	        }
+	    }
+
+		$averages = [];
+		$averages['recordCount'] = $recordCount;
+		
+		foreach ($sums as $key => $sum) {
+			$averages[$key] = $recordCount > 0 ? $sum / $recordCount : 0;
+		}
+
+	    return $averages;
+	}
+
 }
