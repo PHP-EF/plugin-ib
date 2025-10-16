@@ -1435,222 +1435,224 @@ class SecurityAssessment extends ibPortal {
 					array_push($SOCInsightDetails, $FirstElement);
 					
 					foreach ($SOCInsightDetails as $SKEY => $SID) {
-						if (($SOCInsightSlideCount - 1) > 0) {
-							// Reinitalize array to avoid duplicates
-							$SOCInsightsExcelReferenceBase = [];
+						if (!empty($SID)) {
+							if (($SOCInsightSlideCount - 1) > 0) {
+								// Reinitalize array to avoid duplicates
+								$SOCInsightsExcelReferenceBase = [];
 
-							$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
-							$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
-							$xml_rels_soc_fstart++;
-							$xml_pres_soc_fstart++;
-							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
-							copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+								$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
+								$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
+								$xml_rels_soc_fstart++;
+								$xml_pres_soc_fstart++;
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SOCInsightsSlideStart.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+								copy($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SOCInsightsSlideStart.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 
-							// Load Slide XML _rels
-							$xml_sis = new DOMDocument('1.0', 'utf-8');
-							$xml_sis->formatOutput = true;
-							$xml_sis->preserveWhiteSpace = false;
-							$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+								// Load Slide XML _rels
+								$xml_sis = new DOMDocument('1.0', 'utf-8');
+								$xml_sis->formatOutput = true;
+								$xml_sis->preserveWhiteSpace = false;
+								$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 
-							foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
-								// Remove notes references to avoid having to create unneccessary notes resources
-								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
-									$element->remove();
-								}
-								if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
-									$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
-									$OldChartNumber = str_replace('.xml','',$OldChartNumber);
-									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
-									copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
-									$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
+								foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+									// Remove notes references to avoid having to create unneccessary notes resources
+									if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide") {
+										$element->remove();
+									}
+									if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+										$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+										$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$OldChartNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/chart'.$SIChartNumber.'.xml');
+										copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels',$SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+										$element->setAttribute('Target','../charts/chart'.$SIChartNumber.'.xml');
 
-									// Load Chart XML Rels
-									$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
-									$xml_chart_rels->formatOutput = true;
-									$xml_chart_rels->preserveWhiteSpace = false;
-									$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+										// Load Chart XML Rels
+										$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+										$xml_chart_rels->formatOutput = true;
+										$xml_chart_rels->preserveWhiteSpace = false;
+										$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
 
-									// Duplicate colours, styles & embedded excel files
-									foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
-										if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
-											$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
-											$OldColourNumber = str_replace('.xml','',$OldColourNumber);
-											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
-											$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
-										} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
-											$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
-											$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
-											copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
-											$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
-										} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
-											$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
-											$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
-											copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
-											$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+										// Duplicate colours, styles & embedded excel files
+										foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+											if ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle") {
+												$OldColourNumber = str_replace('colors','',$element_c->getAttribute('Target'));
+												$OldColourNumber = str_replace('.xml','',$OldColourNumber);
+												copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$OldColourNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/colors'.$SIChartNumber.'.xml');
+												$element_c->setAttribute('Target','../charts/colors'.$SIChartNumber.'.xml');
+											} elseif ($element_c->getAttribute('Type') == "http://schemas.microsoft.com/office/2011/relationships/chartStyle") {
+												$OldStyleNumber = str_replace('style','',$element_c->getAttribute('Target'));
+												$OldStyleNumber = str_replace('.xml','',$OldStyleNumber);
+												copy($SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$OldStyleNumber.'.xml',$SelectedTemplate['ExtractedDir'].'/ppt/charts/style'.$SIChartNumber.'.xml');
+												$element_c->setAttribute('Target','../charts/style'.$SIChartNumber.'.xml');
+											} elseif ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+												$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+												$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+												copy($SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx',$SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
+												$element_c->setAttribute('Target','../embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx');
 
-											// Store the slide no. and embedded chart files for later use
-											$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
-											$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
+												// Store the slide no. and embedded chart files for later use
+												$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
+												$SOCInsightsExcelReference[$SKEY][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$SIChartNumber.'.xlsx';
+											}
 										}
-									}
 
-									$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
-									
-									$SIChartNumber++;
-								}
-							}
-
-							// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
-							$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
-						} else {
-							$SISlideNumber = $SOCInsightsSlideStart;
-						}
-
-						// Update Tag Numbers
-						$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
-						$SISFile = str_replace('#SITAG00', '#SITAG'.$SITagStart, $SISFile);
-						file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
-
-						// Get Embedded Chart References
-						if ($SISlideNumber == $SOCInsightsSlideStart) {
-						// if ($SKEY == 0) {
-							$SOCInsightEmbeddedChart = $SOCInsightsExcelReferenceBase[0];
-						} else {
-							$SOCInsightEmbeddedChart = $SOCInsightsExcelReference[($SKEY)];
-						}
-
-						// Populate Charts
-						foreach ([0,1] as $ChartIndex) {
-							$SOCInsightEmbeddedChartRef = $SOCInsightEmbeddedChart[$ChartIndex];
-							$SOCInsightEmbeddedChartSS = IOFactory::load($SOCInsightEmbeddedChartRef);
-							$SOCInsightEmbeddedChartS = $SOCInsightEmbeddedChartSS->getActiveSheet();
-
-							$SOCInsightsIndicatorsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-indicatorsTimeSeries']['Body'] ?? [];
-							$SOCInsightsImpactedAssetsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedAssetsTimeSeries']['Body'] ?? [];
-							$SOCInsightsImpactedQIPsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedQIPsTimeSeries']['Body'] ?? [];
-
-							// Summerise total number of indicators by combining all distinct counts across unique timestamp.hour
-							$IndicatorsTimeSeriesData = [];
-							if (is_array($SOCInsightsIndicatorsTimeSeries->result->data) AND count($SOCInsightsIndicatorsTimeSeries->result->data) > 0) {
-								foreach ($SOCInsightsIndicatorsTimeSeries->result->data as $ISTS) {
-									$IndicatorDate = substr($ISTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
-									if (isset($IndicatorsTimeSeriesData[$IndicatorDate])) {
-										$IndicatorsTimeSeriesData[$IndicatorDate] += $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
-									} else {
-										$IndicatorsTimeSeriesData[$IndicatorDate] = $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
+										$xml_chart_rels->save($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$SIChartNumber.'.xml.rels');
+										
+										$SIChartNumber++;
 									}
 								}
+
+								// $xml_sis->getElementsByTagName('Relationships')->item(0)->appendChild($xml_sis_f);
+								$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+							} else {
+								$SISlideNumber = $SOCInsightsSlideStart;
 							}
 
-							// Implement tracking to deduplicate assets that may appear multiple times in a given day
-							// This is currently not the way the UI works, and this needs to be addressed by engineering
-							$ImpactedAssetsCountedByDate = [];
-							$ImpactedQIPsCountedByDate = [];
+							// Update Tag Numbers
+							$SISFile = file_get_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml');
+							$SISFile = str_replace('#SITAG00', '#SITAG'.$SITagStart, $SISFile);
+							file_put_contents($SelectedTemplate['ExtractedDir'].'/ppt/slides/slide'.$SISlideNumber.'.xml', $SISFile);
 
-							// Summerise total number of impacted assets by combining all distinct counts across unique timestamp.hour
-							$ImpactedAssetsTimeSeriesData = [];
-							if (is_array($SOCInsightsImpactedAssetsTimeSeries->result->data) AND count($SOCInsightsImpactedAssetsTimeSeries->result->data) > 0) {
-								foreach ($SOCInsightsImpactedAssetsTimeSeries->result->data as $IATS) {
-									$ImpactedAssetDate = substr($IATS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+							// Get Embedded Chart References
+							if ($SISlideNumber == $SOCInsightsSlideStart) {
+							// if ($SKEY == 0) {
+								$SOCInsightEmbeddedChart = $SOCInsightsExcelReferenceBase[0];
+							} else {
+								$SOCInsightEmbeddedChart = $SOCInsightsExcelReference[($SKEY)];
+							}
 
-									// Deduplication
-									if (!isset($ImpactedAssetsCountedByDate[$ImpactedAssetDate])) {
-										$ImpactedAssetsCountedByDate[$ImpactedAssetDate] = [];
-									}
-									if (!in_array($IATS->{'PortunusAggIPSummary.device_id'}, $ImpactedAssetsCountedByDate[$ImpactedAssetDate])) { // Deduplication
-										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
-											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+							// Populate Charts
+							foreach ([0,1] as $ChartIndex) {
+								$SOCInsightEmbeddedChartRef = $SOCInsightEmbeddedChart[$ChartIndex];
+								$SOCInsightEmbeddedChartSS = IOFactory::load($SOCInsightEmbeddedChartRef);
+								$SOCInsightEmbeddedChartS = $SOCInsightEmbeddedChartSS->getActiveSheet();
+
+								$SOCInsightsIndicatorsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-indicatorsTimeSeries']['Body'] ?? [];
+								$SOCInsightsImpactedAssetsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedAssetsTimeSeries']['Body'] ?? [];
+								$SOCInsightsImpactedQIPsTimeSeries = $SOCInsightsCubeJSResults[$SID->insightId.'-impactedQIPsTimeSeries']['Body'] ?? [];
+
+								// Summerise total number of indicators by combining all distinct counts across unique timestamp.hour
+								$IndicatorsTimeSeriesData = [];
+								if (is_array($SOCInsightsIndicatorsTimeSeries->result->data) AND count($SOCInsightsIndicatorsTimeSeries->result->data) > 0) {
+									foreach ($SOCInsightsIndicatorsTimeSeries->result->data as $ISTS) {
+										$IndicatorDate = substr($ISTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+										if (isset($IndicatorsTimeSeriesData[$IndicatorDate])) {
+											$IndicatorsTimeSeriesData[$IndicatorDate] += $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
 										} else {
-											$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+											$IndicatorsTimeSeriesData[$IndicatorDate] = $ISTS->{'PortunusAggIPSummary.threatIndicatorDistinctCount'};
 										}
 									}
-
-									// Deduplication
-									$ImpactedAssetsCountedByDate[$ImpactedAssetDate][] = $IATS->{'PortunusAggIPSummary.device_id'};
 								}
-							}
 
-							// Combine QIPs Time Series Data with Asset Time Series Data
-							if (is_array($SOCInsightsImpactedQIPsTimeSeries->result->data) AND count($SOCInsightsImpactedQIPsTimeSeries->result->data) > 0) {
-								foreach ($SOCInsightsImpactedQIPsTimeSeries->result->data as $IQTS) {
-									$ImpactedQIPDate = substr($IQTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+								// Implement tracking to deduplicate assets that may appear multiple times in a given day
+								// This is currently not the way the UI works, and this needs to be addressed by engineering
+								$ImpactedAssetsCountedByDate = [];
+								$ImpactedQIPsCountedByDate = [];
 
-									// Deduplication
-									if (!isset($ImpactedQIPsCountedByDate[$ImpactedQIPDate])) {
-										$ImpactedQIPsCountedByDate[$ImpactedQIPDate] = [];
+								// Summerise total number of impacted assets by combining all distinct counts across unique timestamp.hour
+								$ImpactedAssetsTimeSeriesData = [];
+								if (is_array($SOCInsightsImpactedAssetsTimeSeries->result->data) AND count($SOCInsightsImpactedAssetsTimeSeries->result->data) > 0) {
+									foreach ($SOCInsightsImpactedAssetsTimeSeries->result->data as $IATS) {
+										$ImpactedAssetDate = substr($IATS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+
+										// Deduplication
+										if (!isset($ImpactedAssetsCountedByDate[$ImpactedAssetDate])) {
+											$ImpactedAssetsCountedByDate[$ImpactedAssetDate] = [];
+										}
+										if (!in_array($IATS->{'PortunusAggIPSummary.device_id'}, $ImpactedAssetsCountedByDate[$ImpactedAssetDate])) { // Deduplication
+											if (isset($ImpactedAssetsTimeSeriesData[$ImpactedAssetDate])) {
+												$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] += $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+											} else {
+												$ImpactedAssetsTimeSeriesData[$ImpactedAssetDate] = $IATS->{'PortunusAggIPSummary.deviceIdDistinctCount'};
+											}
+										}
+
+										// Deduplication
+										$ImpactedAssetsCountedByDate[$ImpactedAssetDate][] = $IATS->{'PortunusAggIPSummary.device_id'};
 									}
-									if (!in_array($IQTS->{'PortunusAggIPSummary.qip'}, $ImpactedQIPsCountedByDate[$ImpactedQIPDate])) { // Deduplication
-										if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
-											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+								}
+
+								// Combine QIPs Time Series Data with Asset Time Series Data
+								if (is_array($SOCInsightsImpactedQIPsTimeSeries->result->data) AND count($SOCInsightsImpactedQIPsTimeSeries->result->data) > 0) {
+									foreach ($SOCInsightsImpactedQIPsTimeSeries->result->data as $IQTS) {
+										$ImpactedQIPDate = substr($IQTS->{'PortunusAggIPSummary.timestamp.hour'},0,10);
+
+										// Deduplication
+										if (!isset($ImpactedQIPsCountedByDate[$ImpactedQIPDate])) {
+											$ImpactedQIPsCountedByDate[$ImpactedQIPDate] = [];
+										}
+										if (!in_array($IQTS->{'PortunusAggIPSummary.qip'}, $ImpactedQIPsCountedByDate[$ImpactedQIPDate])) { // Deduplication
+											if (isset($ImpactedAssetsTimeSeriesData[$ImpactedQIPDate])) {
+												$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] += $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+											} else {
+												$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+											}
+										}
+
+										// Deduplication
+										$ImpactedQIPsCountedByDate[$ImpactedQIPDate][] = $IQTS->{'PortunusAggIPSummary.qip'};
+									}
+								}
+
+								// Loop Through Indicator & Asset Time Series and add missing dates with 0 count
+								$StartDate = (new DateTime($StartDimension))->format('Y-m-d');
+								$EndDate = (new DateTime($EndDimension))->format('Y-m-d');
+								$CurrentDate = $StartDate;
+
+								while ($CurrentDate <= $EndDate) {
+									if (!isset($IndicatorsTimeSeriesData[$CurrentDate])) {
+										$IndicatorsTimeSeriesData[$CurrentDate] = 0;
+									}
+									if (!isset($ImpactedAssetsTimeSeriesData[$CurrentDate])) {
+										$ImpactedAssetsTimeSeriesData[$CurrentDate] = 0;
+									}
+									// Increment Date by 1 day								
+									$CurrentDate = date('Y-m-d', strtotime($CurrentDate . ' + 1 day'));
+								}
+								
+								// Sort by date
+								ksort($IndicatorsTimeSeriesData);
+								ksort($ImpactedAssetsTimeSeriesData);
+
+								switch($ChartIndex) {
+									case 0:
+										$RowNo = 2;
+										if (is_array($ImpactedAssetsTimeSeriesData) AND count($ImpactedAssetsTimeSeriesData) > 0) {
+											foreach ($ImpactedAssetsTimeSeriesData as $Date => $Count) {
+												$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+												$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+												$RowNo++;
+											}
 										} else {
-											$ImpactedAssetsTimeSeriesData[$ImpactedQIPDate] = $IQTS->{'PortunusAggIPSummary.qipDistinctCount'};
+											$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+											$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
 										}
-									}
-
-									// Deduplication
-									$ImpactedQIPsCountedByDate[$ImpactedQIPDate][] = $IQTS->{'PortunusAggIPSummary.qip'};
+										break;
+									case 1:
+										$RowNo = 2;
+										if (is_array($IndicatorsTimeSeriesData) AND count($IndicatorsTimeSeriesData) > 0) {
+											foreach ($IndicatorsTimeSeriesData as $Date => $Count) {
+												$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
+												$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
+												$RowNo++;
+											}
+										} else {
+											$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
+											$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
+										}
+										break;
 								}
+
+								$SOCInsightEmbeddedChartW = IOFactory::createWriter($SOCInsightEmbeddedChartSS, 'Xlsx');
+								$SOCInsightEmbeddedChartW->save($SOCInsightEmbeddedChartRef);
 							}
 
-							// Loop Through Indicator & Asset Time Series and add missing dates with 0 count
-							$StartDate = (new DateTime($StartDimension))->format('Y-m-d');
-							$EndDate = (new DateTime($EndDimension))->format('Y-m-d');
-							$CurrentDate = $StartDate;
-
-							while ($CurrentDate <= $EndDate) {
-								if (!isset($IndicatorsTimeSeriesData[$CurrentDate])) {
-									$IndicatorsTimeSeriesData[$CurrentDate] = 0;
-								}
-								if (!isset($ImpactedAssetsTimeSeriesData[$CurrentDate])) {
-									$ImpactedAssetsTimeSeriesData[$CurrentDate] = 0;
-								}
-								// Increment Date by 1 day								
-								$CurrentDate = date('Y-m-d', strtotime($CurrentDate . ' + 1 day'));
-							}
-							
-							// Sort by date
-							ksort($IndicatorsTimeSeriesData);
-							ksort($ImpactedAssetsTimeSeriesData);
-
-							switch($ChartIndex) {
-								case 0:
-									$RowNo = 2;
-									if (is_array($ImpactedAssetsTimeSeriesData) AND count($ImpactedAssetsTimeSeriesData) > 0) {
-										foreach ($ImpactedAssetsTimeSeriesData as $Date => $Count) {
-											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
-											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
-											$RowNo++;
-										}
-									} else {
-										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
-										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
-									}
-									break;
-								case 1:
-									$RowNo = 2;
-									if (is_array($IndicatorsTimeSeriesData) AND count($IndicatorsTimeSeriesData) > 0) {
-										foreach ($IndicatorsTimeSeriesData as $Date => $Count) {
-											$SOCInsightEmbeddedChartS->setCellValue('A'.$RowNo, $Date);
-											$SOCInsightEmbeddedChartS->setCellValue('B'.$RowNo, $Count);
-											$RowNo++;
-										}
-									} else {
-										$SOCInsightEmbeddedChartS->setCellValue('A2', date('Y-m-d'));
-										$SOCInsightEmbeddedChartS->setCellValue('B2', 0);
-									}
-									break;
-							}
-
-							$SOCInsightEmbeddedChartW = IOFactory::createWriter($SOCInsightEmbeddedChartSS, 'Xlsx');
-							$SOCInsightEmbeddedChartW->save($SOCInsightEmbeddedChartRef);
+							// Increment Tag Number
+							$SITagStart++;
+							// Decrement Slide Count
+							$SOCInsightSlideCount--;
+							// Increment Slide Number
+							$SISlideNumber++;
 						}
-
-						// Increment Tag Number
-						$SITagStart++;
-						// Decrement Slide Count
-						$SOCInsightSlideCount--;
-						// Increment Slide Number
-						$SISlideNumber++;
 					}
 
 					// Append Elements to Core XML Files
