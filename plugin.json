@@ -8,10 +8,10 @@
     "icon": "https://raw.githubusercontent.com/php-ef/plugin-ib/main/logo.png",
     "contact": "https://github.com/php-ef/plugin-ib/issues",
     "link": "https://github.com/php-ef/plugin-ib",
-    "version": "1.3.5",
-    "minimum_php-ef_version": "0.8.5",
+    "version": "1.3.6",
+    "minimum_php-ef_version": "0.9.0",
     "release_date": "2024-12-20",
-    "last_updated": "2025-05-01",
+    "last_updated": "2025-11-05",
     "github_folder": "",
     "changelog": {
       "type": "builtin",
@@ -19,6 +19,12 @@
       "title": "Change Log",
       "data": [
         {
+          "version": "1.3.6",
+          "date": "2025-11-05",
+          "changes": [
+              "Bug fix for when only one SOC Insight present"
+          ]
+        },{
           "version": "1.3.5",
           "date": "2025-10-13",
           "changes": [

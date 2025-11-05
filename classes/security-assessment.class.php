@@ -1115,7 +1115,7 @@ class SecurityAssessment extends ibPortal {
 					$DNSActivityDailyAverage = $DNSActivityDailyCount ? $DNSActivityDailySum / $DNSActivityDailyCount : 0;
 
 					foreach ($DNSActivityDaily->result->data as $DNSActivityDay) {
-						$DayTimestamp = new DateTime($DNSActivityDay->{'PortunusAggInsight.timestamp.day'});
+						$DayTimestamp = new DateTime($DNSActivityDay->{'PortunusAggInsight.timestamp.day'} ?? '00-00-00T00:00:00');
 						$DNSActivityDailyS = $DNSActivityDailySS->getActiveSheet();
 						$DNSActivityDailyS->setCellValue('A'.$RowNo, $DayTimestamp->format('d/m/Y'));
 						$DNSActivityDailyS->setCellValue('B'.$RowNo, $DNSActivityDay->{'PortunusAggInsight.requests'});
@@ -1142,7 +1142,7 @@ class SecurityAssessment extends ibPortal {
 					$DNSFirewallActivityDailyAverage = $DNSFirewallActivityDailyCount ? $DNSFirewallActivityDailySum / $DNSFirewallActivityDailyCount : 0;
 
 					foreach ($DNSFirewallActivityDaily->result->data as $DNSFirewallActivityDay) {
-						$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'});
+						$DayTimestamp = new DateTime($DNSFirewallActivityDay->{'PortunusAggSecurity.timestamp.day'} ?? '00-00-00T00:00:00');
 						$DNSFirewallActivityDailyS = $DNSFirewallActivityDailySS->getActiveSheet();
 						$DNSFirewallActivityDailyS->setCellValue('A'.$RowNo, $DayTimestamp->format('d/m/Y'));
 						$DNSFirewallActivityDailyS->setCellValue('B'.$RowNo, $DNSFirewallActivityDay->{'PortunusAggSecurity.requests'});
@@ -1436,10 +1436,9 @@ class SecurityAssessment extends ibPortal {
 					
 					foreach ($SOCInsightDetails as $SKEY => $SID) {
 						if (!empty($SID)) {
+							// Reinitalize array to avoid duplicates
+							$SOCInsightsExcelReferenceBase = [];
 							if (($SOCInsightSlideCount - 1) > 0) {
-								// Reinitalize array to avoid duplicates
-								$SOCInsightsExcelReferenceBase = [];
-
 								$xml_rels_soc_f->appendXML('<Relationship Id="rId'.$xml_rels_soc_fstart.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$SISlideNumber.'.xml"/>');
 								$xml_pres_soc_f->appendXML('<p:sldId id="'.$xml_pres_soc_fstart.'" r:id="rId'.$xml_rels_soc_fstart.'"/>');
 								$xml_rels_soc_fstart++;
@@ -1505,6 +1504,37 @@ class SecurityAssessment extends ibPortal {
 								$xml_sis->save($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
 							} else {
 								$SISlideNumber = $SOCInsightsSlideStart;
+
+								// Identify Embedded Excel Ref
+								// Load Slide XML _rels
+								$xml_sis = new DOMDocument('1.0', 'utf-8');
+								$xml_sis->formatOutput = true;
+								$xml_sis->preserveWhiteSpace = false;
+								$xml_sis->load($SelectedTemplate['ExtractedDir'].'/ppt/slides/_rels/slide'.$SISlideNumber.'.xml.rels');
+
+								foreach ($xml_sis->getElementsByTagName('Relationship') as $element) {
+									if ($element->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart") {
+										$OldChartNumber = str_replace('../charts/chart','',$element->getAttribute('Target'));
+										$OldChartNumber = str_replace('.xml','',$OldChartNumber);
+
+										// Load Chart XML Rels
+										$xml_chart_rels = new DOMDocument('1.0', 'utf-8');
+										$xml_chart_rels->formatOutput = true;
+										$xml_chart_rels->preserveWhiteSpace = false;
+										$xml_chart_rels->load($SelectedTemplate['ExtractedDir'].'/ppt/charts/_rels/chart'.$OldChartNumber.'.xml.rels');
+
+										// Save base excel refs
+										foreach ($xml_chart_rels->getElementsByTagName('Relationship') as $element_c) {
+											if ($element_c->getAttribute('Type') == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package") {
+												// Get base embedded excel file reference
+												$OldEmbeddedNumber = str_replace('../embeddings/Microsoft_Excel_Worksheet','',$element_c->getAttribute('Target'));
+												$OldEmbeddedNumber = str_replace('.xlsx','',$OldEmbeddedNumber);
+												// Store the slide no. and embedded chart files for later use
+												$SOCInsightsExcelReferenceBase[0][] = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/Microsoft_Excel_Worksheet'.$OldEmbeddedNumber.'.xlsx';
+											}
+										}
+									}
+								}
 							}
 
 							// Update Tag Numbers
@@ -1656,9 +1686,13 @@ class SecurityAssessment extends ibPortal {
 					}
 
 					// Append Elements to Core XML Files
-					$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_soc_f);
+					if ($xml_rels_soc_f->hasChildNodes()) {
+						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_soc_f);
+					}
 					// Append new slides to specific position
-					$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_soc_f);
+					if ($xml_pres_soc_f->hasChildNodes()) {
+						$xml_pres->getElementsByTagName('sldId')->item($SOCInsightsSlidePosition)->after($xml_pres_soc_f);
+					}
 				} else {
 					$Progress = $this->writeProgress($config['UUID'],$Progress,"Skipping SOC Insights Slides");
 				}
@@ -1819,9 +1853,13 @@ class SecurityAssessment extends ibPortal {
 						}
 		
 						// Append Elements to Core XML Files
-						$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_ta_f);
+						if ($xml_rels_ta_f->hasChildNodes()) {
+							$xml_rels->getElementsByTagName('Relationships')->item(0)->appendChild($xml_rels_ta_f);
+						}
 						// Append new slides to specific position
-						$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_ta_f);
+						if ($xml_pres_ta_f->hasChildNodes()) {
+							$xml_pres->getElementsByTagName('sldId')->item($ThreatActorSlidePosition)->after($xml_pres_ta_f);
+						}
 
 						//
 						// End of Threat Actors
