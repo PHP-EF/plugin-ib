@@ -100,10 +100,17 @@
             </div>
             <small id="CAtemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="CAtemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="CAtemplateMacroEnabled" name="CAtemplateMacroEnabled" value="">  
+            </div>
+            <small id="CAtemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="CAtemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="CAtemplatePPTX" accept=".pptx" aria-describedby="CAtemplatePPTXHelp">
+              <input type="file" class="form-control" id="CAtemplatePPTX" accept=".pptx,.pptm" aria-describedby="CAtemplatePPTXHelp">
               <small id="CAtemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -174,10 +181,17 @@
             </div>
             <small id="newCATemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="newCATemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="newCATemplateMacroEnabled" name="newCATemplateMacroEnabled" value="">  
+            </div>
+            <small id="newCATemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="newCATemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="newCATemplatePPTX" accept=".pptx" aria-describedby="newCATemplatePPTXHelp">
+              <input type="file" class="form-control" id="newCATemplatePPTX" accept=".pptx,.pptm" aria-describedby="newCATemplatePPTXHelp">
               <small id="newCATemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -235,6 +249,11 @@
       } else {
         $("#CAtemplateSelectedByDefault").attr("checked",false);
       }
+      if (String(row["macroEnabled"]).toLowerCase() == "true") {
+        $("#CAtemplateMacroEnabled").attr("checked",true);
+      } else {
+        $("#CAtemplateMacroEnabled").attr("checked",false);
+      }
       $("#CAtemplateUploadDate").val(row["Created"]);
     }
 
@@ -269,7 +288,8 @@
       postArr.TemplateName = encodeURIComponent($("#newCATemplateName").val());
       postArr.Description = encodeURIComponent($("#newCATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newCATemplateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
+      postArr.isDefault = encodeURIComponent($("#newCATemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#newCATemplateMacroEnabled")[0].checked);
       if (templateFiles[0]) {
         postArr.FileName = $("#newCATemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -325,6 +345,7 @@
       postArr.Description = encodeURIComponent($("#CAtemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#CAtemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#CAtemplateMacroEnabled")[0].checked);
       if (templateFiles[0]) {
         postArr.FileName = $("#CAtemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -336,6 +357,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#CAtemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/cloud/config/upload", // Replace with your PHP API endpoint

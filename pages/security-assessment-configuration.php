@@ -675,8 +675,8 @@
       postArr.TemplateName = encodeURIComponent($("#newSATemplateName").val());
       postArr.Description = encodeURIComponent($("#newSATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newSATemplateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
-      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
+      postArr.isDefault = encodeURIComponent($("#newSATemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#newSATemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#newSATemplateThreatActorSlide").val());
       postArr.SOCInsightsSlide = encodeURIComponent($("#newSATemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {

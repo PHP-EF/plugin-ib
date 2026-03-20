@@ -2,6 +2,7 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
+use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -110,10 +111,18 @@ class CloudAssessment extends ibPortal {
 			// Extract Powerpoint Template(s) as Zip
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Extracting template(s)");
 			foreach ($SelectedTemplates as &$SelectedTemplate) {
-				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace('.pptx','', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
+
+				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace($SelectedTemplateFileExt,'', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
 				extractZip($this->getDir()['Files'].'/templates/'.$SelectedTemplate['FileName'],$ExtractedDir);
 				$SelectedTemplate['ExtractedDir'] = $ExtractedDir;
 			}
+
 
 			// Define the embedded sheets with their corresponding file numbers
 			// This needs to match across all active templates at this moment
@@ -495,6 +504,15 @@ class CloudAssessment extends ibPortal {
 				$embeddedDirectory = $SelectedTemplate['ExtractedDir'].'/ppt/embeddings/';
 				$embeddedFiles = array_values(array_diff(scandir($embeddedDirectory), array('.', '..')));
 				usort($embeddedFiles, 'strnatcmp');
+
+				// Is Macro Enabled?
+				$macroEnabled = $SelectedTemplate['macroEnabled'] ?? false;
+				if ($macroEnabled) {
+					$SelectedTemplateFileExt = '.pptm';
+				} else {
+					$SelectedTemplateFileExt = '.pptx';
+				}
+
 				$this->logging->writeLog("Assessment","Embedded Files List","debug",['Template' => $SelectedTemplate, 'Embedded Files' => $embeddedFiles]);
 
 
@@ -862,7 +880,7 @@ class CloudAssessment extends ibPortal {
 
 				// Cleanup Extracted Zip(s)
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Cleaning up");
-				//UNCOMMENT ME rmdirRecursive($SelectedTemplate['ExtractedDir']);
+				rmdirRecursive($SelectedTemplate['ExtractedDir']);
 
 				// Extract Powerpoint Template Strings
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
@@ -870,7 +888,7 @@ class CloudAssessment extends ibPortal {
 				$extractor = new BasicExtractor();
 				$mapping = $extractor->extractStringsAndCreateMappingFile(
 					$this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted'
 				);
 
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings");
@@ -982,13 +1000,13 @@ class CloudAssessment extends ibPortal {
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,
-					$SelectedTemplate['ExtractedDir'].'-extracted.pptx',
-					$SelectedTemplate['ExtractedDir'].'.pptx'
+					$SelectedTemplate['ExtractedDir'].'-extracted',
+					$SelectedTemplate['ExtractedDir'].$SelectedTemplateFileExt
 				);
 		
 				// Cleanup
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup");
-				unlink($SelectedTemplate['ExtractedDir'].'-extracted.pptx');
+				unlink($SelectedTemplate['ExtractedDir'].'-extracted');
 			}
 			// End of new loop
 
