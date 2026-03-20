@@ -68,8 +68,8 @@
               data-sort-name="Status"
               data-sort-order="asc"
               data-page-size="25"
-              data-buttons="templateButtons"
-              data-buttons-order="btnAddTemplate,refresh"
+              data-buttons="SAtemplateButtons"
+              data-buttons-order="btnAddSATemplate,refresh"
               class="table table-striped" id="securityAssessmentTemplateTable">
 
               <thead>
@@ -414,9 +414,9 @@
       }
     }
 
-    function templateButtons() {
+    function SAtemplateButtons() {
       return {
-        btnAddTemplate: {
+        btnAddSATemplate: {
           text: "Add Security Assessment Template",
           icon: "bi-plus-lg",
           event: function() {

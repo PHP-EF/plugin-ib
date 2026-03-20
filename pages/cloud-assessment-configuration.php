@@ -32,7 +32,7 @@
               data-sort-order="asc"
               data-page-size="25"
               data-buttons="CAtemplateButtons"
-              data-buttons-order="btnAddTemplate,refresh"
+              data-buttons-order="btnAddCATemplate,refresh"
               class="table table-striped" id="cloudAssessmentTemplateTable">
 
               <thead>
@@ -219,9 +219,9 @@
       ].join("")
     }
 
-    function templateButtons() {
+    function CAtemplateButtons() {
       return {
-        btnAddTemplate: {
+        btnAddCATemplate: {
           text: "Add Cloud Assessment Template",
           icon: "bi-plus-lg",
           event: function() {
