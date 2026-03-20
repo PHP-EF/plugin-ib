@@ -388,13 +388,11 @@ $app->post('/plugin/ib/assessment/cloud/config', function ($request, $response, 
         $data = $ibPlugin->api->getAPIRequestData($request);
         if (isset($data['TemplateName'])) {
             $Status = $data['Status'] ?? null;
-            $macroEnabled = $data['macroEnabled'] ?? false;
-            $pptxFileExt = $macroEnabled ? 'pptm' : 'pptx';
-            $FileName = $data['FileName'] ? $data['FileName'] . '.' . $pptxFileExt : null;
+            $macroEnabled = $data['macroEnabled'] ?? null;
+            $FileName = $data['FileName'] ? $data['FileName'] . '.' . ($macroEnabled ? 'pptm' : 'pptx') : null;
             $Description = $data['Description'] ?? null;
             $Orientation = $data['Orientation'] ?? null;
             $isDefault = $data['isDefault'] ?? null;
-            $macroEnabled = $data['macroEnabled'] ?? null;
             $TemplateName = $data['TemplateName'];
             $ibPlugin->newCloudAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$Orientation,$isDefault,$macroEnabled);
         }
@@ -456,15 +454,15 @@ $app->post('/plugin/ib/assessment/cloud/config/upload', function ($request, $res
                 }
                 $pptxFilePath = $uploadDir . 'cloud-' . urldecode($postData['TemplateName']) . '.' . $pptxFileExt;
 
-                if (isValidFileType($pptxFileName, ['pptx', 'pptm'])) {
+                if (isValidFileType($pptxFileName, ['pptx','pptm'])) {
                     // Move the uploaded file to the designated directory
                     $uploadedFiles['pptx']->moveTo($pptxFilePath);
                     $ibPlugin->api->setAPIResponseMessage("Successfully uploaded $pptxFileExt file: $pptxFileName");
                 } else {
-                    $ibPlugin->api->setAPIResponse("Errors","Invalid $pptxFileExt File: $pptxFileName");
+                    $ibPlugin->api->setAPIResponse("error","Invalid $pptxFileExt File: $pptxFileName");
                 }
             } else {
-                $ibPlugin->api->setAPIResponse("Errors","$pptxFileExt File Name Missing");
+                $ibPlugin->api->setAPIResponse("error","$pptxFileExt File Name Missing");
             }
         }
     }

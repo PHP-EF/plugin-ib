@@ -2,7 +2,6 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
-use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -119,6 +118,9 @@ class CloudAssessment extends ibPortal {
 				}
 
 				$ExtractedDir = $this->getDir()['Files'].'/reports/'.str_replace($SelectedTemplateFileExt,'', 'report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName']);
+
+				error_log("Extracting template: ".$SelectedTemplate['FileName']." to: ".$ExtractedDir);
+
 				extractZip($this->getDir()['Files'].'/templates/'.$SelectedTemplate['FileName'],$ExtractedDir);
 				$SelectedTemplate['ExtractedDir'] = $ExtractedDir;
 			}

@@ -690,6 +690,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#newSATemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/security/config/upload",

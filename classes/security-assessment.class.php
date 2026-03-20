@@ -2,7 +2,6 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
-use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
