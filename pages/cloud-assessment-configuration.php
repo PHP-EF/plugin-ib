@@ -14,11 +14,11 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-12 col-lg-12 mx-auto">
-        <h2 class="h3 mb-4 page-title">Cloud Assessment Report Generator Configuration</h2>
+        <h2 class="h3 mb-4 page-title">Visibility Assessment Report Generator Configuration</h2>
           <div class="card border-secondary">
             <div class="card-title">
               <h5>Template Configuration</h5>
-              <p>Use the following to configure the template for the Cloud Assessment Report Generator.</p>
+              <p>Use the following to configure the template for the Visibility Assessment Report Generator.</p>
             </div>
             <table  data-url="/api/plugin/ib/assessment/cloud/config"
               data-data-field="data"
@@ -78,12 +78,12 @@
           <div class="form-group">
             <label for="CAtemplateName">Template Name</label>
             <input type="text" class="form-control info-field" id="CAtemplateName" aria-describedby="CAtemplateNameHelp" name="CAtemplateName">
-            <small id="CAtemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <small id="CAtemplateNameHelp" class="form-text text-muted">The name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateDescription">Template Description</label>
             <input type="text" class="form-control info-field" id="CAtemplateDescription" aria-describedby="CAtemplateDescriptionHelp" name="CAtemplateDescription">
-            <small id="CAtemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <small id="CAtemplateDescriptionHelp" class="form-text text-muted">The description of the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateOrientation" class="col-form-label">Template Orientation</label>
@@ -120,7 +120,7 @@
           <div class="form-group">
             <label for="CAtemplateFileName">Template File Name</label>
             <input type="text" class="form-control info-field" id="CAtemplateFileName" aria-describedby="CAtemplateFileNameHelp" name="CAtemplateFileName" disabled>
-            <small id="CAtemplateFileNameHelp" class="form-text text-muted">The file name for the Cloud Assessment Template.</small>
+            <small id="CAtemplateFileNameHelp" class="form-text text-muted">The file name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateUploadDate">Upload Date</label>
@@ -159,12 +159,12 @@
           <div class="form-group">
             <label for="newCATemplateName">Template Name</label>
             <input type="text" class="form-control" id="newCATemplateName" aria-describedby="newCATemplateNameHelp" name="newCATemplateName">
-            <small id="newCATemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <small id="newCATemplateNameHelp" class="form-text text-muted">The name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="newCATemplateDescription">Template Description</label>
             <input type="text" class="form-control" id="newCATemplateDescription" aria-describedby="newCATemplateDescriptionHelp" name="newCATemplateDescription">
-            <small id="newCATemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <small id="newCATemplateDescriptionHelp" class="form-text text-muted">The description of the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="newCATemplateOrientation" class="col-form-label">Template Orientation</label>
@@ -222,14 +222,14 @@
     function CAtemplateButtons() {
       return {
         btnAddCATemplate: {
-          text: "Add Cloud Assessment Template",
+          text: "Add Visibility Assessment Template",
           icon: "bi-plus-lg",
           event: function() {
             $("#newCATemplateModal").modal("show");
             $("#newCATemplateModal input").val("");
           },
           attributes: {
-            title: "Add a new Cloud Assessment Template",
+            title: "Add a new Visibility Assessment Template",
             style: "background-color:#4bbe40;border-color:#4bbe40;"
           }
         }
