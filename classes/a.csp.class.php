@@ -33,7 +33,6 @@ class ibPortal extends ibPlugin {
 		  } elseif ($this->Realm == "EU") {
 			$Url = "https://csp.eu.infoblox.com/".$Uri;
 		  } else {
-			echo 'Error. Invalid Realm';
 			return false;
 		  }
 		} else {
