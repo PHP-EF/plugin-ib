@@ -1084,7 +1084,7 @@ class CloudAssessment extends ibPortal {
 
 				##// Slide 5 - Executive Summary
 				$mapping = replaceTag($mapping,'#TAG01',number_abbr($HighRiskAssetsCount)); // All High-Risk Assets
-				// Inventory Gap Analysis - Missing Assets - TAG02
+				$mapping = replaceTag($mapping,'#TAG02',number_abbr($AssetsMissingFromServiceNow)); // Inventory Gap Analysis - Missing Assets from CMDB - TAG02
 				$mapping = replaceTag($mapping,'#TAG03',number_abbr($CloudSubnetOverlapCount)); // Cloud Subnet Overlap Count
 				$mapping = replaceTag($mapping,'#TAG04',number_abbr($CloudSubnetUtilizationAbove50Total)); // Overutilized Subnets (>=50%)
 				$mapping = replaceTag($mapping,'#TAG05',number_abbr($CloudSubnetUtilizationBelow50Total)); // Underutilized Subnets (<50%)
