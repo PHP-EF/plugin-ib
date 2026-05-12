@@ -8,16 +8,26 @@
     "icon": "https://raw.githubusercontent.com/php-ef/plugin-ib/main/logo.png",
     "contact": "https://github.com/php-ef/plugin-ib/issues",
     "link": "https://github.com/php-ef/plugin-ib",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "minimum_php-ef_version": "0.9.0",
     "release_date": "2024-12-20",
-    "last_updated": "2026-05-01",
+    "last_updated": "2026-05-12",
     "github_folder": "",
     "changelog": {
       "type": "builtin",
       "url": "",
       "title": "Change Log",
       "data": [
+        {
+          "version": "1.4.1",
+          "date": "2026-05-12",
+          "changes": [
+              "Update Orphaned CMDB chart to use asset type",
+              "Fixed percentage calculation for Idle/Orphaned cloud assets",
+              "Introduce new logarithmic scale for DNS Complexity. Complexity is now capped at 200, with a base scale of 2000 for the logarithmic calculation. This change was made to better accommodate the wide range of DNS complexity metrics observed in real-world environments, while still providing meaningful differentiation between low, medium and high complexity levels.",
+              "Include template name in progress updates for Cloud Assessment"
+          ]
+        },
         {
           "version": "1.4.0",
           "date": "2026-05-01",

@@ -84,7 +84,7 @@ class CloudAssessment extends ibPortal {
 				'AssetsByLocation' => '{"ungrouped":false,"measures":["AssetDetails_ch.assetsCount"],"dimensions":["AssetDetails_ch.location_label","AssetDetails_ch.region_label","AssetDetails_ch.provider_label","AssetDetails_ch.provider_location_label"],"timeDimensions":[{"dimension":"AssetDetails_ch.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"filters":[{"member":"AssetDetails_ch.region_label","operator":"notEquals","values":["unknown"]}],"limit":5}',
 				'AssetReconciliation' => '{"measures":["AssetDetails_ch.assetsCount"],"timeDimensions":[{"dimension":"AssetDetails_ch.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails_ch.reconciliation"],"filters":[{"member":"AssetDetails_ch.reconciliation_filter","operator":"contains","values":["ServiceNow"]}],"timezone":"UTC","segments":["AssetDetails_ch.existing_assets","AssetDetails_ch.managed_assets"]}',
 				'AssetsMissingFromCMDB' => '{"measures":["AssetDetails_ch.assetsCount"],"timeDimensions":[{"dimension":"AssetDetails_ch.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails_ch.providers_iterator"],"filters":[{"member":"AssetDetails_ch.providers_iterator","operator":"notContains","values":["ServiceNow"]}],"timezone":"UTC","segments":["AssetDetails_ch.managed_assets","AssetDetails_ch.existing_assets"]}',
-				'AssetsOrphanedInCMDB' => '{"measures":["AssetDetails_ch.assetsCount"],"timeDimensions":[{"dimension":"AssetDetails_ch.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails_ch.providers_iterator"],"filters":[{"member":"AssetDetails_ch.providers_iterator","operator":"contains","values":["ServiceNow"]},{"member":"AssetDetails_ch.length_providers","operator":"equals","values":[1]}],"timezone":"UTC","segments":["AssetDetails_ch.managed_assets","AssetDetails_ch.existing_assets"]}',
+				'AssetsOrphanedInCMDB' => '{"measures":["AssetDetails_ch.assetsCount"],"timeDimensions":[{"dimension":"AssetDetails_ch.updated_at","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"dimensions":["AssetDetails_ch.category_label"],"filters":[{"member":"AssetDetails_ch.providers_iterator","operator":"contains","values":["ServiceNow"]},{"member":"AssetDetails_ch.length_providers","operator":"equals","values":[1]}],"timezone":"UTC","segments":["AssetDetails_ch.managed_assets","AssetDetails_ch.existing_assets"]}',
 				'Top3AssetsMissingFromCMDB' => '{"dimensions":["AssetDetails_ch.name","AssetDetails_ch.location_label","AssetDetails_ch.ip_address","AssetDetails_ch.provider_label","AssetDetails_ch.taxonomy_type_label"],"ungrouped":true,"filters":[{"member":"AssetDetails_ch.providers_iterator","operator":"notContains","values":["ServiceNow"]}],"timeDimensions":[{"dateRange":["'.$StartDimension.'","'.$EndDimension.'"],"granularity":null,"dimension":"AssetDetails_ch.updated_at"}],"limit":3,"segments":[],"order":{"AssetDetails_ch.category_label":"desc"},"measures":[]}',
 
 				// Cloud Assets
@@ -243,10 +243,15 @@ class CloudAssessment extends ibPortal {
 						break;
 				}
 			}
+			// All Zombie Assets
 			if ($ZombieAssetsCount != 0) {
-				$ZombieAssetsResourceUtilizationIdlePerc = ($ZombieAssets['resourceutilizationidle'] ?? 0 / $ZombieAssetsCount) * 100;
-				$ZombieAssetsResourceUtilizationLowPerc = ($ZombieAssets['resourceutilizationlow'] ?? 0 / $ZombieAssetsCount) * 100;
-				$ZombieAssetsOrphanedPerc = ($ZombieAssets['orphan'] ?? 0 / $ZombieAssetsCount) * 100;
+				$ZombieAssetsResourceUtilizationIdlePerc = round(($ZombieAssets['resourceutilizationidle'] ?? 0 / $ZombieAssetsCount) * 100,1);
+				$ZombieAssetsResourceUtilizationLowPerc = round(($ZombieAssets['resourceutilizationlow'] ?? 0 / $ZombieAssetsCount) * 100,1);
+				$ZombieAssetsOrphanedPerc = round(($ZombieAssets['orphan'] ?? 0 / $ZombieAssetsCount) * 100,1);
+			} else {
+				$ZombieAssetsResourceUtilizationIdlePerc = 0;
+				$ZombieAssetsResourceUtilizationLowPerc = 0;
+				$ZombieAssetsOrphanedPerc = 0;
 			}
 
 			// Cloud Assets By Classification
@@ -280,10 +285,15 @@ class CloudAssessment extends ibPortal {
 						break;
 				}
 			}
+			// All Zombie Cloud Assets
 			if ($ZombieCloudAssetsCount != 0) {
-				$ZombieCloudAssetsResourceUtilizationIdlePerc = ($ZombieCloudAssets['resourceutilizationidle'] ?? 0 / $ZombieCloudAssetsCount) * 100;
-				$ZombieCloudAssetsResourceUtilizationLowPerc = ($ZombieCloudAssets['resourceutilizationlow'] ?? 0 / $ZombieCloudAssetsCount) * 100;
-				$ZombieCloudAssetsOrphanedPerc = ($ZombieCloudAssets['orphan'] ?? 0 / $ZombieCloudAssetsCount) * 100;
+				$ZombieCloudAssetsResourceUtilizationIdlePerc = round((($ZombieCloudAssets['resourceutilizationidle'] ?? 0) / $ZombieCloudAssetsCount) * 100,1);
+				$ZombieCloudAssetsResourceUtilizationLowPerc = round((($ZombieCloudAssets['resourceutilizationlow'] ?? 0) / $ZombieCloudAssetsCount) * 100,1);
+				$ZombieCloudAssetsOrphanedPerc = round((($ZombieCloudAssets['orphan'] ?? 0) / $ZombieCloudAssetsCount) * 100,1);
+			} else {
+				$ZombieCloudAssetsResourceUtilizationIdlePerc = 0;
+				$ZombieCloudAssetsResourceUtilizationLowPerc = 0;
+				$ZombieCloudAssetsOrphanedPerc = 0;
 			}
 
 			// Subnet Utilization
@@ -517,7 +527,9 @@ class CloudAssessment extends ibPortal {
 				}
 			}
 
-			// DNS Complexity Score
+			// ************************** //
+			// ** DNS Complexity Score ** //
+			// ************************** //
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building DNS Complexity Score");
 			$DNSComplexityScore = 0;
 
@@ -549,6 +561,35 @@ class CloudAssessment extends ibPortal {
 
 			/* Add points per number of overlapping zones */
 			$DNSComplexityScore += $OverlappingZonesCount * 100;
+
+			/* ----------------------------- */
+			/* Logarithmic Scaling (1–200)   */
+			/* ----------------------------- */
+
+			$RawScore = $DNSComplexityScore;
+
+			// Prevent log(0)
+			$RawScore = max(1, $RawScore);
+
+			// Tune this value to control curve steepness
+			$LogBase = 2000;
+
+			// Scale to 1–200
+			$ScaledScore = 1 + (log($RawScore) / log($LogBase)) * 199;
+			$ScaledScore = min(200, round($ScaledScore));
+
+			/* Classification */
+			if ($ScaledScore < 75) {
+				$ComplexityLevel = 'Low';
+			} elseif ($ScaledScore <= 150) {
+				$ComplexityLevel = 'Medium';
+			} else {
+				$ComplexityLevel = 'High';
+			}
+
+			// ************************** //
+			// ** DNS Complexity Score ** //
+			// ************************** //
 
 			// CMDB - Service Now Reconciliation
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building CMDB Reconciliation");
@@ -594,7 +635,7 @@ class CloudAssessment extends ibPortal {
 
 				// ** CHARTS & TABLES ** //
 				// Cloud Assets By Provider - Slide 7
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Provider");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Provider (".$SelectedTemplate['TemplateName'].")");
 				$CloudAssetsByProvider = $CubeJSResults['CloudAssetsByProvider']['Body'];
 				if (isset($CloudAssetsByProvider->result->data)) {
 					$EmbeddedCloudAssetsByProvider = getEmbeddedSheetFilePath('CloudAssetsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -611,7 +652,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Cloud Assets By Location - Slide 7
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Location");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Location (".$SelectedTemplate['TemplateName'].")");
 				$CloudAssetsByLocation = $CubeJSResults['CloudAssetsByLocation']['Body'];
 				if (isset($CloudAssetsByLocation->result->data)) {
 					$EmbeddedCloudAssetsByLocation = getEmbeddedSheetFilePath('CloudAssetsByLocation', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -636,7 +677,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Cloud Assets By Type - Slide 8
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Type");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets by Type (".$SelectedTemplate['TemplateName'].")");
 				$CloudAssetsByType = $CubeJSResults['CloudAssetsByType']['Body'];
 				if (isset($CloudAssetsByType->result->data)) {
 					$EmbeddedCloudAssetsByType = getEmbeddedSheetFilePath('CloudAssetsByType', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -653,7 +694,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Zombie Assets by Type Chart - Slide 8
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets by Indicator");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets by Indicator (".$SelectedTemplate['TemplateName'].")");
 				$CloudZombieAssetsByIndicator = $CubeJSResults['CloudZombieAssetsByIndicator']['Body'];
 
 				if (isset($CloudZombieAssetsByIndicator->result->data)) {
@@ -671,7 +712,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Zombie Assets Table - Slide 8
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets Table");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Zombie Assets Table (".$SelectedTemplate['TemplateName'].")");
 				$Top3ZombieCloudAssets = $CubeJSResults['Top3ZombieCloudAssets']['Body'];
 				if (isset($Top3ZombieCloudAssets->result->data)) {
 					$EmbeddedZombieAssetsTable = getEmbeddedSheetFilePath('ZombieAssetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -694,7 +735,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Cloud Assets with Missing Records Chart - Slide 9
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets with Missing Records");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets with Missing Records (".$SelectedTemplate['TemplateName'].")");
 				$CloudAssetsWithMissingRecords = $CubeJSResults['CloudAssetsWithMissingRecords']['Body'];
 				if (isset($CloudAssetsWithMissingRecords->result->data)) {
 					$EmbeddedCloudAssetsWithMissingRecords = getEmbeddedSheetFilePath('CloudAssetsWithMissingRecords', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -711,7 +752,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Cloud Assets with Missing Records Table - Slide 9
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets with Missing Records Table");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Cloud Assets with Missing Records Table (".$SelectedTemplate['TemplateName'].")");
 				$Top3CloudAssetsWithMissingRecords = $CubeJSResults['Top3CloudAssetsWithMissingRecords']['Body'];
 				if (isset($Top3CloudAssetsWithMissingRecords->result->data)) {
 					$EmbeddedCloudAssetsWithMissingRecordsTable = getEmbeddedSheetFilePath('CloudAssetsWithMissingRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -735,7 +776,7 @@ class CloudAssessment extends ibPortal {
 
 
 				// Non-Compliant Cloud Assets Chart - Slide 9
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Non-Compliant Cloud Assets");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Non-Compliant Cloud Assets (".$SelectedTemplate['TemplateName'].")");
 				if (!empty($NonCompliantCloudAssets)) {
 					$EmbeddedNonCompliantCloudAssets = getEmbeddedSheetFilePath('CloudAssetsNonCompliant', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 					$NonCompliantCloudAssetsSS = IOFactory::load($EmbeddedNonCompliantCloudAssets);
@@ -752,7 +793,7 @@ class CloudAssessment extends ibPortal {
 
 				// New Slides
 				// All Assets By Type - Slide 11
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Type");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Type (".$SelectedTemplate['TemplateName'].")");
 				$AssetsByType = $CubeJSResults['AssetsByType']['Body'];
 				if (isset($AssetsByType->result->data)) {
 					$EmbeddedAssetsByType = getEmbeddedSheetFilePath('AssetsByType', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -769,7 +810,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Assets By Provider - Slide 11
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Provider");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Provider (".$SelectedTemplate['TemplateName'].")");
 				$AssetsByProvider = $CubeJSResults['AssetsByProvider']['Body'];
 				if (isset($AssetsByProvider->result->data)) {
 					$EmbeddedAssetsByProvider = getEmbeddedSheetFilePath('AssetsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -786,7 +827,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Assets By Location - Slide 11
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Location");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets by Location (".$SelectedTemplate['TemplateName'].")");
 				$AssetsByLocation = $CubeJSResults['AssetsByLocation']['Body'];
 				if (isset($AssetsByLocation->result->data)) {
 					$EmbeddedAssetsByLocation = getEmbeddedSheetFilePath('AssetsByLocation', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -811,7 +852,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Assets Missing from CMDB (Chart) - Slide 13
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets missing from CMDB");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Assets missing from CMDB (".$SelectedTemplate['TemplateName'].")");
 				$AssetsMissingFromCMDB = $CubeJSResults['AssetsMissingFromCMDB']['Body'];
 				if (isset($AssetsMissingFromCMDB->result->data)) {
 					$EmbeddedAssetsMissingFromCMDB = getEmbeddedSheetFilePath('AssetsMissingFromCMDB', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -828,7 +869,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Assets Missing from CMDB (Table) - Slide 13
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building top 3 Assets missing from CMDB");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building top 3 Assets missing from CMDB (".$SelectedTemplate['TemplateName'].")");
 				$Top3AssetsMissingFromCMDB = $CubeJSResults['Top3AssetsMissingFromCMDB']['Body'];
 				if (isset($Top3AssetsMissingFromCMDB->result->data)) {
 					$EmbeddedTop3AssetsMissingFromCMDB = getEmbeddedSheetFilePath('AssetsMissingFromCMDBTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -857,7 +898,7 @@ class CloudAssessment extends ibPortal {
 					$RowNo = 2;
 					foreach ($AssetsOrphanedInCMDB->result->data as $AssetCategory) {
 						$AssetsOrphanedInCMDBS = $AssetsOrphanedInCMDBSS->getActiveSheet();
-						$AssetsOrphanedInCMDBS->setCellValue('A'.$RowNo, $AssetCategory->{'AssetDetails_ch.providers_iterator'}); // Provider
+						$AssetsOrphanedInCMDBS->setCellValue('A'.$RowNo, $AssetCategory->{'AssetDetails_ch.category_label'}); // Provider
 						$AssetsOrphanedInCMDBS->setCellValue('B'.$RowNo, $AssetCategory->{'AssetDetails_ch.assetsCount'});
 						$RowNo++;
 					}
@@ -867,7 +908,7 @@ class CloudAssessment extends ibPortal {
 				// New Slides
 
 				// Overlapping Subnets - Slide 16
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overlapping Subnets (".$SelectedTemplate['TemplateName'].")");
 				$OverlappingSubnets = $CubeJSResults['OverlappingSubnets']['Body'];
 				if (isset($OverlappingSubnets->result->data)) {
 					$EmbeddedOverlappingSubnets = getEmbeddedSheetFilePath('OverlappingSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -885,7 +926,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Total IPs By Provider - Slide 16
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Total IPs by Provider");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Total IPs by Provider (".$SelectedTemplate['TemplateName'].")");
 				$EmbeddedTotalIPsByProvider = getEmbeddedSheetFilePath('TotalIPsByProvider', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 				$TotalIPsByProviderSS = IOFactory::load($EmbeddedTotalIPsByProvider);
 				$TotalIPsByProviderS = $TotalIPsByProviderSS->getActiveSheet();
@@ -914,7 +955,7 @@ class CloudAssessment extends ibPortal {
 				$TotalIPsByProviderW->save($EmbeddedTotalIPsByProvider);
 
 				// Overutilized Subnets - Slide 18
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overutilized Subnets");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Overutilized Subnets (".$SelectedTemplate['TemplateName'].")");
 				$OverutilizedSubnets = $CubeJSResults['CloudSubnetUtilizationAbove50']['Body'];
 				if (isset($OverutilizedSubnets->result->data)) {
 					$EmbeddedOverutilizedSubnets = getEmbeddedSheetFilePath('OverutilizedSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -933,7 +974,7 @@ class CloudAssessment extends ibPortal {
 				}
 				
 				// Underutilized Subnets - Slide 18
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Underutilized Subnets");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Underutilized Subnets (".$SelectedTemplate['TemplateName'].")");
 				$UnderutilizedSubnets = $CubeJSResults['CloudSubnetUtilizationBelow50']['Body'];
 				if (isset($UnderutilizedSubnets->result->data)) {
 					$EmbeddedUnderutilizedSubnets = getEmbeddedSheetFilePath('UnderutilizedSubnetsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -952,7 +993,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// High-Risk DNS Records by Category - Slide 21
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building High-Risk DNS Records by Category");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building High-Risk DNS Records by Category (".$SelectedTemplate['TemplateName'].")");
 				$EmbeddedHighRiskDNSRecordsByCategory = getEmbeddedSheetFilePath('HighRiskDNSRecordsByCategory', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 				$HighRiskDNSRecordsByCategorySS = IOFactory::load($EmbeddedHighRiskDNSRecordsByCategory);
 				$HighRiskDNSRecordsByCategoryS = $HighRiskDNSRecordsByCategorySS->getActiveSheet();
@@ -976,7 +1017,7 @@ class CloudAssessment extends ibPortal {
 				$HighRiskDNSRecordsByCategoryW->save($EmbeddedHighRiskDNSRecordsByCategory);
 
 				// Dangling Records - Slide 21
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Dangling Records");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Dangling Records (".$SelectedTemplate['TemplateName'].")");
 				$Top3DanglingRecords = $CubeJSResults['Top3DanglingRecords']['Body'];
 				if (isset($Top3DanglingRecords->result->data)) {
 					$EmbeddedTop3DanglingRecords = getEmbeddedSheetFilePath('Top3DanglingRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -996,7 +1037,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Abandoned Records - Slide 22
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Abandoned Records");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Abandoned Records (".$SelectedTemplate['TemplateName'].")");
 				$Top3AbandonedRecords = $CubeJSResults['Top3AbandonedRecords']['Body'];
 				if (isset($Top3AbandonedRecords->result->data)) {
 					$EmbeddedTop3AbandonedRecords = getEmbeddedSheetFilePath('Top3AbandonedRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -1016,7 +1057,7 @@ class CloudAssessment extends ibPortal {
 				}
 
 				// Untrusted Records - Slide 22
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Untrusted Records");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Untrusted Records (".$SelectedTemplate['TemplateName'].")");
 				$Top3UntrustedRecords = $CubeJSResults['Top3UntrustedRecords']['Body'];
 				if (isset($Top3UntrustedRecords->result->data)) {
 					$EmbeddedTop3UntrustedRecords = getEmbeddedSheetFilePath('Top3UntrustedRecordsTable', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
@@ -1053,23 +1094,23 @@ class CloudAssessment extends ibPortal {
 				$xml_pres->save($SelectedTemplate['ExtractedDir'].'/ppt/presentation.xml');
 
 				// Rebuild Powerpoint Template Zip(s)
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Stitching Powerpoint Template(s)");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Stitching Powerpoint Template (".$SelectedTemplate['TemplateName'].")");
 				compressZip($this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],$SelectedTemplate['ExtractedDir']);
 
 				// Cleanup Extracted Zip(s)
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Cleaning up");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Cleaning up (".$SelectedTemplate['TemplateName'].")");
 				rmdirRecursive($SelectedTemplate['ExtractedDir']);
 
 				// Extract Powerpoint Template Strings
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Extract Powerpoint Strings");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Extract Powerpoint Strings (".$SelectedTemplate['TemplateName'].")");
 				$extractor = new BasicExtractor();
 				$mapping = $extractor->extractStringsAndCreateMappingFile(
 					$this->getDir()['Files'].'/reports/report'.'-'.$config['UUID'].'-'.$SelectedTemplate['FileName'],
 					$SelectedTemplate['ExtractedDir'].'-extracted'
 				);
 
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Injecting Powerpoint Strings (".$SelectedTemplate['TemplateName'].")");
 				##// Slide 2 / 45 - Title Page & Contact Page
 				// Get & Inject Customer Name, Contact Name & Email
 				$mapping = replaceTag($mapping,'#CUSTOMERNAME',$CurrentAccount->name);
@@ -1088,7 +1129,7 @@ class CloudAssessment extends ibPortal {
 				$mapping = replaceTag($mapping,'#TAG03',number_abbr($CloudSubnetOverlapCount)); // Cloud Subnet Overlap Count
 				$mapping = replaceTag($mapping,'#TAG04',number_abbr($CloudSubnetUtilizationAbove50Total)); // Overutilized Subnets (>=50%)
 				$mapping = replaceTag($mapping,'#TAG05',number_abbr($CloudSubnetUtilizationBelow50Total)); // Underutilized Subnets (<50%)
-				$mapping = replaceTag($mapping,'#TAG06',number_abbr($DNSComplexityScore)); // DNS Complexity Score
+				$mapping = replaceTag($mapping,'#TAG06',number_abbr($ScaledScore)); // DNS Complexity Score
 				$mapping = replaceTag($mapping,'#TAG07',number_abbr($DanglingDNSCount)); // High-Risk DNS Records - Dangling
 				$mapping = replaceTag($mapping,'#TAG08',number_abbr($AbandonedDNSCount)); // High-Risk DNS Records - Abandoned
 				$mapping = replaceTag($mapping,'#TAG09',number_abbr($UntrustedDNSCount)); // High-Risk DNS Records - Untrusted
@@ -1179,7 +1220,7 @@ class CloudAssessment extends ibPortal {
 				
 				##// Slide 20 - DNS Complexity
 				$mapping = replaceTag($mapping,'#TAG63',number_abbr($OverlappingZonesCount)); // Overlapping DNS Zones
-				$mapping = replaceTag($mapping,'#TAG64',number_abbr($DNSComplexityScore)); // DNS Complexity Score
+				$mapping = replaceTag($mapping,'#TAG64',number_abbr($ScaledScore)); // DNS Complexity Score
 				$mapping = replaceTag($mapping,'#TAG65',number_abbr($CloudDNSZonesByProviderTotals['Azure'])); // Azure Zones
 				$mapping = replaceTag($mapping,'#TAG66',number_abbr($CloudDNSZonesByProviderTotals['AWS'])); // AWS Zones
 				$mapping = replaceTag($mapping,'#TAG67',number_abbr($CloudDNSZonesByProviderTotals['GCP'])); // GCP Zones
@@ -1214,7 +1255,7 @@ class CloudAssessment extends ibPortal {
 
 				// Rebuild Powerpoint File(s)
 				// ** Using external library to save re-writing the string replacement functions manually. Will probably pull this in as native code at some point.
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Rebuilding Powerpoint Template(s)");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Rebuilding Powerpoint Template (".$SelectedTemplate['TemplateName'].")");
 				$injector = new BasicInjector();
 				$injector->injectMappingAndCreateNewFile(
 					$mapping,
@@ -1223,7 +1264,7 @@ class CloudAssessment extends ibPortal {
 				);
 		
 				// Cleanup
-				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup");
+				$Progress = $this->writeProgress($config['UUID'],$Progress,"Final Cleanup (".$SelectedTemplate['TemplateName'].")");
 				unlink($SelectedTemplate['ExtractedDir'].'-extracted');
 			}
 			// End of new loop
