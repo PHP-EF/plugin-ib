@@ -218,6 +218,7 @@ class TemplateConfig extends ibPlugin {
           Description TEXT,
           Orientation TEXT,
           isDefault BOOLEAN,
+          macroEnabled BOOLEAN,
           Created DATE,
           Updated DATE
         )");
@@ -254,7 +255,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function newCloudAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$Orientation,$isDefault) {
+    public function newCloudAssessmentTemplateConfig($Status,$FileName,$TemplateName,$Description,$Orientation,$isDefault,$macroEnabled) {
         $FileName = $FileName ? 'cloud-' . $FileName : null;
         try {
             // Check if filename already exists
@@ -267,10 +268,10 @@ class TemplateConfig extends ibPlugin {
         } catch (PDOException $e) {
 			$this->api->setAPIResponse('Error',$e);
         }
-        $stmt = $this->sql->prepare("INSERT INTO cloud_assessment_templates (Status, FileName, TemplateName, Description, Orientation, isDefault, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :Orientation, :isDefault, :Created)");
+        $stmt = $this->sql->prepare("INSERT INTO cloud_assessment_templates (Status, FileName, TemplateName, Description, Orientation, isDefault, macroEnabled, Created) VALUES (:Status, :FileName, :TemplateName, :Description, :Orientation, :isDefault, :macroEnabled, :Created)");
         try {
             $CurrentDate = new DateTime();
-            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':Orientation' => urldecode($Orientation), ':isDefault' => urldecode($isDefault), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
+            $stmt->execute([':Status' => urldecode($Status), ':FileName' => urldecode($FileName), ':TemplateName' => urldecode($TemplateName), ':Description' => urldecode($Description), ':Orientation' => urldecode($Orientation), ':isDefault' => urldecode($isDefault), ':macroEnabled' => urldecode($macroEnabled), ':Created' => $CurrentDate->format('Y-m-d H:i:s')]);
             $id = $this->sql->lastInsertId();
             $this->logging->writeLog("Templates","Created New Cloud Assessment Template","info");
 			$this->api->setAPIResponseMessage('Template added successfully');
@@ -279,7 +280,7 @@ class TemplateConfig extends ibPlugin {
         }
     }
 
-    public function setCloudAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$Orientation,$isDefault) {
+    public function setCloudAssessmentTemplateConfig($id,$Status,$FileName,$TemplateName,$Description,$Orientation,$isDefault,$macroEnabled) {
         $FileName = $FileName ? 'cloud-' . $FileName : null;
         $templateConfig = $this->getCloudAssessmentTemplateConfigById($id);
         if ($templateConfig) {
@@ -323,6 +324,10 @@ class TemplateConfig extends ibPlugin {
             if ($isDefault !== null) {
                 $prepare[] = 'isDefault = :isDefault';
                 $execute[':isDefault'] = urldecode($isDefault);
+            }
+            if ($macroEnabled !== null) {
+                $prepare[] = 'macroEnabled = :macroEnabled';
+                $execute[':macroEnabled'] = urldecode($macroEnabled);
             }
             $stmt = $this->sql->prepare('UPDATE cloud_assessment_templates SET '.implode(", ",$prepare).' WHERE id = :id');
             $stmt->execute($execute);

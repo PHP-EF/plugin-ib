@@ -14,11 +14,11 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-12 col-lg-12 mx-auto">
-        <h2 class="h3 mb-4 page-title">Cloud Assessment Report Generator Configuration</h2>
+        <h2 class="h3 mb-4 page-title">Visibility Assessment Report Generator Configuration</h2>
           <div class="card border-secondary">
             <div class="card-title">
               <h5>Template Configuration</h5>
-              <p>Use the following to configure the template for the Cloud Assessment Report Generator.</p>
+              <p>Use the following to configure the template for the Visibility Assessment Report Generator.</p>
             </div>
             <table  data-url="/api/plugin/ib/assessment/cloud/config"
               data-data-field="data"
@@ -32,7 +32,7 @@
               data-sort-order="asc"
               data-page-size="25"
               data-buttons="CAtemplateButtons"
-              data-buttons-order="btnAddTemplate,refresh"
+              data-buttons-order="btnAddCATemplate,refresh"
               class="table table-striped" id="cloudAssessmentTemplateTable">
 
               <thead>
@@ -78,12 +78,12 @@
           <div class="form-group">
             <label for="CAtemplateName">Template Name</label>
             <input type="text" class="form-control info-field" id="CAtemplateName" aria-describedby="CAtemplateNameHelp" name="CAtemplateName">
-            <small id="CAtemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <small id="CAtemplateNameHelp" class="form-text text-muted">The name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateDescription">Template Description</label>
             <input type="text" class="form-control info-field" id="CAtemplateDescription" aria-describedby="CAtemplateDescriptionHelp" name="CAtemplateDescription">
-            <small id="CAtemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <small id="CAtemplateDescriptionHelp" class="form-text text-muted">The description of the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateOrientation" class="col-form-label">Template Orientation</label>
@@ -100,10 +100,17 @@
             </div>
             <small id="CAtemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="CAtemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="CAtemplateMacroEnabled" name="CAtemplateMacroEnabled" value="">  
+            </div>
+            <small id="CAtemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="CAtemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="CAtemplatePPTX" accept=".pptx" aria-describedby="CAtemplatePPTXHelp">
+              <input type="file" class="form-control" id="CAtemplatePPTX" accept=".pptx,.pptm" aria-describedby="CAtemplatePPTXHelp">
               <small id="CAtemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -113,7 +120,7 @@
           <div class="form-group">
             <label for="CAtemplateFileName">Template File Name</label>
             <input type="text" class="form-control info-field" id="CAtemplateFileName" aria-describedby="CAtemplateFileNameHelp" name="CAtemplateFileName" disabled>
-            <small id="CAtemplateFileNameHelp" class="form-text text-muted">The file name for the Cloud Assessment Template.</small>
+            <small id="CAtemplateFileNameHelp" class="form-text text-muted">The file name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="CAtemplateUploadDate">Upload Date</label>
@@ -152,12 +159,12 @@
           <div class="form-group">
             <label for="newCATemplateName">Template Name</label>
             <input type="text" class="form-control" id="newCATemplateName" aria-describedby="newCATemplateNameHelp" name="newCATemplateName">
-            <small id="newCATemplateNameHelp" class="form-text text-muted">The name for the Cloud Assessment Template.</small>
+            <small id="newCATemplateNameHelp" class="form-text text-muted">The name for the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="newCATemplateDescription">Template Description</label>
             <input type="text" class="form-control" id="newCATemplateDescription" aria-describedby="newCATemplateDescriptionHelp" name="newCATemplateDescription">
-            <small id="newCATemplateDescriptionHelp" class="form-text text-muted">The description of the Cloud Assessment Template.</small>
+            <small id="newCATemplateDescriptionHelp" class="form-text text-muted">The description of the Visibility Assessment Template.</small>
           </div>
           <div class="form-group">
             <label for="newCATemplateOrientation" class="col-form-label">Template Orientation</label>
@@ -174,10 +181,17 @@
             </div>
             <small id="newCATemplateSelectedByDefaultHelp" class="form-text text-muted">Enable this to select this template by default.</small>
           </div>
+          <div class="form-group">
+            <label for="newCATemplateMacroEnabled">Macro Enabled</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input info-field" type="checkbox" id="newCATemplateMacroEnabled" name="newCATemplateMacroEnabled" value="">  
+            </div>
+            <small id="newCATemplateMacroEnabledHelp" class="form-text text-muted">Enable this to allow macros in the template.</small>
+          </div>
           <div class="form-group row">
             <label for="newCATemplatePPTX" class="col-form-label">PowerPoint Template</label>
             <div class="col-sm-5">
-              <input type="file" class="form-control" id="newCATemplatePPTX" accept=".pptx" aria-describedby="newCATemplatePPTXHelp">
+              <input type="file" class="form-control" id="newCATemplatePPTX" accept=".pptx,.pptm" aria-describedby="newCATemplatePPTXHelp">
               <small id="newCATemplatePPTXHelp" class="form-text text-muted">Upload a PowerPoint Template.</small>
             </div>
             <div class="col-sm-5">
@@ -205,17 +219,17 @@
       ].join("")
     }
 
-    function templateButtons() {
+    function CAtemplateButtons() {
       return {
-        btnAddTemplate: {
-          text: "Add Cloud Assessment Template",
+        btnAddCATemplate: {
+          text: "Add Visibility Assessment Template",
           icon: "bi-plus-lg",
           event: function() {
             $("#newCATemplateModal").modal("show");
             $("#newCATemplateModal input").val("");
           },
           attributes: {
-            title: "Add a new Cloud Assessment Template",
+            title: "Add a new Visibility Assessment Template",
             style: "background-color:#4bbe40;border-color:#4bbe40;"
           }
         }
@@ -234,6 +248,11 @@
         $("#CAtemplateSelectedByDefault").attr("checked",true);
       } else {
         $("#CAtemplateSelectedByDefault").attr("checked",false);
+      }
+      if (String(row["macroEnabled"]).toLowerCase() == "true") {
+        $("#CAtemplateMacroEnabled").attr("checked",true);
+      } else {
+        $("#CAtemplateMacroEnabled").attr("checked",false);
       }
       $("#CAtemplateUploadDate").val(row["Created"]);
     }
@@ -269,7 +288,8 @@
       postArr.TemplateName = encodeURIComponent($("#newCATemplateName").val());
       postArr.Description = encodeURIComponent($("#newCATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newCATemplateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
+      postArr.isDefault = encodeURIComponent($("#newCATemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#newCATemplateMacroEnabled")[0].checked);
       if (templateFiles[0]) {
         postArr.FileName = $("#newCATemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -281,6 +301,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#newCATemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/cloud/config/upload",
@@ -325,6 +346,7 @@
       postArr.Description = encodeURIComponent($("#CAtemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#CAtemplateOrientation").val());
       postArr.isDefault = encodeURIComponent($("#CAtemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#CAtemplateMacroEnabled")[0].checked);
       if (templateFiles[0]) {
         postArr.FileName = $("#CAtemplateName").val().toLowerCase().replace(/ /g, "-");
       }
@@ -336,6 +358,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#CAtemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/cloud/config/upload", // Replace with your PHP API endpoint

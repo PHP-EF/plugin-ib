@@ -2,7 +2,6 @@
 
 use Label305\PptxExtractor\Basic\BasicExtractor;
 use Label305\PptxExtractor\Basic\BasicInjector;
-use Label305\PptxExtractor\PptxFileException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -2135,7 +2134,7 @@ class SecurityAssessment extends ibPortal {
 						$ActivePeriod = $startedAt->diff($mostRecentAt);
 						$ActivePeriodDays = $ActivePeriod->days ?? 0;
 
-						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'01',$SID->threatType ?? ''); // SOC Insight Name
+						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'01',strtoupper($SID->threatType ?? '')); // SOC Insight Name // Capitalise Whole String
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'02',$ActivePeriodDays); // Active Period
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'03',$SID->startedAt ?? ''); // Insight Creation Date
 						$mapping = replaceTag($mapping,'#SITAG'.$SITagStart.'04',$SID->mostRecentAt ?? ''); // Last Observed Date

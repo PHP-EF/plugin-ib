@@ -31,8 +31,8 @@
       <div class="card">
         <div class="card-body">
           <center>
-            <h4>Cloud Assessment Report Generator</h4>
-            <p>You can use this tool to generate Cloud Assessment Reports for Infoblox Portal accounts.</p>
+            <h4>Visibility Assessment Report Generator</h4>
+            <p>You can use this tool to generate Visibility Assessment Reports for Infoblox Portal accounts.</p>
           </center>
         </div>
       </div>
@@ -156,7 +156,7 @@
             updateCAGProgress(id,timer);
           }, 1000);
         } else if (progress >= 100 && data["Action"] == "Done.." ) {
-          toast("Success","","Cloud Assessment Successfully Generated","success","5000");
+          toast("Success","","Visibility Assessment Successfully Generated","success","5000");
           toast("Success","Please wait..","Downloading Report(s)..","info","30000");
           download("/api/plugin/ib/assessment/cloud/download?id="+id);
           hideCAGLoading(timer);
@@ -197,7 +197,7 @@
         }
         queryAPI("POST","/api/plugin/ib/assessment/cloud/generate", postArr).done(function( data, status ) {
           if (data["result"] == "Success") {
-            toast("Success","Do not refresh the page","Cloud Assessment Report Job Started Successfully","success","30000");
+            toast("Success","Do not refresh the page","Visibility Assessment Report Job Started Successfully","success","30000");
           } else {
             toast(data["result"],"",data["message"],"danger","30000");
             hideCAGLoading(CAGtimer);

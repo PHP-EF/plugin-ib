@@ -68,8 +68,8 @@
               data-sort-name="Status"
               data-sort-order="asc"
               data-page-size="25"
-              data-buttons="templateButtons"
-              data-buttons-order="btnAddTemplate,refresh"
+              data-buttons="SAtemplateButtons"
+              data-buttons-order="btnAddSATemplate,refresh"
               class="table table-striped" id="securityAssessmentTemplateTable">
 
               <thead>
@@ -414,9 +414,9 @@
       }
     }
 
-    function templateButtons() {
+    function SAtemplateButtons() {
       return {
-        btnAddTemplate: {
+        btnAddSATemplate: {
           text: "Add Security Assessment Template",
           icon: "bi-plus-lg",
           event: function() {
@@ -675,8 +675,8 @@
       postArr.TemplateName = encodeURIComponent($("#newSATemplateName").val());
       postArr.Description = encodeURIComponent($("#newSATemplateDescription").val());
       postArr.Orientation = encodeURIComponent($("#newSATemplateOrientation").val());
-      postArr.isDefault = encodeURIComponent($("#SAtemplateSelectedByDefault")[0].checked);
-      postArr.macroEnabled = encodeURIComponent($("#SAtemplateMacroEnabled")[0].checked);
+      postArr.isDefault = encodeURIComponent($("#newSATemplateSelectedByDefault")[0].checked);
+      postArr.macroEnabled = encodeURIComponent($("#newSATemplateMacroEnabled")[0].checked);
       postArr.ThreatActorSlide = encodeURIComponent($("#newSATemplateThreatActorSlide").val());
       postArr.SOCInsightsSlide = encodeURIComponent($("#newSATemplateSOCInsightsSlide").val());
       if (templateFiles[0]) {
@@ -690,6 +690,7 @@
             const formData = new FormData();
             formData.append("pptx", templateFiles[0]);
             formData.append("TemplateName", postArr.FileName);
+            formData.append("macroEnabled", encodeURIComponent($("#newSATemplateMacroEnabled")[0].checked));
             toast("Uploading","Please wait..","Uploading Template..","info","30000");
             $.ajax({
               url: "/api/plugin/ib/assessment/security/config/upload",
