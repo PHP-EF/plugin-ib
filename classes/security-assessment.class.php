@@ -323,9 +323,9 @@ class SecurityAssessment extends ibPortal {
 				foreach ($BandwidthSavings->result->data as $Entry) {
 					$TotalBandwidthBytes += $Entry->{'PortunusAggThreat_ch.bandwidthTotal'};
 				}
+				$TotalBandwidthSavedTop5Classes = array_slice($BandwidthSavings->result->data, 0, 5);
 			}
 			$TotalBandwidthSaved = $this->formatBytes($TotalBandwidthBytes);
-			$TotalBandwidthSavedTop5Classes = array_slice($BandwidthSavings->result->data, 0, 5);
 
 			// Bandwidth Savings Percentage - Used on Slide 7
 			$BandwidthSavingsPercentage = $CubeJSResults['BandwidthSavingsPercentage']['Body'];
@@ -1223,12 +1223,12 @@ class SecurityAssessment extends ibPortal {
 
 				// Application Detection - Slide 19
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Application Detection Page");
-				$AppDiscoveryApplications->result->data = array_slice($AppDiscoveryApplications->result->data, 0, 10);
 				$EmbeddedAppDiscovery = getEmbeddedSheetFilePath('AppDiscovery', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 				$AppDiscoverySS = IOFactory::load($EmbeddedAppDiscovery);
 				$RowNo = 2;
 				// Name, Category, Request Count, Status, Devices, Manufacturer
 				if (isset($AppDiscoveryApplications->result->data)) {
+					$AppDiscoveryApplications->result->data = array_slice($AppDiscoveryApplications->result->data, 0, 10);
 					foreach ($AppDiscoveryApplications->result->data as $AppDiscovery) {
 						$AppDiscoveryS = $AppDiscoverySS->getActiveSheet();
 						$AppDiscoveryS->setCellValue('A'.$RowNo, $AppDiscovery->{'PortunusAggAppDiscovery.app_name'});
@@ -1245,12 +1245,12 @@ class SecurityAssessment extends ibPortal {
 
 				// Web Content Discovery - Slide 20
 				$Progress = $this->writeProgress($config['UUID'],$Progress,"Building Web Content Discovery Page");
-				$HighRiskWebsites->result->data = array_slice($HighRiskWebsites->result->data, 0, 10);
 				$EmbeddedWebContentDiscovery = getEmbeddedSheetFilePath('WebContentDiscovery', $embeddedDirectory, $embeddedFiles, $EmbeddedSheets, $SelectedTemplate['Orientation']);
 				$WebContentDiscoverySS = IOFactory::load($EmbeddedWebContentDiscovery);
 				$RowNo = 2;
 				// Sub Category, Category, Request Count, Device Count
 				if (isset($HighRiskWebsites->result->data)) {
+					$HighRiskWebsites->result->data = array_slice($HighRiskWebsites->result->data, 0, 10);
 					foreach ($HighRiskWebsites->result->data as $WebContentDiscovery) {
 
 						// Determine Parent Category from Sub Category
