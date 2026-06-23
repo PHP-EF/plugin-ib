@@ -8,7 +8,7 @@
     "icon": "https://raw.githubusercontent.com/php-ef/plugin-ib/main/logo.png",
     "contact": "https://github.com/php-ef/plugin-ib/issues",
     "link": "https://github.com/php-ef/plugin-ib",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "minimum_php-ef_version": "0.9.0",
     "release_date": "2024-12-20",
     "last_updated": "2026-05-12",
@@ -18,6 +18,13 @@
       "url": "",
       "title": "Change Log",
       "data": [
+        {
+          "version": "1.4.2",
+          "date": "2026-06-23",
+          "changes": [
+              "Fix bug with app discovery summary metric not aligning with Infoblox UI"
+          ]
+        },
         {
           "version": "1.4.1",
           "date": "2026-05-12",
