@@ -12,7 +12,7 @@
         <div class="col-lg-12">
           <div class="row">
             <!-- Reports Today Card -->
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12">
               <div class="card info-card reports-today-card">
                 <div class="card-body">
                   <h5 class="card-title">Assessments <span>| Today</span></h5>
@@ -33,7 +33,7 @@
             </div><!-- Reports Today Card -->
 
             <!-- Reports This Month Card -->
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12">
               <div class="card info-card reports-month-card">
                 <div class="card-body">
                   <h5 class="card-title">Assessments <span>| This Month</span></h5>
@@ -54,7 +54,7 @@
             </div><!-- Reports This Month Card -->
 
             <!-- Reports This Year Card -->
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12">
               <div class="card info-card reports-year-card">
                 <div class="card-body">
                   <h5 class="card-title">Assessments <span>| This Year</span></h5>
@@ -74,8 +74,29 @@
               </div>
             </div><!-- Reports This Year Card -->
 
+            <!-- Reports All Time Card -->
+            <div class="col-lg-2 col-md-4 col-sm-6 col-12">
+              <div class="card info-card reports-all-time-card">
+                <div class="card-body">
+                  <h5 class="card-title">Assessments <span>| All Time</span></h5>
+                  <div class="d-flex align-items-center">
+                    <!-- <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-people"></i>
+                    </div> -->
+                    <div class="pt-1 ps-3">
+                      <h6 id="reportsAllTimeVal" class="metric-circle border-5"></h6>
+                    </div>
+                    <div class="p-2 pt-2 ps-4">
+                      <span id="customersAllTimeVal" class="ib-green small pt-1 mt-1 fw-bold"></span>
+                      <span id="usersAllTimeVal" class="ib-black small pt-1 mt-1 fw-bold" style="display:flex;"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- Reports All Time Card -->
+
             <!-- Granularity Card -->
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+            <div class="col-lg-4 col-md-4 col-sm-6 col-12">
               <div class="card info-card granularity-card">
                 <div class="card-body">
                   <h5 class="card-title">Granularity</span></h5>
@@ -92,6 +113,7 @@
                         <a class="dropdown-item granularity-select preventDefault" data-granularity="thisYear" href="#">This Year</a>
                         <a class="dropdown-item granularity-select preventDefault" data-granularity="lastMonth" href="#">Last Month</a>
                         <a class="dropdown-item granularity-select preventDefault" data-granularity="lastYear" href="#">Last Year</a>
+                        <a class="dropdown-item granularity-select preventDefault" data-granularity="allTime" href="#">All Time</a>
                         <a class="dropdown-item granularity-select preventDefault" data-granularity="custom" href="#">Custom</a>
                       </div>
                       <button id="clearFilters" class="btn btn-info btn-sm clearFilters" type="button">
@@ -232,6 +254,9 @@
         $("#reportsThisYearVal").text(total["count_this_year"]);
         $("#customersThisYearVal").text(total["unique_customers_this_year"]+" Customers");
         $("#usersThisYearVal").text(total["unique_apiusers_this_year"]+" Users");
+        $("#reportsAllTimeVal").text(total["count_all_time"]);
+        $("#customersAllTimeVal").text(total["unique_customers_all_time"]+" Customers");
+        $("#usersAllTimeVal").text(total["unique_apiusers_all_time"]+" Users");
       });
     };
 
