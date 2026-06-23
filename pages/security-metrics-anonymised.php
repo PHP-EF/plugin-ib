@@ -31,6 +31,7 @@
                             <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="thisYear" href="#">This Year</a>
                             <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastMonth" href="#">Last Month</a>
                             <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="lastYear" href="#">Last Year</a>
+                            <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="allTime" href="#">All Time</a>
                             <a class="dropdown-item anon-granularity-select preventDefault" data-granularity="custom" href="#">Custom</a>
                           </div>
                           <button id="clearFilters" class="btn btn-info btn-sm clearFilters" type="button">

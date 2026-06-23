@@ -141,6 +141,7 @@ class SecurityAssessment extends ibPortal {
 				'NODEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggInsight.type","operator":"equals","values":["2"]},{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["NewlyObservedDomains"]}],"ungrouped":false}',
 				'DGAEvents' => '{"measures":["PortunusAggInsight.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggInsight.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"or":[{"member":"PortunusAggInsight.tproperty","operator":"equals","values":["suspicious_rdga","suspicious_dga","DGA"]},{"member":"PortunusAggInsight.tclass","operator":"equals","values":["DGA","MalwareC2DGA"]}]},{"member":"PortunusAggInsight.type","operator":"equals","values":["2","3"]}],"ungrouped":false}',
 				'AppDiscoveryApplications' => '{"measures":["PortunusAggAppDiscovery.requests","PortunusAggAppDiscovery.deviceCount"],"dimensions":["PortunusAggAppDiscovery.app_name","PortunusAggAppDiscovery.app_category","PortunusAggAppDiscovery.app_vendor","PortunusAggAppDiscovery.app_approval"],"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggAppDiscovery.app_name","operator":"set"},{"member":"PortunusAggAppDiscovery.app_name","operator":"notEquals","values":[""]}],"order":{}}',
+				'AppDiscoveryApplicationsCount' => '{"measures":["PortunusAggAppDiscovery.requests"],"dimensions":["PortunusAggAppDiscovery.app_name","PortunusAggAppDiscovery.app_approval"],"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggAppDiscovery.app_name","operator":"set"},{"member":"PortunusAggAppDiscovery.app_name","operator":"notEquals","values":[""]}],"order":{}}',
 				'AppDiscoveryTotals' => '{"timeDimensions":[{"dimension":"PortunusAggAppDiscovery.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"segments":[],"dimensions":[],"ungrouped":false,"measures":["PortunusAggAppDiscovery.requests","PortunusAggAppDiscovery.deviceCount"]}',
 				'WebContentTotals' => '{"ungrouped":false,"measures":["PortunusAggWebContentDiscovery.deviceCount","PortunusAggWebContentDiscovery.requests"],"segments":[],"dimensions":[],"filters":[{"member":"PortunusAggWebContentDiscovery.domain_category","operator":"notEquals","values":[null]}],"timeDimensions":[{"dimension":"PortunusAggWebContentDiscovery.timestamp","granularity":null,"dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}]}',
 				'WebContentSecurityEvents' => '{"measures":["PortunusAggWebcontent.requests"],"dimensions":[],"timeDimensions":[{"dimension":"PortunusAggWebcontent.timestamp","dateRange":["'.$StartDimension.'","'.$EndDimension.'"]}],"filters":[{"member":"PortunusAggWebcontent.type","operator":"equals","values":["3"]},{"member":"PortunusAggWebcontent.category","operator":"notEquals","values":[null]}],"limit":"1","ungrouped":false}',
@@ -564,7 +565,7 @@ class SecurityAssessment extends ibPortal {
 				];
 			} else {
 				$IVThreatActorsMetrics = [
-					'accounts' => 0,
+					'account' => 0,
 					'industry' => 0,
 					'all' => 0
 				];
@@ -719,9 +720,9 @@ class SecurityAssessment extends ibPortal {
 	
 			// App Discovery - Unique Applications
 			$Progress = $this->writeProgress($config['UUID'],$Progress,"Building list of Unique Applications");
-			$AppDiscoveryApplications = $CubeJSResults['AppDiscoveryApplications']['Body'];
-			if (isset($AppDiscoveryApplications->result->data)) {
-				$AppDiscoveryApplicationsCount = count($AppDiscoveryApplications->result->data);
+			$AppDiscoveryApplicationsCountCube = $CubeJSResults['AppDiscoveryApplicationsCount']['Body'];
+			if (isset($AppDiscoveryApplicationsCountCube->result->data)) {
+				$AppDiscoveryApplicationsCount = count($AppDiscoveryApplicationsCountCube->result->data);
 			} else {
 				$AppDiscoveryApplicationsCount = 0;
 			}
@@ -1227,6 +1228,7 @@ class SecurityAssessment extends ibPortal {
 				$AppDiscoverySS = IOFactory::load($EmbeddedAppDiscovery);
 				$RowNo = 2;
 				// Name, Category, Request Count, Status, Devices, Manufacturer
+				$AppDiscoveryApplications = $CubeJSResults['AppDiscoveryApplications']['Body'];
 				if (isset($AppDiscoveryApplications->result->data)) {
 					$AppDiscoveryApplications->result->data = array_slice($AppDiscoveryApplications->result->data, 0, 10);
 					foreach ($AppDiscoveryApplications->result->data as $AppDiscovery) {

@@ -63,7 +63,7 @@ class CloudAssessment extends ibPortal {
 
 			// Get date/time 30 days earlier
 			$pastDate = new DateTime();
-			$pastDate->modify('-30 days');
+			$pastDate->modify('-7 days');
 			$StartDimension = $pastDate->format('Y-m-d\TH:i:s.v');
 
 			// Get current date/time
