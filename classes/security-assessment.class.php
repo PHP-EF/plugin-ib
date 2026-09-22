@@ -2383,7 +2383,7 @@ class SecurityAssessment extends ibPortal {
 		$Total = count($SelectedTemplates);
 		$Templates = array_values(array_column($SelectedTemplates,'FileName'));
 		$Progress = json_encode(array(
-			'Total' => ($Total * 19) + 35,
+			'Total' => ($Total * 19) + 36,
 			'Count' => 0,
 			'Action' => "Starting..",
 			'Templates' => $Templates
