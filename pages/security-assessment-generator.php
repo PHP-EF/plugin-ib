@@ -257,10 +257,15 @@
     $("#GenerateSA").prop("disabled", true)
     queryAPI("GET", "/api/uuid/generate").done(function( data ) {
       if (data.data) {
+        const assessmentStartAndEndDate = $("#SAGassessmentStartAndEndDate")[0].value.split(" to ");
+        if (assessmentStartAndEndDate.length !== 2) {
+          toast("Error","Invalid Date Range","Please provide a valid start and end date.","danger","30000");
+          $("#GenerateSA").prop("disabled", false);
+          return null;
+        }
         let id = data.data;
         let SAGtimer = startTimer('#sag-elapsed');
         showSAGLoading(id,SAGtimer);
-        const assessmentStartAndEndDate = $("#SAGassessmentStartAndEndDate")[0].value.split(" to ");
         const startDateTime = new Date(assessmentStartAndEndDate[0]);
         const endDateTime = new Date(assessmentStartAndEndDate[1]);
         var postArr = {};
